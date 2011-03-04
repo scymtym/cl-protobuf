@@ -1,4 +1,4 @@
-;;; target-class.lisp ---
+;;; target-class.lisp --- Generate Lisp classes from descriptors.
 ;;
 ;; Copyright (C) 2010, 2011 Jan Moringen
 ;;
@@ -36,7 +36,9 @@
 (in-package :protocol-buffer.backend)
 
 (defmethod documentation ((thing (eql :class)) (type (eql 'target)))
-  "TODO")
+  "Define Lisp classes based on protocol buffer descriptors. The
+generated classes will not automatically have associated `pack' and
+`unpack' methods. These have to be generated separately.")
 
 (defmethod emit :around ((node   pb::file-desc)
 			 (target (eql :class)))
@@ -50,7 +52,7 @@
 
 (defmethod emit ((node   pb::message-desc)
 		 (target (eql :class)))
-  "TODO"
+  "Define a Lisp class for NODE. "
   (with-emit-symbols
     (bind (((:accessors-r/o
 	     (name   pb::message-desc-name)
@@ -76,7 +78,7 @@
 ;; TODO handle default value
 (defmethod emit ((node   pb::field-desc)
 		 (target (eql :class)))
-  "TODO"
+  "Emit a slot specification for NODE."
   (with-emit-symbols
     (bind (((:accessors-r/o
 	     (name      pb::field-desc-name)
@@ -94,12 +96,13 @@
 
 (defmethod emit ((node   pb::field-options)
 		 (target (eql :class)))
-  "TODO"
+  "Emit a Boolean value indicating whether the packed option is set in
+NODE."
   (pb::field-options-packed node))
 
 (defmethod emit ((node   pb::enum-desc)
 		 (target (eql :class)))
-  "TODO"
+  "Emit enum definition for NODE."
   (with-emit-symbols
     (bind (((:accessors-r/o
 	     (name   pb::enum-desc-name)
@@ -109,7 +112,7 @@
 
 (defmethod emit ((node   pb::enum-value-desc)
 		 (target (eql :class)))
-  "TODO"
+  "Emit name-value-pair for NODE."
   (bind (((:accessors-r/o
 	   (name   pb::enum-value-desc-name)
 	   (number pb::enum-value-desc-number)) node)
