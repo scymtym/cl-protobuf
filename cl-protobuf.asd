@@ -114,7 +114,9 @@
 					     :depends-on ("protocol"))
 					    (:file       "target-serializer"
 					     :depends-on ("protocol"
-							  "generator-code"))))
+							  "generator-code"))
+					    (:file       "target-proto"
+					     :depends-on ("protocol"))))
 
 			      (:module     "frontend"
 			       :depends-on ("frontend-early"
