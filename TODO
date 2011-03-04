@@ -1,0 +1,10 @@
+* TODO Optional values
+  + How to represent (unbound slots vs. nil)
+* TODO Start/Type code terminology
+* TODO Use conditions
+  browns protocol buffer stuff seems to have nice error handling
+* TODO Get rid of =with-gensyms=
+
+# Local Variables:
+# mode: org
+# End:
