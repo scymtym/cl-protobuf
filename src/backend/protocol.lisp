@@ -83,7 +83,6 @@ which describe what is being emitted.")
 
 (defclass context ()
   ((target  :initarg  :target
-	    :type     symbol
 	    :accessor context-target
 	    :initform nil
 	    :documentation
@@ -125,7 +124,7 @@ state of a particular emission process. This state consists of:
 ;;;
 ;;
 
-(defmethod  emit ((node t) (target list))
+(defmethod  emit :around ((node t) (target list))
   (let ((target1 (apply #'make-instance
 			(intern (string (first target)) :pbb)
 			(rest target))))
@@ -188,9 +187,9 @@ extensions and options."
   "Message; default behavior is recursion over contained elements."
   (with-emit-symbols
     (map nil #'recur (pb::message-desc-enum-type   node))
+    (map nil #'recur (pb::message-desc-nested-type node))
     (map nil #'recur (pb::message-desc-field       node))
-    (map nil #'recur (pb::message-desc-extension   node))
-    (map nil #'recur (pb::message-desc-nested-type node))))
+    (map nil #'recur (pb::message-desc-extension   node))))
 
 (defmethod emit ((node pb::field-desc) (target t))
   "Field; default behavior is recursion into options it any."
