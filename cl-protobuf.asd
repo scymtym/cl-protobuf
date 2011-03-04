@@ -136,7 +136,13 @@
   :depends-on  (:cl-protobuf
 		:lift)
   :components  ((:module     "test"
-		 :components ((:file       "package"))))
+		 :components ((:file       "package")
+
+			      (:module     "frontend"
+			       :depends-on ("package")
+			       :components ((:file       "package")
+					    (:file       "s-expr"
+					     :depends-on ("package")))))))
   :in-order-to ((test-op (load-op :cl-protobuf-test))))
 
 (defmethod perform ((op test-op) (system (eql (find-system :cl-protobuf-test))))
