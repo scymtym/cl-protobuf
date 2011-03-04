@@ -42,13 +42,10 @@ generated classes will not automatically have associated `pack' and
 
 (defmethod emit :around ((node   pb::file-desc)
 			 (target (eql :class)))
+  (maybe-make-package (pb::file-desc-package node))
+
   (handler-bind (#+sbcl(sb-c::redefinition-warning #'muffle-warning))
     (call-next-method)))
-
-(defmethod emit :around ((node   pb::file-desc)
-			 (target (eql :class)))
-  (maybe-make-package (pb::file-desc-package node))
-  (call-next-method))
 
 (defmethod emit ((node   pb::message-desc)
 		 (target (eql :class)))
