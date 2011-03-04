@@ -110,20 +110,3 @@ not fully qualified.~@:>"
     (or (do-it)
 	(error "~@<Could not find a symbol named ~S in package ~S.~@:>"
 	       name package))))
-
-(defun mangle-upcase-hypen (ident)
-  (with-output-to-string (s)
-    (let* ((str (string ident))
-           (uncamel (find-if #'lower-case-p str)))
-      (princ (char-upcase (aref str 0)) s)
-      (loop for c across (subseq str 1)
-         do (cond
-              ((and uncamel (upper-case-p c))
-               (princ #\- s)
-               (princ  c s))
-              ((lower-case-p c)
-               (princ (char-upcase c) s))
-              ((eq c #\_)
-               (princ #\- s))
-              (t
-               (princ c s)))))))
