@@ -104,16 +104,17 @@
 ;; eventually.
 
 (eval-when (:compile-toplevel :load-toplevel)
-  (defun needs-byteswap (endian)
-    (assert (or (eq :little endian)
-                (eq :big endian)))
-    (let ((native-endian (ecase (cffi:with-foreign-object (x :uint16)
-                                  (setf (cffi:mem-aref x :uint8 0) 1)
-                                  (setf (cffi:mem-aref x :uint8 1) 0)
-                                  (cffi:mem-ref x :uint16))
-                           (1 :little)
-                           (256 :big))))
-      (not (eq endian native-endian)))))
+  (unless (fboundp 'needs-byteswap)
+    (defun needs-byteswap (endian)
+      (assert (or (eq :little endian)
+		  (eq :big endian)))
+      (let ((native-endian (ecase (cffi:with-foreign-object (x :uint16)
+				    (setf (cffi:mem-aref x :uint8 0) 1)
+				    (setf (cffi:mem-aref x :uint8 1) 0)
+				    (cffi:mem-ref x :uint16))
+			     (1 :little)
+			     (256 :big))))
+	(not (eq endian native-endian))))))
 
 ;; A fast path for SBCL when native and encoded are the same
 ;; Question: Do we need to pin the buffer?
