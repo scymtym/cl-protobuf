@@ -113,5 +113,5 @@ NODE."
   (bind (((:accessors-r/o
 	   (name   pb::enum-value-desc-name)
 	   (number pb::enum-value-desc-number)) node)
-	 (name1 (intern (pb::->lisp-name name) :keyword)))
+	 (name1 (make-lisp-enum-value name)))
     `(,name1 ,number)))
