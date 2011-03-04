@@ -119,7 +119,7 @@
 			      (:module     "frontend"
 			       :depends-on ("frontend-early"
 					    "bootstrap")
-			       :components ())
+			       :components ((:file       "protobin")))
 
 			      ;; Late "bootstrapping"
 			      (:file       "bootstrap-late"
