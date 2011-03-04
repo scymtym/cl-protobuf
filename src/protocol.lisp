@@ -96,7 +96,6 @@ instance."
 	    (read-sequence buffer source)
 	    buffer))
 	 (buffer (if end (read-range) (read-whole-file))))
-    (format t "~@<~{~2,'0X~^ ~}~@:>~%" (coerce buffer 'list))
     (unpack buffer object)))
 
 (defmethod unpack ((source pathname) (object t) &optional (start 0) end)
