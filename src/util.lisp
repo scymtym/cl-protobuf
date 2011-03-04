@@ -83,19 +83,10 @@
 	 ((:flet split (index))
 	  (list (subseq name 1 index) (subseq name (1+ index))))
 	 ((:flet find-name-in-package (package name))
-	  (format t "Trying ~S in ~S"
-		  (->lisp-name name)
-		  (->lisp-name package :allow-dots? t))
 	  (let ((package1 (find-package
 			   (->lisp-name package :allow-dots? t))))
-	    (unless package1
-	      (format t " -> no~%"))
 	    (when package1
-	      (let ((sym (find-symbol (->lisp-name name) package1)))
-		(if sym
-		    (format t " -> ~S~%" sym)
-		    (format t " -> no~%"))
-		sym))))
+	      (find-symbol (->lisp-name name) package1))))
 	 ((:flet do-it ())
 	  (if fully-qualified?
 	      (some (curry #'apply #'find-name-in-package)
