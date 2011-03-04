@@ -39,11 +39,15 @@
 ;;; Naming-related functions
 ;;
 
-(defun make-lisp-enum-name (name parent)
+(defun make-lisp-enum-name (name &optional parent)
   "DOC"
   (pb::->lisp-name (%maybe-nested-name name parent)))
 
-(defun make-lisp-class-name (name parent)
+(defun make-lisp-enum-value (name)
+  "DOC"
+  (intern (pb::->lisp-name name) :keyword))
+
+(defun make-lisp-class-name (name &optional parent)
   "DOC"
   (pb::->lisp-name (%maybe-nested-name name parent)))
 
