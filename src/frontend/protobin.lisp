@@ -35,7 +35,6 @@
 
 (in-package :protocol-buffer.frontend)
 
-;; TODO the object/class name should be optional
 (defgeneric load/binary (source
 			 &key
 			 start
