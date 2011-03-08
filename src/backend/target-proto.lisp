@@ -48,13 +48,8 @@ syntax.")
 ;;; Target class
 ;;
 
-(defclass target-proto ()
-  ((stream :initarg  :stream
-	   :type     stream
-	   :accessor target-proto-stream
-	   :documentation
-	   "The stream to which the textual protocol buffer
-description should be printed."))
+(defclass target-proto (stream-target-mixin)
+  ()
   (:documentation
    "Instances of this class are used to specify the stream to which
 protocol buffer descriptions should be printed."))
@@ -63,15 +58,6 @@ protocol buffer descriptions should be printed."))
 ;;; Target-specific macros
 ;;
 
-(defmacro with-proto-emit-symbols (stream-var &body body)
-  "Execute BODY with the additional symbols provided by
-`with-emit-symbols' and STREAM-VAR bound to the stream associated to
-the current emit target. "
-  `(let ((,stream-var (target-proto-stream
-		       (context-target *context*))))
-     (with-emit-symbols
-       ,@body)))
-
 (defmacro with-proto-logical-block ((kind name) &body body)
   "Execute BODY with the stream of the current emit target bound to a
 pretty-printing stream that indents all output produced within BODY to
@@ -79,14 +65,14 @@ a certain depth. In addition, a scope of kind KIND and name NAME is
 printed around the output."
   (with-unique-names (target-var stream-var)
     `(let* ((,target-var (context-target *context*))
-	    (,stream-var (target-proto-stream ,target-var)))
+	    (,stream-var (target-stream ,target-var)))
        (format ,stream-var "~A ~A {~%" ,kind ,name)
        (unwind-protect
 	    (pprint-logical-block (,stream-var nil
 					       :per-line-prefix "  ")
-	      (setf (target-proto-stream ,target-var) ,stream-var)
+	      (setf (target-stream ,target-var) ,stream-var)
 	      ,@body)
-	 (setf (target-proto-stream ,target-var) ,stream-var)
+	 (setf (target-stream ,target-var) ,stream-var)
 	 (format ,stream-var "}~%")))))
 
 
@@ -98,12 +84,12 @@ printed around the output."
 
 (defmethod emit :before ((node   pb::file-set-desc)
 			 (target target-proto))
-  (with-proto-emit-symbols stream
+  (with-stream-emit-symbols stream
     (format stream "// File Descriptor Set~%")))
 
 (defmethod emit ((node   pb::file-desc)
 		 (target target-proto))
-  (with-proto-emit-symbols stream
+  (with-stream-emit-symbols stream
     (bind (((:accessors-r/o
 	     (name     pb::file-desc-name)
 	     (package  pb::file-desc-package)
@@ -127,7 +113,7 @@ printed around the output."
 
 (defmethod emit ((node   pb::file-options)
 		 (target target-proto))
-  (with-proto-emit-symbols stream
+  (with-stream-emit-symbols stream
     (iter (for (slot label) in
 	       '((pb::java-package         "java_package")
 		 (pb::java-outer-classname "java_outer_classname")))
@@ -144,7 +130,7 @@ printed around the output."
 
 (defmethod emit ((node   pb::field-desc)
 		 (target target-proto))
-  (with-proto-emit-symbols stream
+  (with-stream-emit-symbols stream
     (bind (((:accessors-r/o
 	     (name      pb::field-desc-name)
 	     (number    pb::field-desc-number)
@@ -168,7 +154,7 @@ printed around the output."
 
 (defmethod emit ((node   pb::field-options)
 		 (target target-proto))
-  (with-proto-emit-symbols stream
+  (with-stream-emit-symbols stream
     (bind (((:accessors-r/o
 	     (packed pb::field-options-packed)) node))
       (format stream " [packed = ~:[false~;true~]]" packed))))
@@ -182,7 +168,7 @@ printed around the output."
 
 (defmethod emit ((node   pb::enum-value-desc)
 		 (target target-proto))
-  (with-proto-emit-symbols stream
+  (with-stream-emit-symbols stream
     (bind (((:accessors-r/o
 	     (name   pb::enum-value-desc-name)
 	     (number pb::enum-value-desc-number)) node))

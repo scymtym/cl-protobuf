@@ -110,6 +110,8 @@
 					     :depends-on ("util"))
 					    (:file       "code-generating-target-mixin"
 					     :depends-on ("util"))
+					    (:file       "stream-target-mixin"
+					     :depends-on ("protocol"))
 					    (:file       "generator-code"
 					     :depends-on ("util"))
 					    (:file       "target-class"
@@ -120,7 +122,8 @@
 							  "generator-code"
 							  "code-generating-target-mixin"))
 					    (:file       "target-proto"
-					     :depends-on ("protocol"))))
+					     :depends-on ("protocol"
+							  "stream-target-mixin"))))
 
 			      (:module     "frontend"
 			       :depends-on ("frontend-early"
