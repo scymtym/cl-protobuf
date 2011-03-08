@@ -124,7 +124,7 @@ protocol buffer descriptor class hierarchy in terms of `message-desc',
    'file-set-desc
    :file (vector (make-instance
 		  'file-desc
-		  :name         "reflective-descriptors"
+		  :name         "reflective-descriptors.proto"
 		  :package      "protocol-buffer"
 		  :message-type (coerce *reflective-descriptors* 'vector))))
   "A protocol buffer file set descriptor instance containing all
