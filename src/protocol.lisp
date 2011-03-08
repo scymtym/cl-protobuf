@@ -99,17 +99,18 @@ instance."
     (unpack buffer object)))
 
 (defmethod unpack ((source pathname) (object t) &optional (start 0) end)
-  "DOC"
+  "Open a stream for SOURCE and, potentially seek to START, then
+unpack the contents into OBJECT."
   (with-input-from-file (stream source
-			 :element-type '(unsigned-byte 8))
+				:element-type '(unsigned-byte 8))
     (unless (zerop start)
       (file-position stream start))
-    (apply #'unpack stream object (when end (list end)))))
+    (unpack stream object 0 (- (or end (file-length stream)) start))))
 
 (defmethod unpack ((source string) (object t) &optional (start 0) end)
-  "DOC"
-  (apply #'unpack (pathname source) object start
-	 (when end (list end))))
+  "Open the file designated by SOURCE, potentially seek to START, then
+unpack the contents into OBJECT."
+  (unpack (pathname source) object start end))
 
 
 ;;; Enum translation protocol
