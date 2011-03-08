@@ -189,9 +189,9 @@
 (def-decoder decode-uint16-le       :uint16 (unsigned-byte 16) :little)
 (def-decoder decode-uint16-be       :uint16 (unsigned-byte 16) :big)
 
-;;;;;;;;;;;;;;;;;;;;;
-;;; CFFI ENCODERS ;;;
-;;;;;;;;;;;;;;;;;;;;;
+
+;;; CFFI encoders
+;;
 
 ;; A fast path for SBCL when native and encoded are the same
 ;; Question: Do we need to pin the buffer?
@@ -205,7 +205,6 @@
                                            start)
                          ,c-type)
            value)))
-
 
 (defmacro def-encoder-cffi (c-type swap)
   `(cffi:with-foreign-object (x ,c-type)
@@ -323,14 +322,6 @@
        ((= i end) (values n buffer))
     (setf (aref buffer i) (ldb (byte 8 k) val))))
 
-  ;; (let* ((count (/ bits 8))
-  ;;        (buffer (or buffer (make-octet-vector count))))
-  ;;   (declare (type octet-vector buffer))
-  ;;   (dotimes (i count)
-  ;;     (setf (aref-endian buffer i start count endian)
-  ;;           (ldb (byte 8 (* i 8)) val)))
-  ;;   (values (/ bits 8) buffer)))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; floating point types ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -378,49 +369,6 @@
   (let ((bits (scary-single-float-bits val)))
     (declare (type octet-vector buffer))
     (encode-int bits endian buffer start)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; fixed integer types ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; (defmacro def-uint-decoder (name bits endian)
-;;     `(progn
-;;        (declaim (inline ,name))
-;;        (defun ,name (buffer &optional (start 0))
-;;          (declare (type octet-vector buffer)
-;;                   (type fixnum start))
-;;          (logior ,@(loop
-;;                       with n = (/ bits 8)
-;;                       for i below n
-;;                       for j = (ecase endian
-;;                                 (:little i)
-;;                                 (:big (- n i 1)))
-;;                       collect
-;;                         `(ash (aref buffer (+ start ,i)) ,(* 8 j)))))))
-
-;; (defmacro def-sint-decoder (name bits uint-decoder)
-;;   `(progn
-;;      (declaim (inline ,name))
-;;      (defun ,name (buffer &optional (start 0))
-;;        (declare (type octet-vector buffer)
-;;                 (type fixnum start))
-;;        (let ((u (,uint-decoder buffer start)))
-;;          (declare (type (unsigned-byte ,bits) u))
-;;          (let ((s (if (logbitp ,(1- bits) u)
-;;                       (- u ,(ash 1 bits))
-;;                       u)))
-;;            (declare (type (signed-byte ,bits) s))
-;;            s)))))
-
-;; (def-uint-decoder decode-uint-32-le 32 :little)
-;; (def-uint-decoder decode-uint-64-le 64 :little)
-;; (def-uint-decoder decode-uint-32-be 32 :big)
-;; (def-uint-decoder decode-uint-64-be 64 :big)
-
-;; (def-sint-decoder decode-sint-32-le 32 decode-uint-32-le)
-;; (def-sint-decoder decode-sint-64-le 64 decode-uint-64-le)
-;; (def-sint-decoder decode-sint-32-be 32 decode-uint-32-be)
-;; (def-sint-decoder decode-sint-64-be 64 decode-uint-64-be)
 
 
 ;;; Unsigned varint type
@@ -537,9 +485,9 @@
       (decode-uvarint buffer start)
     (values (varint-unzigzag uv) i)))
 
-;;;;;;;;;;;;;;;
-;;; strings ;;;
-;;;;;;;;;;;;;;;
+
+;;; Strings
+;;
 
 #-sbcl
 (defun encode-utf8 (string
