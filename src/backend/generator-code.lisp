@@ -195,7 +195,7 @@
 
 (defun generate-slot-packer (name type position
 			     &key
-			     label packed?
+			     repeated? packed?
 			     buffer-var offset-var startsym object-var
 			     &allow-other-keys)
   "Generate code to pack a single slot."
@@ -206,7 +206,7 @@
 				`(,slot-value)))
        ,@(cond
 	  ;; Scalar slot
-	  ((not (eq label :repeated))
+	  ((not repeated?)
 	   `(,(generate-offset-incrementer type position
 					   :buffer-var buffer-var
 					   :offset-var offset-var)

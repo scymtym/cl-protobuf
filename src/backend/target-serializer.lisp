@@ -1,7 +1,7 @@
 ;;; target-serializer.lisp --- Emit (De)serializer.
 ;;
 ;; Copyright (C) 2009, 2010 Georgia Tech Research Corporation
-;; Copyright (c) 2010, 2011 Jan Moringen
+;; Copyright (C) 2010, 2011 Jan Moringen
 ;;
 ;; Author: Neil T. Dantam
 ;;         Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
@@ -51,7 +51,9 @@ obtained by parsing the binary output of protoc.")
   (with-emit-symbols
     (bind (((:accessors-r/o
 	     (name   pb::message-desc-name)
-	     (fields pb::message-desc-field)) node)) ;; field is actually a sequence of fields
+	     (nested pb::message-desc-nested-type)
+	     (fields pb::message-desc-field)) node))
+      (map 'nil #'recur nested)
       (eval (generate-packed-size-method
 	     (intern* name) (map 'list #'recur fields))))))
 
@@ -63,18 +65,19 @@ obtained by parsing the binary output of protoc.")
 	     (name      pb::field-desc-name)
 	     (type      pb::field-desc-type)
 	     (type-name pb::field-desc-type-name)
-	     (position  pb::field-desc-number)
+	     (number    pb::field-desc-number)
 	     (label     pb::field-desc-label)
 	     (options   pb::field-desc-options)) node)
-	   (packed? (pb::field-options-packed options)))
+	   (repeated? (eq label :repeated))
+	   (packed?   (pb::field-options-packed options)))
       (let ((type (if (member type '(:message :enum))
 		      (intern* type-name)
 		      type))) ;; TODO do this properly; same code in target-class,
 	#'(lambda (object-var)
 	    (generate-slot-packed-size
-	     (intern* name) type position
+	     (intern* name) type number
 	     :object-var object-var
-	     :repeated?  (eq label :repeated)
+	     :repeated?  repeated?
 	     :packed?    packed?))))))
 
 
@@ -91,8 +94,10 @@ obtained by parsing the binary output of protoc.")
   (with-emit-symbols
     (bind (((:accessors-r/o
 	     (name   pb::message-desc-name)
-	     (fields pb::message-desc-field)) node)) ;; field is actually a sequence of fields
-      (generate-pack-method name (map nil #'recur fields)))))
+	     (nested pb::message-desc-nested-type)
+	     (fields pb::message-desc-field)) node))
+      (map 'nil #'recur nested)
+      (eval (generate-pack-method name (map nil #'recur fields))))))
 
 (defmethod emit ((node   pb::field-desc)
 		 (target (eql :serializer)))
@@ -100,12 +105,14 @@ obtained by parsing the binary output of protoc.")
   (bind (((:accessors-r/o
 	   (name    pb::field-desc-name)
 	   (type    pb::field-desc-type)
+	   (number  pb::field-desc-number)
 	   (label   pb::field-desc-label)
 	   (options pb::field-desc-options)) node)
-	 (packed? (pb::field-options-packed options)))
+	 (repeated? (eq label :repeated))
+	 (packed?   (pb::field-options-packed options)))
     #'(lambda (object-var)
-	(generate-slot-packer name type 0 ;; TODO where do we get position?
-			      :label      label
+	(generate-slot-packer name type number
+			      :repeated   repeated?
 			      :packed?    packed?
 			      :object-var object-var))))
 
@@ -129,10 +136,8 @@ obtained by parsing the binary output of protoc.")
     (bind (((:accessors-r/o
 	     (name   pb::message-desc-name)
 	     (nested pb::message-desc-nested-type)
-	     ;(enums  pb::message-desc-enum-type)
-	     (fields pb::message-desc-field)) node) ;; field is actually a sequence of fields
+	     (fields pb::message-desc-field)) node)
 	   (name1 (intern* (make-lisp-class-name name parent))))
-      ;(map 'nil #'recur enums)
       (map 'nil #'recur nested)
       (eval (generate-unpack-method name1 (map 'list #'recur fields))))))
 
@@ -142,7 +147,7 @@ obtained by parsing the binary output of protoc.")
   (with-emit-symbols
     (bind (((:accessors-r/o
 	     (name      pb::field-desc-name)
-	     (position  pb::field-desc-number)
+	     (number    pb::field-desc-number)
 	     (type      pb::field-desc-type)
 	     (type-name pb::field-desc-type-name)
 	     (label     pb::field-desc-label)
@@ -158,7 +163,7 @@ obtained by parsing the binary output of protoc.")
 	   (desired-wire-type (proto-type->wire-type type repeated? packed?)))
       #'(lambda (read-wire-type-var buffer-form offset-form object-form)
 	  (values
-	   position
+	   number
 	   `((unless (= ,read-wire-type-var ,desired-wire-type) ;; TODO move to generator-code
 	       (error "~@<Invalid wire-type for field ~A. Wanted ~D (~A)
 but found ~D (~A).~@:>"
