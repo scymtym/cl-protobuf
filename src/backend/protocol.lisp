@@ -41,14 +41,22 @@
 
 (defmacro with-emit-symbols (&body body)
   "Execute BODY with the following symbols added to the lexical scope:
-+ package :: The package that is the current target of the emission
-             process.
-+ parent  :: The parent of the current node.
-+ recur   :: A closure that accepts a node and calls `emit' with the
-             current target on that node.
-+ intern* :: Similar to `intern' but use the context package."
-  `(symbol-macrolet ((package (context-package *context*))
-		     (parent  (second (context-stack *context*))))
++ package            :: The package that is the current target of the
+                        emission process.
++ parent             :: The parent of the current node or nil.
++ grandparent        :: The parent of the parent of the current node
+                        or nil.
++ ancestors          :: List of all ancestor nodes.
++ parent-is-message? :: non-nil if parent is non-nil and of a subtype
+                        of `message-desc'.
++ recur              :: A closure that accepts a node and calls `emit'
+                        with the current target on that node.
++ intern*            :: Similar to `intern' but use the context package."
+  `(symbol-macrolet ((package            (context-package *context*))
+		     (parent             (second (context-stack *context*)))
+		     (grandparent        (third (context-stack *context*)))
+		     (ancestors          (rest (context-stack *context*)))
+		     (parent-is-message? (typep parent 'pb::message-desc)))
      (flet ((recur (node)
 	      (emit node (context-target *context*)))
 	    (intern* (name) ;; TODO rename
