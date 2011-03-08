@@ -147,7 +147,9 @@
 			      (:module     "descriptors"
 			       :pathname   "data"
 			       :components ((:static-file "addressbook.protobin")
-					    (:static-file "developer-guide.protobin")))
+					    (:static-file "addressbook.proto.expected")
+					    (:static-file "developer-guide.protobin")
+					    (:static-file "developer-guide.proto.expected")))
 
 			      (:module     "binio"
 			       :depends-on ("package")

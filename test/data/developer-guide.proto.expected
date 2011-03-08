@@ -1,0 +1,18 @@
+// File Descriptor Set
+// BEGIN File Descriptor Proto
+// Name: developer-guide.proto
+package developer_guide;
+// Messages:
+message Test1 {
+  required int32 a = 1;
+  }
+message Test2 {
+  required string b = 2;
+  }
+message Test3 {
+  required .developer_guide.Test1 c = 3;
+  }
+message Test4 {
+  repeated int32 d = 4 [packed = true];
+  }
+// END File Descriptor Proto
