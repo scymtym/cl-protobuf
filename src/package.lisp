@@ -45,6 +45,10 @@
 
    :binio)
 
+  ;; Conditions
+  (:export
+   :unhandled-field-number)
+
   ;; Wire types
   (:export
    :wire-type
