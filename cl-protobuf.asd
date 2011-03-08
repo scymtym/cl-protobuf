@@ -140,6 +140,9 @@
   :components  ((:module     "test"
 		 :components ((:file       "package")
 
+			      (:file       "util"
+			       :depends-on ("package"))
+
 			      (:module     "frontend"
 			       :depends-on ("package")
 			       :components ((:file       "package")
