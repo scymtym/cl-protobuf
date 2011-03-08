@@ -41,18 +41,27 @@ generated classes will not automatically have associated `pack' and
 `unpack' methods. These have to be generated separately.")
 
 
-;;;
+;;; Target class
+;;
+
+(defclass target-class ()
+  ()
+  (:documentation
+   "Target class for class code generation."))
+
+
+;;; Emitter methods
 ;;
 
 (defmethod emit :around ((node   pb::file-desc)
-			 (target (eql :class)))
+			 (target target-class))
   (maybe-make-package (pb::file-desc-package node))
 
   (handler-bind (#+sbcl(sb-c::redefinition-warning #'muffle-warning))
     (call-next-method)))
 
 (defmethod emit ((node   pb::message-desc)
-		 (target (eql :class)))
+		 (target target-class))
   "Define a Lisp class for NODE. "
   (with-emit-symbols
     (bind (((:accessors-r/o
@@ -71,7 +80,7 @@ generated classes will not automatically have associated `pack' and
 
 ;; TODO handle default value
 (defmethod emit ((node   pb::field-desc)
-		 (target (eql :class)))
+		 (target target-class))
   "Emit a slot specification for NODE."
   (with-emit-symbols
     (bind (((:accessors-r/o
@@ -94,13 +103,13 @@ generated classes will not automatically have associated `pack' and
 			 :class-name class-name)))))
 
 (defmethod emit ((node   pb::field-options)
-		 (target (eql :class)))
+		 (target target-class))
   "Emit a Boolean value indicating whether the packed option is set in
 NODE."
   (pb::field-options-packed node))
 
 (defmethod emit ((node   pb::enum-desc)
-		 (target (eql :class)))
+		 (target target-class))
   "Emit enum definition for NODE."
   (with-emit-symbols
     (bind (((:accessors-r/o
@@ -111,7 +120,7 @@ NODE."
       (eval `(progn ,@forms)))))
 
 (defmethod emit ((node   pb::enum-value-desc)
-		 (target (eql :class)))
+		 (target target-class))
   "Emit name-value-pair for NODE."
   (bind (((:accessors-r/o
 	   (name   pb::enum-value-desc-name)
