@@ -58,19 +58,12 @@ generated classes will not automatically have associated `pack' and
 	     (fields pb::message-desc-field)) node) ;; field is actually a sequence of fields
 	   (name1 (intern* (make-lisp-class-name name parent)))
 	   (forms (generate-class name1 (map 'list #'recur fields))))
-      ;; Evaluated nested definitions immediately so type are
+      ;; Evaluate nested definitions immediately so types are
       ;; available.
-      (unless (emptyp enums)
-	(eval `(progn
-		 ,@(apply #'append (map 'list #'recur enums)))))
-      (unless (emptyp nested)
-	(eval `(progn
-		 ,@(apply #'append (map 'list #'recur nested)))))
-      ;; For nested messages, aggregate forms into parent forms. For
-      ;; top-level messages, go ahead and evaluate.
-      (if (typep parent 'pb::message-desc)
-	  forms
-	  (eval `(progn ,@forms))))))
+      (map nil #'recur enums)
+      (map nil #'recur nested)
+      ;;
+      (eval `(progn ,@forms)))))
 
 ;; TODO handle default value
 (defmethod emit ((node   pb::field-desc)
@@ -104,8 +97,9 @@ NODE."
     (bind (((:accessors-r/o
 	     (name   pb::enum-desc-name)
 	     (values pb::enum-desc-value)) node)
-	   (name1 (intern* (make-lisp-enum-name name parent))))
-      (generate-enum name1 (map 'list #'recur values))))) ;; TODO when do we evaluate top-level enums?
+	   (name1 (intern* (make-lisp-enum-name name parent)))
+	   (forms (generate-enum name1 (map 'list #'recur values))))
+      (eval `(progn ,@forms)))))
 
 (defmethod emit ((node   pb::enum-value-desc)
 		 (target (eql :class)))
