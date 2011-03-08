@@ -144,6 +144,11 @@
   :components  ((:module     "test"
 		 :components ((:file       "package")
 
+			      (:module     "descriptors"
+			       :pathname   "data"
+			       :components ((:static-file "addressbook.protobin")
+					    (:static-file "developer-guide.protobin")))
+
 			      (:module     "binio"
 			       :depends-on ("package")
 			       :components ((:file       "package")
@@ -152,6 +157,13 @@
 
 			      (:file       "util"
 			       :depends-on ("package"))
+
+			      (:module     "backend"
+			       :depends-on ("package"
+					    "descriptors")
+			       :components ((:file       "package")
+					    (:file       "target-proto"
+					     :depends-on ("package"))))
 
 			      (:module     "frontend"
 			       :depends-on ("package")
