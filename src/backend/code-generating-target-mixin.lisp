@@ -29,7 +29,7 @@ represent a code generation target."))
 			 (target code-generating-target-mixin))
   (let* ((package-name (pb::file-desc-package node))
 	 (package      (progn
-			 (maybe-make-package (pb::file-desc-package node))
+			 (maybe-make-package package-name)
 			 (maybe-find-package-or-loose package-name))))
     (setf (context-package *context*) package)
     (unwind-protect
