@@ -79,10 +79,10 @@ generated classes will not automatically have associated `pack' and
 	   (name1 (intern* (make-lisp-slot-name name)))
 	   (type1 (if (member type '(:message :enum))
 		      (pb::proto-type-name->lisp-type-symbol type-name)
-		      type))) ;; TODO do this properly; same code in target-serializer
+		      type)) ;; TODO do this properly; same code in target-serializer
+	   (packed? (when options (recur options))))
       #'(lambda ()
-	  (generate-slot name1 type1 label
-			 (when options (recur options)))))))
+	  (generate-slot name1 type1 label packed?)))))
 
 (defmethod emit ((node   pb::field-options)
 		 (target (eql :class)))
