@@ -100,28 +100,36 @@ read."
 			buffer start))
 
 
-;;;
+;;; Size computations for:
+;; + variable-width packed arrays
+;; + length-delimited values
 ;;
 
-(declaim (ftype (function ((simple-array integer (*))) *)
+(declaim (ftype (function ((simple-array integer (*)))
+			  non-negative-integer)
 		packed-uvariant-size))
 
 (defun packed-uvarint-size (array)
   (loop for x across array
 	summing (binio:uvarint-size x)))
 
-(declaim (ftype (function ((simple-array integer (*))) *)
+(declaim (ftype (function ((simple-array integer (*)))
+			  non-negative-integer)
 		packed-svariant-size))
 
 (defun packed-svarint-size (array)
   (loop for x across array
-	summing (binio::svarint-size x)))
+	summing (binio:svarint-size x)))
+
+(declaim (ftype (function (function t) non-negative-integer)
+		packed-enum-size))
 
 (defun packed-enum-size (coder array)
   (loop for x across array
-	summing (binio::uvarint-size (funcall coder x))))
+	summing (binio:uvarint-size (funcall coder x))))
 
-(declaim (ftype (function (fixnum) *) length-delim-size))
+(declaim (ftype (function (fixnum) non-negative-integer)
+		length-delim-size))
 
 (defun length-delim-size (length)
   (+ (binio::uvarint-size length) length))
