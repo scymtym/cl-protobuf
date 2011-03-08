@@ -45,7 +45,7 @@
   "Emit serializer methods based on the protocol buffer representation
 obtained by parsing the binary output of protoc.")
 
-(defclass target-packed-size ()
+(defclass target-packed-size (code-generating-target-mixin)
   ()
   (:documentation
    "Target class for packed-size target."))
@@ -95,7 +95,7 @@ obtained by parsing the binary output of protoc.")
   "Emit serializer methods based on the protocol buffer representation
 obtained by parsing the binary output of protoc.")
 
-(defclass target-serializer ()
+(defclass target-serializer (code-generating-target-mixin)
   ()
   (:documentation
    "Target class for serializer target."))
@@ -140,15 +140,10 @@ obtained by parsing the binary output of protoc.")
   "Emit serializer methods based on the protocol buffer representation
 obtained by parsing the binary output of protoc.")
 
-(defclass target-deserializer ()
+(defclass target-deserializer (code-generating-target-mixin)
   ()
   (:documentation
    "Target class for deserializer target."))
-
-(defmethod emit :around ((node   pb::file-desc)
-			 (target target-deserializer))
-  (handler-bind (#+sbcl(sb-c::redefinition-warning #'muffle-warning))
-    (call-next-method)))
 
 (defmethod emit ((node   pb::message-desc)
 		 (target target-deserializer))

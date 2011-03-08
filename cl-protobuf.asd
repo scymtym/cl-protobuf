@@ -108,13 +108,17 @@
 			       :components ((:file       "util")
 					    (:file       "protocol"
 					     :depends-on ("util"))
+					    (:file       "code-generating-target-mixin"
+					     :depends-on ("util"))
 					    (:file       "generator-code"
 					     :depends-on ("util"))
 					    (:file       "target-class"
-					     :depends-on ("protocol"))
+					     :depends-on ("protocol"
+							  "code-generating-target-mixin"))
 					    (:file       "target-serializer"
 					     :depends-on ("protocol"
-							  "generator-code"))
+							  "generator-code"
+							  "code-generating-target-mixin"))
 					    (:file       "target-proto"
 					     :depends-on ("protocol"))))
 

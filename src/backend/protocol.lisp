@@ -167,14 +167,6 @@ state of a particular emission process. This state consists of:
       (pop (context-stack *context*))
       (setf (context-target *context*) old-target))))
 
-(defmethod emit :around ((node pb::file-desc) (target standard-object))
-  (let* ((package-name (pb::file-desc-package node))
-	 (package      (maybe-find-package-or-loose package-name)))
-    (setf (context-package *context*) package)
-    (unwind-protect
-	 (call-next-method)
-      (setf (context-package *context*) nil))))
-
 
 ;;; Default recursion behavior
 ;;

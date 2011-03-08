@@ -44,7 +44,7 @@ generated classes will not automatically have associated `pack' and
 ;;; Target class
 ;;
 
-(defclass target-class ()
+(defclass target-class (code-generating-target-mixin)
   ()
   (:documentation
    "Target class for class code generation."))
@@ -52,13 +52,6 @@ generated classes will not automatically have associated `pack' and
 
 ;;; Emitter methods
 ;;
-
-(defmethod emit :around ((node   pb::file-desc)
-			 (target target-class))
-  (maybe-make-package (pb::file-desc-package node))
-
-  (handler-bind (#+sbcl(sb-c::redefinition-warning #'muffle-warning))
-    (call-next-method)))
 
 (defmethod emit ((node   pb::message-desc)
 		 (target target-class))
