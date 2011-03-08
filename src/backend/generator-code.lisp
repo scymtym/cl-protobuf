@@ -67,7 +67,7 @@ VALUE-FORM of type PROTO-TYPE when stored in field number NUMBER."
         ((svarint-p proto-type)
          `(binio:svarint-size ,value-form))
         ((enum-type-p proto-type)
-         `(binio:uvarint-size (,(pb::symcat type 'code) ,value-form)))
+         `(binio:uvarint-size (,(pb::symcat proto-type 'code) ,value-form)))
         ((eq proto-type :string)
          `(if ,value-form
 	      (pb::length-delim-size (binio:utf8-size ,value-form))
