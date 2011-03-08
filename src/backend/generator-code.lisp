@@ -1,8 +1,10 @@
 ;;; generator-code.lisp ---
 ;;
+;; Copyright (C) 2009, 2010 Georgia Tech Research Corporation
 ;; Copyright (C) 2010, 2011 Jan Moringen
 ;;
-;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+;; Author: Neil T. Dantam
+;;         Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
 ;; Redistribution and use in source and binary forms, with or without
 ;; modification, are permitted provided that the following conditions
@@ -39,40 +41,44 @@
 ;;; Packed Size Code Generation
 ;;
 
-(defun generate-start-code-symbol (type position)
-  (pb::make-start-code position (proto-type->wire-type type)))
+(defun generate-start-code-symbol (proto-type number)
+  "Generate start code for the associated wire-type of PROTO-TYPE and
+field number NUMBER."
+  (pb::make-start-code number (proto-type->wire-type proto-type)))
 
-(defun generate-start-code-size (type pos)
-  "Find the size of the start code"
-  (binio:uvarint-size (generate-start-code-symbol type pos)))
+(defun generate-start-code-size (proto-type number)
+  "Return the encoded size of the start code for type PROTO-TYPE and
+field number NUMBER."
+  (binio:uvarint-size (generate-start-code-symbol proto-type number)))
 
-(defun generate-scalar-size (slot type pos)
-  "Generate packed size of a scalar field of type TYPE."
-  `(+ ,(generate-start-code-size type pos)
+(defun generate-scalar-size (value-form proto-type number) ;; TODO compare against default value?
+  "Generate code to compute the packed size of a scalar field value
+VALUE-FORM of type PROTO-TYPE when stored in field number NUMBER."
+  (check-type proto-type proto-type "a protocol buffer type designator")
+
+  `(+ ,(generate-start-code-size proto-type number)
       ,(cond
-        ((fixed64-p type)
-	 8)
-        ((fixed32-p type)
-	 4)
-        ((eq type :bool)
+        ((fixed-p proto-type)
+	 (fixed-size proto-type))
+        ((eq proto-type :bool)
 	 1)
-        ((uvarint-p type)
-         `(binio:uvarint-size ,slot))
-        ((svarint-p type)
-         `(binio:svarint-size ,slot))
-        ((enum-type-p type)
-         `(binio:uvarint-size (,(pb::symcat type 'code) ,slot)))
-        ((eq type :string)
-         `(if ,slot
-	      (pb::length-delim-size (binio:utf8-size ,slot))
+        ((uvarint-p proto-type)
+         `(binio:uvarint-size ,value-form))
+        ((svarint-p proto-type)
+         `(binio:svarint-size ,value-form))
+        ((enum-type-p proto-type)
+         `(binio:uvarint-size (,(pb::symcat type 'code) ,value-form)))
+        ((eq proto-type :string)
+         `(if ,value-form
+	      (pb::length-delim-size (binio:utf8-size ,value-form))
 	    0))
-        ((eq type :bytes)
-         `(if ,slot
-	      (pb::length-delim-size (length ,slot))
+        ((eq proto-type :bytes)
+         `(if ,value-form
+	      (pb::length-delim-size (length ,value-form))
 	    0))
         (t
-	 `(if ,slot
-	      (pb::length-delim-size (pb::packed-size ,slot))
+	 `(if ,value-form
+	      (pb::length-delim-size (pb::packed-size ,value-form))
 	    0)))))
 
 (defun generate-repeated-size (value-var type pos)
