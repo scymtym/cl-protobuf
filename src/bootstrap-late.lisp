@@ -1,4 +1,4 @@
-;;; bootstrap-late.lisp ---
+;;; bootstrap-late.lisp --- Bootstrapping that needs more infrastructure.
 ;;
 ;; Copyright (C) 2011 Jan Moringen
 ;;
@@ -35,16 +35,8 @@
 
 (in-package :protocol-buffer)
 
-(let ((pbb::*emit-print*   t);*load-print*)
-      (pbb::*emit-verbose* t));*load-verbose*))
-  ;(pbb:emit *reflective-descriptor-file-set* :packed-size)
-  ;(pbb:emit *reflective-descriptor-file-set* :serializer)
+(let ((pbb::*emit-print*   *load-print*)
+      (pbb::*emit-verbose* *load-verbose*))
+  (pbb:emit *reflective-descriptor-file-set* :packed-size)
+  (pbb:emit *reflective-descriptor-file-set* :serializer)
   (pbb:emit *reflective-descriptor-file-set* :deserializer))
-
-;; (let ((*standard-output* (open "/tmp/bla.lisp"
-;;			       :direction :output
-;;			       :if-exists :supersede)))
-;;   (print '(in-package :protocol-buffer))
-;;   (terpri)
-;;   (pbb:emit *reflective-descriptor-file-set* :deserializer)
-;;   (close *standard-output*))
