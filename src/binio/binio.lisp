@@ -1,9 +1,10 @@
 ;;; binio.lisp --- Binary encoding
 ;;
-;; Copyright (c) 2009 Georgia Tech Research Corporation
-;; All rights reserved.
+;; Copyright (C) 2009 Georgia Tech Research Corporation
+;; Copyright (C) 2011 Jan Moringen
 ;;
 ;; Author: Neil T. Dantam
+;;         Jan Moringen <jmoringe@techfak.uni-bielefe.de>
 ;;
 ;; Redistribution and use in source and binary forms, with or without
 ;; modification, are permitted provided that the following conditions
@@ -35,37 +36,38 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ;; types u?int{8,16,32,63}, double, float
+;;
+;; FTypes
+;; + Encoding functions
+;;   (value &optional buffer start) => (values bytes-encoded buffer)
+;; + Decoding functions
+;;   (buffer &optional start)       => (values value bytes-decoded)
 
 (in-package :binio)
 
-;; encoding fuctions:
-;;  (value &optional buffer start) => (values bytes-encoded buffer)
-;; decoding fuctions:
-;;  (buffer &optional start) => (values value bytes-decoded)
-
-;;;;;;;;;;;;;
-;;; types ;;;
-;;;;;;;;;;;;;
+
+;;; Octet vector type
+;;
 
 (deftype octet () '(unsigned-byte 8))
 
 (deftype octet-vector (&optional count)
   `(simple-array octet (,count)))
 
-(declaim (inline make-octet-vector)
-	 (ftype (function (fixnum) *) make-octet-vector))
+(declaim (ftype (function (fixnum) octet-vector) make-octet-vector)
+	 (inline make-octet-vector))
 
 (defun make-octet-vector (count)
   (make-array count :element-type 'octet))
 
+(declaim (ftype (function (&rest list) octet-vector) octet-vector)
+	 (inline octet-vector))
+
 (defun octet-vector (&rest args)
-  (let ((v (make-octet-vector (length args))))
-    (loop
-       for x in args
-       for i from 0
-       do
-         (setf (aref v i) x))
-    v))
+  "Return a new octet-vector containing the elements ARGS."
+  (make-array (length args)
+	      :element-type     'octet
+	      :initial-contents args))
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ;;; some endian handling ;;;
