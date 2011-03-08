@@ -132,7 +132,7 @@ read."
 		length-delim-size))
 
 (defun length-delim-size (length)
-  (+ (binio::uvarint-size length) length))
+  (+ (binio:uvarint-size length) length))
 
 (declaim (ftype (function (t octet-vector fixnum) bit) encode-bool))
 
@@ -229,12 +229,14 @@ returns (values length length-of-length)"
 (defun decode-bytes (buffer start)
   (decode-length-delim buffer start
 		       #'(lambda (buffer start end)
+			   (declare (type octet-vector         buffer)
+				    (type non-negative-integer start end))
 			   (values (subseq buffer start end)
 				   (- end start)))))
 
 (declaim (ftype (function (t function octet-vector
 			   &key
-			   (:fixed-bit-size t)
+			   (:fixed-bit-size (or null positive-fixnum))
 			   (:start          non-negative-integer)
 			   (:end            non-negative-integer)) *)
 		decode-array))
