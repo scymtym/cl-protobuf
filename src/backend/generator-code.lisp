@@ -297,7 +297,7 @@
       `(,(generate-decoder-name type) ,buffer-var ,start)
       (progn
         (assert instance () "Need instance to unpack embedded message ~A" type)
-        `(pb::unpack-embedded-protobuf ,buffer-var ,instance ,start))))
+        `(pb::unpack-embedded ,buffer-var ,instance ,start))))
 
 (defun generate-unpack-and-incf (start-place buffer type &optional instance)
   "Unpack a scalar value and increment start."

@@ -103,16 +103,6 @@ read."
 ;;;
 ;;
 
-(declaim (ftype (function (t octet-vector fixnum) *) pack-embedded))
-
-(defun pack-embedded (protobuf buffer start)
-  (let* ((size         (packed-size protobuf))
-         (size-size    (binio:encode-uvarint size buffer start))
-         (encoded-size (pack protobuf buffer (+ start size-size))))
-    (declare (type fixnum size size-size encoded-size))
-    (assert (= size encoded-size))
-    (values (+ size-size encoded-size) buffer)))
-
 (declaim (ftype (function ((simple-array integer (*))) *)
 		packed-uvariant-size))
 
@@ -264,10 +254,31 @@ returns (values length length-of-length)"
 	    (vector-push-extend value array))))))
 ;; TODO separate functions
 
-(declaim (ftype (function (octet-vector t integer) *)
-		unpack-embedded-protobuf))
+
+;;; En- and decoding of embedded protocol buffers
+;;
 
-(defun unpack-embedded-protobuf (buffer object start)
+(declaim (ftype (function (t octet-vector non-negative-fixnum)
+			  (values non-negative-fixnum octet-vector))
+		pack-embedded)
+	 (inline pack-embedded))
+
+(defun pack-embedded (object buffer start)
+  (let* ((size         (packed-size object))
+         (size-size    (binio:encode-uvarint size buffer start))
+         (encoded-size (pack object buffer (+ start size-size))))
+    (declare (type non-negative-fixnum size size-size encoded-size))
+    (assert (= size encoded-size))
+    (values (+ size-size encoded-size) buffer)))
+
+(declaim (ftype (function (octet-vector t non-negative-integer)
+			  (values t non-negative-integer))
+		unpack-embedded)
+	 (inline unpack-embedded))
+
+(defun unpack-embedded (buffer object start)
   (decode-length-delim buffer start
                        #'(lambda (buffer start end)
+			   (declare (type octet-vector        buffer)
+				    (type non-negative-fixnum start end))
 			   (unpack buffer object start end))))
