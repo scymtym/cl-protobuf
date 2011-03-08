@@ -537,15 +537,6 @@
       (decode-uvarint buffer start)
     (values (varint-unzigzag uv) i)))
 
-(defun read-file-octets (filespec &key limit)
-  (with-open-file (stream filespec :element-type 'octet)
-    (let ((buffer (make-octet-vector
-		   (if limit
-		       (max (file-length stream) limit)
-		       (file-length stream)))))
-      (read-sequence buffer stream)
-      buffer)))
-
 ;;;;;;;;;;;;;;;
 ;;; strings ;;;
 ;;;;;;;;;;;;;;;
