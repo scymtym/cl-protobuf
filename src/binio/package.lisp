@@ -61,6 +61,8 @@
 
    :encode-utf8      :decode-utf8    :utf8-size
 
+   :encode-bool      :decode-bool
+
    :decode-double-float-le :decode-double-float-be
    :decode-float-le  :decode-float-be
    :decode-uint32-le :decode-uint32-be

@@ -134,12 +134,6 @@ read."
 (defun length-delim-size (length)
   (+ (binio:uvarint-size length) length))
 
-(declaim (ftype (function (t octet-vector fixnum) bit) encode-bool))
-
-(defun encode-bool (val buffer start)
-  (setf (aref buffer start) (if val 1 0))
-  1)
-
 
 ;;; Fixed-width decoders
 ;;
@@ -176,15 +170,6 @@ read."
 (defun decode-single (buffer start)
   (values (binio:decode-float-le buffer start)
           4))
-
-(declaim (ftype (function (octet-vector fixnum) *) decode-bool))
-
-(defun decode-bool (buffer start)
-  (values (case (aref buffer start)
-            (0 nil)
-            (1 t)
-            (t (error "Invalid boolean value")))
-          1))
 
 (defmacro decode-length-and-incf-start (start-place buffer)
   "reads the length field,

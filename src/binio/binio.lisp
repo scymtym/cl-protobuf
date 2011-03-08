@@ -69,37 +69,37 @@
 	      :element-type     'octet
 	      :initial-contents args))
 
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; ;;; some endian handling ;;;
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; Bool en- and decoder
+;;
 
-;; (declaim (inline index-endian aref-endian (setf aref-endian)))
-;; (defun index-endian (index start count endian)
-;;   (declare (fixnum start count index)
-;;            (type symbol endian))
-;;   (case endian
-;;     (:little
-;;      (+ start index))
-;;     (:big
-;;      (+ start count -1 (- index)))
-;;     (otherwise
-;;      (error "endian must be :big or :little, not ~S" endian))))
+(declaim (ftype (function (t &optional octet-vector fixnum)
+			  (values bit octet-vector))
+		encode-bool)
+	 (inline encode-bool))
 
-;; (defun aref-endian (buffer index start count endian)
-;;   (declare (fixnum start count index))
-;;   (declare (type octet-vector buffer))
-;;   (aref buffer (index-endian index start count endian)))
+(defun encode-bool (val
+		    &optional
+		    (buffer (make-octet-vector 1))
+		    (start  0))
+  (setf (aref buffer start) (if val 1 0))
+  (values 1 buffer))
 
-;; (defun (setf aref-endian) (value buffer index start count endian)
-;;   (declare (fixnum start count index))
-;;   (declare (type octet-vector buffer))
-;;   (setf (aref buffer (index-endian index start count endian))
-;;         value))
+(declaim (ftype (function (octet-vector &optional fixnum)
+			  (values (member nil t) (eql 1)))
+		decode-bool)
+	 (inline decode-bool))
 
+(defun decode-bool (buffer &optional start)
+  (values (case (aref buffer start)
+            (0 nil)
+            (1 t)
+            (t (error "Invalid boolean value")))
+          1))
 
-;;;;;;;;;;;;;;;;;;;;;
-;;; CFFI DECODERS ;;;
-;;;;;;;;;;;;;;;;;;;;;
+
+;;; CFFI decoders
+;;
 
 ;; FIXME: this CFFI hack is much faster than letting lisp clumsily
 ;; screw with bignums.  Everything should get converted to use this
