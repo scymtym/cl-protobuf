@@ -185,19 +185,23 @@ returns (values length length-of-length)"
   (with-unique-names (isym len-sym len-len-sym)
     `(let ((,isym ,start-place))
        (with-decoding (,len-sym ,len-len-sym)
-	 (binio:decode-uvarint ,buffer ,isym)
+	   (binio:decode-uvarint ,buffer ,isym)
+	 (declare (type non-negative-integer ,len-sym))
          (setf ,start-place (+ ,isym ,len-len-sym))
          (values ,len-sym ,len-len-sym)))))
 
+(declaim (ftype (function (octet-vector non-negative-integer function)
+			  (values t non-negative-integer))
+		decode-length-delim))
+
 (defun decode-length-delim (buffer start decoder)
   "decoder is (lambda (buffer start end)"
-  (declare (type octet-vector buffer)
-           (integer start))
   (let ((i start))
     (with-decoding (len len-len)
-      (decode-length-and-incf-start i buffer)
+	(decode-length-and-incf-start i buffer)
+      (declare (type non-negative-integer len))
       (with-decoding (val val-len)
-	(funcall (the function decoder) buffer i (+ i len))
+	  (funcall decoder buffer i (+ i len))
         (assert (= val-len len))
         (values val (+ len len-len))))))
 
