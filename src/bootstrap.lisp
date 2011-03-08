@@ -57,12 +57,14 @@ the descriptor classes defined."
 		   &rest args
 		   &key
 		   optional required repeated
-		   packed) spec))
+		   packed) spec)
+		 (labels (intersection args '(:optional :required :repeated)))
+		 (label  (or (first labels) :required)))
 	    (declare (ignore position optional required repeated))
 
 	    #'(lambda ()
 		(protocol-buffer.backend::generate-slot
-		 name1 type (first args) packed ;; TODO (first args)
+		 name1 type label packed
 		 :class-name name)))))
     (declare (ignore marker))
 
