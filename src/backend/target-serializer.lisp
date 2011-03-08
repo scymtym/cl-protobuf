@@ -45,8 +45,13 @@
   "Emit serializer methods based on the protocol buffer representation
 obtained by parsing the binary output of protoc.")
 
+(defclass target-packed-size ()
+  ()
+  (:documentation
+   "Target class for packed-size target."))
+
 (defmethod emit ((node   pb::message-desc)
-		 (target (eql :packed-size)))
+		 (target target-packed-size))
   "Generate code for the `pack' method."
   (with-emit-symbols
     (bind (((:accessors-r/o
@@ -59,7 +64,7 @@ obtained by parsing the binary output of protoc.")
 	     name1 (map 'list #'recur fields))))))
 
 (defmethod emit ((node   pb::field-desc)
-		 (target (eql :packed-size)))
+		 (target target-packed-size))
   "Generate code to pack a single slot."
   (with-emit-symbols
     (bind (((:accessors-r/o
@@ -90,8 +95,13 @@ obtained by parsing the binary output of protoc.")
   "Emit serializer methods based on the protocol buffer representation
 obtained by parsing the binary output of protoc.")
 
+(defclass target-serializer ()
+  ()
+  (:documentation
+   "Target class for serializer target."))
+
 (defmethod emit ((node   pb::message-desc)
-		 (target (eql :serializer)))
+		 (target target-serializer))
   "Generate code for the `pack' method."
   (with-emit-symbols
     (bind (((:accessors-r/o
@@ -103,7 +113,7 @@ obtained by parsing the binary output of protoc.")
       (eval (generate-pack-method name1 (map 'list #'recur fields))))))
 
 (defmethod emit ((node   pb::field-desc)
-		 (target (eql :serializer)))
+		 (target target-serializer))
   "Generate code to pack a single slot."
   (with-emit-symbols
     (bind (((:accessors-r/o
@@ -130,13 +140,18 @@ obtained by parsing the binary output of protoc.")
   "Emit serializer methods based on the protocol buffer representation
 obtained by parsing the binary output of protoc.")
 
+(defclass target-deserializer ()
+  ()
+  (:documentation
+   "Target class for deserializer target."))
+
 (defmethod emit :around ((node   pb::file-desc)
-			 (target (eql :deserializer)))
+			 (target target-deserializer))
   (handler-bind (#+sbcl(sb-c::redefinition-warning #'muffle-warning))
     (call-next-method)))
 
 (defmethod emit ((node   pb::message-desc)
-		 (target (eql :deserializer)))
+		 (target target-deserializer))
   "Generate code for the UNPACK method"
   (with-emit-symbols
     (bind (((:accessors-r/o
@@ -148,7 +163,7 @@ obtained by parsing the binary output of protoc.")
       (eval (generate-unpack-method name1 (map 'list #'recur fields))))))
 
 (defmethod emit ((node   pb::field-desc)
-		 (target (eql :deserializer)))
+		 (target target-deserializer))
   "Generate code to unpack a single slot"
   (with-emit-symbols
     (bind (((:accessors-r/o
