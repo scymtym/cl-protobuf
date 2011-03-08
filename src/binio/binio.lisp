@@ -122,16 +122,19 @@
 ;; Question: Do we need to pin the buffer?
 #+sbcl
 (defmacro def-decoder-sbcl (c-type)
-  `(progn
-     (assert (>= (length buffer)
-                 (+ start ,(cffi:foreign-type-size c-type)))
-             () "Buffer too small for requested data type: ~A" ,c-type)
-     (cffi:mem-ref (cffi:inc-pointer (sb-sys:vector-sap buffer) start)
-                   ,c-type)))
+  (let ((foreign-size (cffi:foreign-type-size c-type)))
+    `(progn
+       (assert (>= (length buffer)
+		   (+ start ,foreign-size))
+	       () "Buffer too small for requested data type: ~A" ,c-type)
+       (values
+	(cffi:mem-ref (cffi:inc-pointer (sb-sys:vector-sap buffer) start)
+		      ,c-type)
+	,foreign-size))))
 
 (defmacro def-decoder-cffi (c-type swap)
-  `(progn
-     (cffi:with-foreign-object (x ,c-type)
+  (let ((foreign-size (cffi:foreign-type-size c-type)))
+    `(cffi:with-foreign-object (x ,c-type)
        (setf ,@(loop
                   with n = (cffi:foreign-type-size c-type)
                   for i below n
@@ -141,20 +144,25 @@
                   append
                     `((cffi:mem-aref x :uint8 ,j)
                       (aref buffer (+ start ,i)))))
-       (cffi:mem-ref x ,c-type))))
+       (values
+	(cffi:mem-ref x ,c-type)
+	,foreign-size))))
 
 (defmacro def-decoder (name c-type lisp-type endian)
-  `(progn
-     (declaim (inline ,name))
-     (defun ,name (buffer &optional (start 0))
-       (declare (type octet-vector buffer)
-                (type fixnum start))
-       (the ,lisp-type
-         ,(let ((swap (needs-byteswap endian)))
-               (if (and (not swap) nil
-                        (string= "SBCL" (lisp-implementation-type)))
-                   `(def-decoder-sbcl ,c-type)
-                   `(def-decoder-cffi ,c-type ,swap)))))))
+  (let* ((foreign-size   (cffi:foreign-type-size c-type))
+	 (swap?          (needs-byteswap endian))
+	 (sbcl-fastpath? (and (not swap?)
+			      (string= "SBCL" (lisp-implementation-type)))))
+    `(progn
+       (declaim (ftype (function (octet-vector &optional fixnum)
+				 (values ,lisp-type (eql ,foreign-size)))
+		       ,name)
+		(inline ,name))
+       (defun ,name (buffer &optional (start 0))
+	 (the ,lisp-type
+	   ,(if sbcl-fastpath?
+		`(def-decoder-sbcl ,c-type)
+		`(def-decoder-cffi ,c-type ,swap?)))))))
 
 ;; Note: swapping the byte-order is about 5 times slower
 (def-decoder decode-double-float-le :double double-float       :little)
@@ -214,21 +222,27 @@
      (cffi:mem-ref x ,c-type)))
 
 (defmacro def-encoder (name c-type lisp-type endian)
+  (let* ((foreign-size   (cffi:foreign-type-size c-type))
+	 (swap?          (needs-byteswap endian))
+	 (sbcl-fastpath? (and (not swap?)
+			      nil
+			      (string= "SBCL" (lisp-implementation-type)))))
   `(progn
-     (declaim (inline ,name))
-     (defun ,name (value &optional
-                   (buffer (make-octet-vector ,(cffi:foreign-type-size c-type)))
+     (declaim (ftype (function (,lisp-type
+				&optional
+				octet-vector
+				non-negative-fixnum)
+			       (values non-negative-fixnum octet-vector))
+		     ,name)
+	      (inline ,name))
+     (defun ,name (value
+		   &optional
+                   (buffer (make-octet-vector ,foreign-size))
                    (start 0))
-       (declare (type ,lisp-type value)
-                (type octet-vector buffer)
-                (type fixnum start))
-       ,(let ((swap (needs-byteswap endian)))
-             (if (and (not swap)
-                      (string= "SBCL" (lisp-implementation-type)))
-                 `(def-encoder-sbcl ,c-type)
-                 `(def-encoder-cffi ,c-type ,swap)))
-       (values ,(cffi:foreign-type-size c-type) buffer))))
-
+       ,(if sbcl-fastpath?
+	    `(def-encoder-sbcl ,c-type)
+	    `(def-encoder-cffi ,c-type ,swap?))
+       (values ,foreign-size buffer)))))
 
 (def-encoder encode-double-le :double double-float       :little)
 (def-encoder encode-double-be :double double-float       :big)
