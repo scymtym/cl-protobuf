@@ -52,9 +52,7 @@ class and potentially associated enums."
 	  (remove type specs :key #'first :test-not #'eq))
 	 ((:flet process-children (type initarg func))
 	  (let ((children (mapcar func (filter type))))
-	    `(,initarg (make-array
-			,(length children)
-			:initial-contents (list ,@children))))))
+	    `(,initarg (vector ,@children)))))
     (declare (ignore marker))
     `(make-instance
       'pb::message-desc
@@ -92,7 +90,7 @@ class and potentially associated enums."
     `(make-instance
       'pb::enum-desc
       :name  ,(string name)
-      :value ,(map 'vector #'process-enum-value values))))
+      :value (vector ,@(map 'list #'process-enum-value values)))))
 
 (defun process-enum-value (form)
   (bind (((name number) form))
