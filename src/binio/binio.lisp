@@ -422,47 +422,27 @@
 ;; (def-sint-decoder decode-sint-32-be 32 decode-uint-32-be)
 ;; (def-sint-decoder decode-sint-64-be 64 decode-uint-64-be)
 
-
-;;;;;;;;;;;;;;;;;;;;
-;;; varint types ;;;
-;;;;;;;;;;;;;;;;;;;;
-
-;; arbitrary precision zig-zagging
-
-(declaim (ftype (function (integer) *) varint-zigzag))
-
-(defun varint-zigzag (value)
-  (- (* 2 (abs value))
-     (* (signum value)
-        (ash (1- (signum value)) -1))))
-
-(declaim (ftype (function (integer) *) varint-unzigzag))
-
-(defun varint-unzigzag (value)
-  (let ((lowbit (ldb (byte 1 0) value)))
-    (* (ash (+ value lowbit) -1)
-       (- 1 (* 2 lowbit)))))
+
+;;; Unsigned varint type
+;;
 
 ;; i don't know how to do this to arbitrary precision for negative
 ;; numbers.  The google implemention gives uint32_t and uint64_t.
 ;; Let's be unsigned.
 
-(declaim (inline uvarint-size)
-	 (ftype (function (non-negative-integer) *) uvariant-size))
+(declaim (ftype (function (non-negative-integer) non-negative-integer)
+		uvariant-size)
+	 (inline uvarint-size))
 
 (defun uvarint-size (value)
   (max 1 (ceiling (integer-length value) 7)))
 
-(declaim (inline svarint-size)
-	 (ftype (function (non-negative-integer) *) svariant-size))
-
-(defun svarint-size (value)
-  (uvarint-size (varint-zigzag value)))
-
 (declaim (ftype (function (non-negative-integer
 			   &optional
 			   octet-vector
-			   fixnum) *) encode-uvarint))
+			   fixnum)
+			  (values non-negative-integer octet-vector))
+		encode-uvarint))
 
 (defun encode-uvarint (value
 		       &optional
@@ -487,9 +467,13 @@
                         (if (zerop v-next) 0 (ash 1 7)))))
      finally (return (values (- i start) buffer))))
 
-(declaim (ftype (function (octet-vector fixnum) *) decode-uvarint))
+(declaim (ftype (function (octet-vector
+			   &optional
+			   fixnum)
+			  (values non-negative-integer non-negative-integer))
+		decode-uvarint))
 
-(defun decode-uvarint (buffer start)
+(defun decode-uvarint (buffer &optional (start 0))
   (loop
      for i from 1      ; octets read
      for j from start  ; position in buffer
@@ -500,7 +484,41 @@
      when (not (logbitp 7 octet))
      return (values accum i)))
 
-(declaim (ftype (function (t &optional octet-vector t) *) encode-svarint))
+
+;;; Signed varint type
+;;
+
+;; arbitrary precision zig-zagging
+
+(declaim (ftype (function (integer) integer) varint-zigzag)
+	 (inline varint-zigzag))
+
+(defun varint-zigzag (value)
+  (- (* 2 (abs value))
+     (* (signum value)
+        (ash (1- (signum value)) -1))))
+
+(declaim (ftype (function (integer) integer) varint-unzigzag)
+	 (inline varint-unzigzag))
+
+(defun varint-unzigzag (value)
+  (let ((lowbit (ldb (byte 1 0) value)))
+    (* (ash (+ value lowbit) -1)
+       (- 1 (* 2 lowbit)))))
+
+(declaim (ftype (function (non-negative-integer) non-negative-integer)
+		svariant-size)
+	 (inline svarint-size))
+
+(defun svarint-size (value)
+  (uvarint-size (varint-zigzag value)))
+
+(declaim (ftype (function (integer
+			   &optional
+			   octet-vector
+			   fixnum)
+			  (values non-negative-integer octet-vector))
+		encode-svarint))
 
 (defun encode-svarint (value
 		       &optional
@@ -508,8 +526,13 @@
                        (start  0))
   (encode-uvarint (varint-zigzag value) buffer start))
 
-(defun decode-svarint (buffer start)
-  (declare (type octet-vector buffer))
+(declaim (ftype (function (octet-vector
+			   &optional
+			   non-negative-integer)
+			  (values integer non-negative-integer))
+		decode-svarint))
+
+(defun decode-svarint (buffer &optional (start 0))
   (multiple-value-bind (uv i)
       (decode-uvarint buffer start)
     (values (varint-unzigzag uv) i)))
