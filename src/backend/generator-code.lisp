@@ -278,15 +278,17 @@ VALUE-FORM."
   `((pb::with-decoding (value length)
 	(pb::decode-length-delim
 	 ,buffer-form ,offset-form
-	 (lambda (buffer start end)
-	   (pb::decode-array
-	    ',(proto-type->lisp-type proto-type)
-	    #',(%proto-type->coder :decode proto-type)
-	    buffer-form
-	    :fixed-bit-size ,(when (fixed-p proto-type)
-				   (* 8 (fixed-size proto-type)))
-	    :start          start
-	    :end            end)))
+	 #'(lambda (buffer start end)
+	     (declare (type binio:octet-vector  buffer)
+		      (type non-negative-fixnum start end))
+	     (pb::decode-array
+	      ',(proto-type->lisp-type proto-type)
+	      #',(%proto-type->coder :decode proto-type)
+	      buffer
+	      :fixed-bit-size ,(when (fixed-p proto-type)
+				     (* 8 (fixed-size proto-type)))
+	      :start          start
+	      :end            end)))
       (setf ,value-form value)
       (incf ,offset-form length))))
 
