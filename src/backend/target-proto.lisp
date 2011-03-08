@@ -123,10 +123,8 @@ printed around the output."
 
 (defmethod emit ((node   pb::message-desc)
 		 (target target-proto))
-  (bind (((:accessors-r/o
-	   (name pb::message-desc-name)) node))
-    (with-proto-logical-block ("message" name)
-      (call-next-method))))
+  (with-proto-logical-block ("message" (pb::message-desc-name node))
+    (call-next-method)))
 
 (defmethod emit ((node   pb::field-desc)
 		 (target target-proto))
@@ -161,10 +159,8 @@ printed around the output."
 
 (defmethod emit ((node   pb::enum-desc)
 		 (target target-proto))
-  (bind (((:accessors-r/o
-	   (name pb::enum-desc-name)) node))
-    (with-proto-logical-block ("enum" name)
-      (call-next-method))))
+  (with-proto-logical-block ("enum" (pb::enum-desc-name node))
+    (call-next-method)))
 
 (defmethod emit ((node   pb::enum-value-desc)
 		 (target target-proto))
