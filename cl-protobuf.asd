@@ -140,6 +140,12 @@
   :components  ((:module     "test"
 		 :components ((:file       "package")
 
+			      (:module     "binio"
+			       :depends-on ("package")
+			       :components ((:file       "package")
+					    (:file       "binio"
+					     :depends-on ("package"))))
+
 			      (:file       "util"
 			       :depends-on ("package"))
 
