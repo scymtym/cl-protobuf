@@ -1,11 +1,11 @@
 ;;; util.lisp --- Utility Functions used in the Protocol Buffer Library.
 ;;
-;; Copyright 2009, Georgia Tech Research Corporation
-;; Copyright (c) 2010, 2011 Jan Moringen
+;; Copyright (C) 2009, Georgia Tech Research Corporation
+;; Copyright (C) 2010, 2011 Jan Moringen
 ;; All rights reserved.
 ;;
 ;; Author: Neil T. Dantam
-;;         Jan Moringen
+;;         Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
 ;; Redistribution and use in source and binary forms, with or without
 ;; modification, are permitted provided that the following conditions
@@ -74,7 +74,12 @@
 (defun proto-type-name->lisp-type-symbol (name
 					  &key
 					  package)
-  "DOC"
+  "Try to find a symbol corresponding to NAME. If name starts with
+`.', it is considered a \"fully-qualified\" name, that is specifying
+the symbol's package along with the symbol. Otherwise, a package has
+to be supplied via the PACKAGE parameter. If name contains multiple
+`.'s, all possible package-name splits are tried until a matching
+symbol is found."
   (bind ((fully-qualified? (eq (aref name 0) #\.))
 	 ((:function possible-splits (start))
 	  (let ((index (position #\. name :start start)))
