@@ -66,336 +66,325 @@ VALUE-FORM of type PROTO-TYPE when stored in field number NUMBER."
          `(binio:uvarint-size ,value-form))
         ((svarint-p proto-type)
          `(binio:svarint-size ,value-form))
-        ((enum-type-p proto-type)
-         `(binio:uvarint-size (,(pb::symcat proto-type 'code) ,value-form)))
         ((eq proto-type :string)
-         `(if ,value-form
+         `(if (and ,value-form (string/= ,value-form "")) ;; TODO avoid
 	      (pb::length-delim-size (binio:utf8-size ,value-form))
-	    0))
+	      0))
         ((eq proto-type :bytes)
-         `(if ,value-form
+         `(if (and ,value-form (string/= ,value-form "")) ;; TODO avoid string stuff
 	      (pb::length-delim-size (length ,value-form))
-	    0))
-        (t
+	      0))
+	((enum-type-p proto-type)
+         `(binio:uvarint-size (,(pb::symcat proto-type 'code) ,value-form)))
+        (t ;; embedded protocol buffer
 	 `(if ,value-form
-	      (pb::length-delim-size (pb::packed-size ,value-form))
-	    0)))))
+	      (pb::length-delim-size (pb:packed-size ,value-form))
+	      0)))))
 
-(defun generate-repeated-size (value-var type pos)
-  "Generate packed size of a repeated field of type TYPE."
-  (if (fixed-p type)
+(defun generate-repeated-size (value-form proto-type number)
+  "Generate packed size of a repeated field of type PROTO-TYPE."
+  (if (fixed-p proto-type)
 
-      `(* (length ,value-var)
-          (+ ,(generate-start-code-size type pos)
-             ,(fixed-size type)))
+      `(* (length ,value-form)
+          (+ ,(generate-start-code-size proto-type number)
+             ,(fixed-size proto-type)))
 
       (with-unique-names (i accum)
         `(let ((,accum 0))
-           (dotimes (,i (length ,value-var))
+           (dotimes (,i (length ,value-form))
              (incf ,accum
-                   ,(generate-scalar-size `(aref ,value-var ,i) type pos)))
+                   ,(generate-scalar-size `(aref ,value-form ,i) proto-type number)))
            ,accum))))
 
-(defun generate-repeated-packed-size (value-var type &optional pos)
+(defun generate-repeated-packed-size (proto-type value-form &optional number) ;; TODO ever called without number?
   "Generate packed size of a repeated, packed field of type TYPE."
   (let ((array-size
          (cond
-           ((fixed64-p type)
-	    `(* 8 (length ,value-var)))
-           ((fixed32-p type)
-	    `(* 4 (length ,value-var)))
-           ((eq type :boo)
-	    `(length ,value-var))
-           ((uvarint-p type)
-            `(pb::packed-uvarint-size ,value-var))
-           ((svarint-p type)
-            `(pb::packed-uvarint-size ,value-var))
-           ((enum-type-p type)
-            `(pb::packed-enum-size #',(pb::symcat type 'code) ,value-var))
+           ((fixed-p proto-type)
+	    `(* (fixed-size proto-type) (length ,value-form)))
+	   ((eq proto-type :bool)
+	    `(* (length ,value-form)))
+           ((uvarint-p proto-type)
+            `(pb::packed-uvarint-size ,value-form))
+           ((svarint-p proto-type)
+            `(pb::packed-uvarint-size ,value-form))
+           ((enum-type-p proto-type)
+            `(pb::packed-enum-size #',(pb::symcat proto-type 'code) ,value-form))
            (t
 	    (error "Can't pack this type")))))
-    (if pos
-        `(+ ,(generate-start-code-size :bytes pos)
+    (if number
+        `(+ ,(generate-start-code-size :bytes number)
             (pb::length-delim-size ,array-size))
         array-size)))
 
-(defun generate-slot-packed-size (name type pos
+(defun generate-slot-packed-size (name proto-type number
 				  &key
 				  packed? repeated?
 				  object-var
 				  &allow-other-keys)
   "Generate code to find the packed size of a single slot."
-  (let ((slot-value  `(slot-value  ,object-var ',name))
-	(slot-boundp `(slot-boundp ,object-var ',name)))
-    `(if (and ,slot-boundp
-	      ,@(when (pb::length-delim-p type)
-		  `(,slot-value)))
+  (let ((slot-value    `(slot-value  ,object-var ',name))
+	(slot-boundp   `(slot-boundp ,object-var ',name))
+	(length-delim? (pb::length-delim-p proto-type)))
+    `(if (and ,slot-boundp ,@(when length-delim? `(,slot-value)))
 	 ,(cond
 	   ((and (not repeated?) (not packed?))
-	    (generate-scalar-size slot-value type pos))
+	    (generate-scalar-size slot-value proto-type number))
 	   ((and repeated? (not packed?))
-	    (generate-repeated-size slot-value type pos))
+	    (generate-repeated-size slot-value proto-type number))
 	   (packed?
-	    (generate-repeated-packed-size slot-value type pos)))
-       0)))
+	    (generate-repeated-packed-size proto-type slot-value number)))
+	 0)))
 
 (defun generate-packed-size-method (name fields)
-  "Generate `packed-size' method for NAME."
+  "Generate `packed-size' method for class NAME with slots described
+by FIELDS. FIELDS has to be a sequence of functions of one argument.
+These receive a form which will evaluate to the instance and return
+code to compute the packed size of a slot value."
   (with-unique-names (object-var)
-    `(defmethod protocol-buffer:packed-size ((,object-var ,name))
+    `(defmethod pb:packed-size ((,object-var ,name))
        (+ ,@(map 'list (rcurry #'funcall object-var) fields)))))
 
 
 ;;; Packer Code Generation
 ;;
 
-(defun generate-offset-incrementer (type position
-				    &key
-				    buffer-var offset-var)
-  `(incf ,offset-var
-	 (pb::encode-start-code ,position
-				,(proto-type->wire-type type)
-				,buffer-var ,offset-var)))
+(defun generate-start-code-encoder (proto-type number buffer-form offset-form)
+  `(incf ,offset-form (pb::encode-start-code
+		       ,number
+		       ,(proto-type->wire-type proto-type)
+		       ,buffer-form ,offset-form)))
 
-(defun generate-value-packer (place type
-			      &key
-			      offset-var
-			      buffer-var)
+(defun generate-value-packer (proto-type value-form buffer-form offset-form)
   "Generate code to pack a single value into the buffer."
-  (once-only (place buffer-var)
-    `(incf ,offset-var
-	   ,(case type
-	      ((:int32 :uint32 :uint64 :int64 :enum)
-	       `(binio:encode-uvarint ,place ,buffer-var ,offset-var))
-	      (:bool
-	       `(pb::encode-bool ,place ,buffer-var ,offset-var))
-	      ((:sint32 :sint64)
-	       `(binio:encode-svarint ,place ,buffer-var ,offset-var))
-	      ((:fixed32 :sfixed32)
-	       `(binio:encode-int ,place :little ,buffer-var ,offset-var 32))
-	      ((:fixed64 :sfixed64)
-	       `(binio:encode-int ,place :little ,buffer-var ,offset-var 64))
-	      ((:double)
-	       `(binio:encode-double-float
-		 ,place :little ,buffer-var ,offset-var))
-	      ((:float)
-	       `(binio:encode-single-float
-		 ,place :little ,buffer-var ,offset-var))
-	      (:string
-	       (with-gensyms (strbuf size)
-	         `(multiple-value-bind (,size ,strbuf)
-		      (binio:encode-utf8 ,place)
-		    (incf ,offset-var
-			  (binio:encode-uvarint ,size ,buffer-var ,offset-var))
-		    (replace ,buffer-var ,strbuf :start1 ,offset-var ,size))))
-	      (:bytes
-	       `(progn
-		  (incf ,offset-var
-			(binio:encode-uvarint (length ,place) ,buffer-var ,offset-var))
-		  (replace ,buffer-var ,place :start1 ,offset-var ,(length place))))
-	      (t ;; pack object
-	       (if (enum-type-p type)
-		   `(binio:encode-uvarint (,(pb::symcat type 'code) ,place)
-					  ,buffer-var ,offset-var)
-		   `(pb::pack-embedded ,place ,buffer-var ,offset-var)))))))
+  (if (primitive-type-p proto-type)
+      `(,(%proto-type->coder :encode proto-type)
+	 ,value-form ,buffer-form ,offset-form)
+      `(pb::pack-embedded ,value-form ,buffer-form ,offset-form)))
 
-(defun generate-slot-packer (name type position
+(defun generate-pack-and-incf (proto-type value-form buffer-form offset-form)
+  "Generate code to pack the value VALUE-FORM of type PROTO-TYPE into
+BUFFER-FORM and increment OFFSET-FORM appropriately."
+  `(incf ,offset-form ,(generate-value-packer
+			proto-type value-form buffer-form offset-form)))
+
+(defun generate-scalar-slot-packer (proto-type number buffer-form offset-form value-form)
+  "Generate code to pack the scalar slot value VALUE-FORM."
+  `(,(generate-start-code-encoder
+      proto-type number buffer-form offset-form)
+    ,(generate-pack-and-incf
+      proto-type value-form buffer-form offset-form)))
+
+(defun generate-repeated-slot-packer (proto-type number buffer-form offset-form value-form)
+  "Generate code to pack the repeated slot value VALUE-FORM."
+  (with-unique-names (value-var index-var)
+    `((let ((,value-var ,value-form))
+	(dotimes (,index-var (length ,value-var))
+	  ,(generate-start-code-encoder
+	    proto-type number buffer-form offset-form)
+	  ,(generate-pack-and-incf
+	    proto-type `(aref ,value-var ,index-var) buffer-form offset-form))))))
+
+(defun generate-repeated-packed-slot-packer (proto-type number buffer-form offset-form value-form)
+  "Generate code to pack the repeated and packed slot value
+VALUE-FORM."
+  (with-unique-names (value-var index-var)
+    `((let ((,value-var ,value-form))
+	;; write start code
+	,(generate-start-code-encoder :bytes number buffer-form offset-form)
+	;; write length
+	,(generate-value-packer
+	  :uint64 (generate-repeated-packed-size proto-type value-var)
+	  buffer-form offset-form)
+	;; write elements
+	(dotimes (,index-var (length ,value-var))
+	  ,(generate-pack-and-incf
+	    proto-type `(aref ,value-var ,index-var)
+	    buffer-form offset-form))))))
+
+(defun generate-slot-packer (proto-type name number buffer-form offset-form object-form
 			     &key
-			     repeated? packed?
-			     buffer-var offset-var startsym object-var
-			     &allow-other-keys)
-  "Generate code to pack a single slot."
-  (let ((slot-value `(slot-value  ,object-var ',name))
-	(slot-bound `(slot-boundp ,object-var ',name))
-	(count-var  (gensym)))
-    `(when (and ,slot-bound ,@(when (pb::length-delim-p type)
-				`(,slot-value)))
-       ,@(cond
-	  ;; Scalar slot
-	  ((not repeated?)
-	   `(,(generate-offset-incrementer type position
-					   :buffer-var buffer-var
-					   :offset-var offset-var)
-	     ,(generate-value-packer name type
-				     :offset-var offset-var
-				     :buffer-var buffer-var)))
-
-	  ;; Repeated, unpacked slot
-	  ((not packed?)
-	   `((dotimes (,count-var (length ,slot-value))
-	       ,(generate-offset-incrementer type position
-					     :buffer-var buffer-var
-					     :offset-var offset-var)
-	       ,(generate-value-packer
-		 `(aref ,slot-value ,count-var) type
-		 :buffer-var buffer-var
-		 :offset-var offset-var))))
-
-	  ;; Repeated, packet slot
-	  (t
-	   `(,(generate-offset-incrementer :bytes position
-					   :buffer-var buffer-var
-					   :offset-var offset-var)
-	     ;; write length
-	     ,(generate-value-packer
-	       (generate-repeated-packed-size type slot-value) :uint64
-	       :buffer-var buffer-var
-	       :offset-var startsym)
-	     ;; write elements
-	     (dotimes (,count-var (length ,slot-value))
-	       ,(generate-value-packer
-		 `(aref ,slot-value ,count-var) type
-		 :buffer-var buffer-var
-		 :offset-var offset-var))))))))
+			     repeated?
+			     packed?)
+  "Generate code to pack the slot NAME of type PROTO-TYPE at field
+number NUMBER."
+  (let ((slot-value    `(slot-value  ,object-form ',name))
+	(slot-bound    `(slot-boundp ,object-form ',name))
+	(length-delim? (pb::length-delim-p proto-type)))
+    `(when (and ,slot-bound ,@(when length-delim? `(,slot-value)))
+       ,@(funcall (cond
+		    ((not repeated?) #'generate-scalar-slot-packer)
+		    ((not packed?)   #'generate-repeated-slot-packer)
+		    (t               #'generate-repeated-packed-slot-packer))
+		  proto-type number buffer-form offset-form slot-value))))
 
 (defun generate-pack-method (name fields)
   "Generate `pack' method for protocol buffer class NAME."
   (with-unique-names (object-var buffer-var start-var offset-var)
-    `(defmethod protocol-buffer:pack ((,object-var ,name)
-				      &key
-				      (,buffer-var (binio:make-octet-vector
-						    (pb:packed-size ,object-var)))
-				      (,start-var  0))
-       (declare (type binio:octet-vector ,buffer-var)
-                (fixnum                  ,start-var))
+    `(defmethod pb:pack ((,object-var ,name)
+			 &optional
+			 (,buffer-var (binio:make-octet-vector
+				       (pb:packed-size ,object-var)))
+			 (,start-var  0))
+       (declare (type binio:octet-vector  ,buffer-var)
+                (type non-negative-fixnum ,start-var))
        (let ((,offset-var ,start-var))
-	 ,@(map 'list (rcurry #'funcall object-var) fields)
+	 ,@(map 'list (rcurry #'funcall buffer-var offset-var object-var) fields)
          (values (- ,offset-var ,start-var) ,buffer-var)))))
 
 
 ;;; Unpacker Code Generation
 ;;
 
-(defun generate-decoder-name (proto-type)
-  "Find the function symbol to decode this type."
-  (check-type proto-type pb::proto-type "a protocol buffer type designator")
-
-  (case proto-type
-    ((:int32 :uint32 :int64 :uint64 :enum)
-     'binio:decode-uvarint)
-    ((:sint32 :sint64)
-     'binio:decode-svarint)
-    ((:fixed32)
-     'pb::decode-uint32)
-    ((:sfixed32)
-     'pb::decode-sint32)
-    ((:fixed64 )
-     'pb::decode-uint64)
-    ((:sfixed64)
-     'pb::decode-sint64)
-    (:string
-     'pb::decode-string)
-    (:bytes
-     'pb::decode-bytes)
-    (:double
-     'pb::decode-double)
-    (:float
-     'pb::decode-single)
-    (:bool
-     'pb::decode-bool)
-    (t
-     (if (enum-type-p proto-type)
-         (pb::symcat proto-type 'decode)
-         (error "Can't find decoder for this type: ~A" proto-type)))))
-
-(defun generate-value-unpacker (type buffer-var start &optional instance)
-  (if (primitive-type-p type)
-      `(,(generate-decoder-name type) ,buffer-var ,start)
+(defun generate-value-unpacker (proto-type buffer-var offset-form &optional instance)
+  (if (primitive-type-p proto-type)
+      `(,(%proto-type->coder :decode proto-type) ,buffer-var ,offset-form)
       (progn
-        (assert instance () "Need instance to unpack embedded message ~A" type)
-        `(pb::unpack-embedded ,buffer-var ,instance ,start))))
+        (assert instance () "Need instance to unpack embedded message ~A" proto-type)
+        `(pb::unpack-embedded ,buffer-var ,instance ,offset-form))))
 
-(defun generate-unpack-and-incf (start-place buffer type &optional instance)
-  "Unpack a scalar value and increment start."
+(defun generate-unpack-and-incf (proto-type buffer-form offset-form  &optional instance)
+  "Unpack a scalar value and increment START-FORM."
   (with-unique-names (value length)
     `(pb::with-decoding (,value ,length)
-         ,(generate-value-unpacker type buffer start-place instance)
-       ,@(when (primitive-type-p type)
-               `((declare (type ,(pb::scalar-proto-type->lisp-type type) ,value))))
-       (incf ,start-place ,length)
+         ,(generate-value-unpacker proto-type buffer-form offset-form instance)
+       ,@(when (primitive-type-p proto-type)
+               `((declare (type ,(pb::scalar-proto-type->lisp-type proto-type) ,value))))
+       (incf ,offset-form ,length)
        ,value)))
 
-(defun generate-slot-unpacker (name type
+(defun generate-scalar-slot-unpacker (proto-type buffer-form offset-form value-form)
+  "Generate code to decode a scalar value into VALUE-FORM."
+  `(,@(unless (primitive-type-p proto-type)
+        `((unless ,value-form ;(and ,slot-boundp ,value-form)
+	    (setf ,value-form (make-instance ',(proto-type->lisp-type proto-type))))))
+    (setf ,value-form ,(generate-unpack-and-incf
+			proto-type buffer-form offset-form value-form))))
+
+(defun generate-repeated-slot-unpacker (proto-type buffer-form offset-form value-form)
+  "Generate code to decode a repeated value into VALUE-FORM."
+  ;; FIXME: SBCL conses here because it's not a simple array
+  ;; would be nice to avoid that
+  `((vector-push-extend
+     ,(generate-unpack-and-incf
+       proto-type buffer-form offset-form
+       (unless (primitive-type-p proto-type)
+	 `(make-instance ',(scalar-proto-type->lisp-type proto-type))))
+     ,value-form)))
+
+(defun generate-repeated-packed-slot-unpacker (proto-type buffer-form offset-form value-form)
+  "Generate code to decode a repeated and packed value into
+VALUE-FORM."
+  `((pb::with-decoding (value length)
+	(pb::decode-length-delim
+	 ,buffer-form ,offset-form
+	 (lambda (buffer start end)
+	   (pb::decode-array
+	    ',(proto-type->lisp-type proto-type)
+	    #',(generate-decoder-name proto-type)
+	    buffer-form
+	    :fixed-bit-size ,(when (fixed-p proto-type)
+				   (* 8 (fixed-size proto-type)))
+	    :start          start
+	    :end            end)))
+      (setf ,value-form value)
+      (incf ,offset-form length))))
+
+(defun generate-slot-unpacker (proto-type name buffer-form offset-form object-form
 			       &key
-			       repeated? packed?
-			       buffer-var startsym object-var)
+			       repeated?
+			       packed?)
   "Generate code to unpack a single slot"
-  (let ((slot-value  `(slot-value  ,object-var ',name))
-	(slot-boundp `(slot-boundp ,object-var ',name)))
-    (cond
-      ;; Scalar slot
-      ((not repeated?)
-       `(,@(unless (primitive-type-p type)
-		   `((unless (and ,slot-boundp ,slot-value)
-		       (setf ,slot-value
-			     (make-instance ',(proto-type->lisp-type type))))))
-	 (setf ,slot-value
-	       ,(generate-unpack-and-incf startsym buffer-var type slot-value))))
-
-      ;; Packed array
-      (packed?
-       `((pb::with-decoding (value length)
-	     (pb::decode-length-delim
-	      ,buffer-var ,startsym
-	      (lambda (buffer start end)
-		(pb::decode-array
-		 ',(proto-type->lisp-type type)
-		 #',(generate-decoder-name type)
-		 buffer
-		 :fixed-bit-size ,(when (fixed-p type)
-					(* 8 (fixed-size type)))
-		 :start          start
-		 :end            end)))
-	   (setf ,slot-value value)
-	   (incf ,startsym length))))
-
-      ;; array, not packed
-      (t
-       ;; FIXME: SBCL conses here because it's not a simple array
-       ;; would be nice to avoid that
-       `((vector-push-extend
-          ,(generate-unpack-and-incf startsym buffer-var type
-				     (unless (primitive-type-p type)
-				       `(make-instance ',type)))
-          ,slot-value))))))
+  (let ((slot-value  `(slot-value  ,object-form ',name))
+	;(slot-boundp `(slot-boundp ,object-var ',name))
+	)
+    (funcall (cond
+	       ((not repeated?) #'generate-scalar-slot-unpacker)
+	       ((not packed?)   #'generate-repeated-slot-unpacker)
+	       (t               #'generate-repeated-packed-slot-unpacker))
+	     proto-type buffer-form offset-form slot-value)))
 
 (defun generate-unpack-method (name fields)
   "Generate code for the UNPACK method"
-  (with-unique-names (buffer-var object-var start-var end-var position-var pos read-typecode-var startlen)
-    `(defmethod protocol-buffer:unpack ((,buffer-var t) ;; TODO which type
-					(,object-var ,name)
-					&optional
-					(,start-var 0)
-					(,end-var   (length ,buffer-var)))
-       (declare (type binio:octet-vector ,buffer-var)
-                (type fixnum             ,start-var ,end-var))
+  (with-unique-names (buffer-var object-var start-var end-var
+		      offset-var
+		      number-var read-wire-type-var start-code-length-var)
+    `(defmethod pb:unpack ((,buffer-var t) ;; TODO which type
+			   (,object-var ,name)
+			   &optional
+			   (,start-var 0)
+			   (,end-var   (length ,buffer-var)))
+       (declare (type binio:octet-vector  ,buffer-var)
+                (type non-negative-fixnum ,start-var ,end-var))
 
        ;; Loop through BUFFER-VAR until we are at the end. Each
-       ;; decoded field will increment POSITION-VAR by its length. We
+       ;; decoded field will increment OFFSET-VAR by its length. We
        ;; return the filled object OBJECT-VAR and the size of the
        ;; consumed data.
-       (do ((,position-var ,start-var))
-           ((>= ,position-var ,end-var)
+       (do ((,offset-var ,start-var))
+           ((>= ,offset-var ,end-var)
 	    (values
 	     ,object-var
-	     (the fixnum (- ,position-var ,start-var))))
-         (declare (fixnum ,position-var))
+	     (the fixnum (- ,offset-var ,start-var))))
+         (declare (non-negative-fixnum ,offset-var))
 
-         (multiple-value-bind (,pos ,read-typecode-var ,startlen)
-             (pb::read-start-code ,buffer-var ,position-var)
-           (declare (fixnum ,pos ,read-typecode-var ,startlen))
+         (multiple-value-bind (,number-var ,read-wire-type-var ,start-code-length-var)
+             (pb::read-start-code ,buffer-var ,offset-var)
+           (declare (non-negative-fixnum ,number-var ,read-wire-type-var
+					 ,start-code-length-var))
 
-	   ;; Increase position to account for consumed start-code.
-           (incf ,position-var ,startlen)
+	   ;; Increase offset to account for consumed start-code.
+           (incf ,offset-var ,start-code-length-var)
 
            (cond
-	     ,@(mapcar
+	     ,@(map 'list
 		(lambda (field)
-		  (multiple-value-bind (position body)
-		      (funcall field read-typecode-var buffer-var position-var object-var)
-		    `((= ,pos ,position)
+		  (multiple-value-bind (field-number body)
+		      (funcall field read-wire-type-var buffer-var offset-var object-var)
+		    `((= ,number-var ,field-number)
 		      ,@body)))
 		fields)
              (t
-	      (error "Unhandled position ~A in class ~A, buffer ~A, need to skip" ;; TODO use condition class
-		     ,pos ',name ,buffer-var))))))))
+	      (cerror "Unhandled position ~A in class ~A, buffer ~A, need to skip" ;; TODO use condition class
+		      ,number-var ',name ,buffer-var))))))))
+
+
+;;; Utility functions
+;;
+
+(defun %proto-type->coder (direction proto-type)
+  "Return the name of a en- or decoder (depending on DIRECTION) for
+PROTO-TYPE. DIRECTION has to either :ENCODE or :DECODE. PROTO-TYPE can
+be any protocol buffer type but a nested protocol buffer."
+  (check-type direction  (member :encode :decode)
+	      "either :encode or :decode")
+  (check-type proto-type pb::proto-type "a protocol buffer type designator")
+
+  (if (keywordp proto-type)
+      (bind (((package name)
+	      (cond
+		((member proto-type '(:int32 :uint32 :int64 :uint64 :enum))
+		 '(:binio "UVARINT"))
+		((member proto-type '(:sint32 :sint64))
+		 '(:binio "SVARINT"))
+		((eq proto-type :bool)
+		 '(:binio "BOOL"))
+		((eq proto-type :fixed32)
+		 '(:binio "UINT32-LE"))
+		((eq proto-type :sfixed32)
+		 '(:binio "SINT32-LE"))
+		((eq proto-type :fixed64)
+		 '(:binio "UINT64-LE"))
+		((eq proto-type :sfixed64)
+		 '(:binio "SINT64-LE"))
+		((member proto-type '(:double :float))
+		 `(:binio ,(format nil "~A-LE" proto-type)))
+		((eq proto-type :string)
+		 `(:pb "STRING"))
+		((eq proto-type :bytes)
+		 `(:pb "BYTES"))
+		(t
+		 (error "Invalid primitive protocol buffer type ~S"
+			proto-type)))))
+	(intern (format nil "~A-~A" direction name) package))
+      (pb::symcat proto-type direction)))

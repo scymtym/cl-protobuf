@@ -40,6 +40,10 @@
 generated classes will not automatically have associated `pack' and
 `unpack' methods. These have to be generated separately.")
 
+
+;;;
+;;
+
 (defmethod emit :around ((node   pb::file-desc)
 			 (target (eql :class)))
   (maybe-make-package (pb::file-desc-package node))
@@ -78,11 +82,16 @@ generated classes will not automatically have associated `pack' and
 	     (options   pb::field-desc-options)) node)
 	   (name1 (intern* (make-lisp-slot-name name)))
 	   (type1 (if (member type '(:message :enum))
-		      (pb::proto-type-name->lisp-type-symbol type-name)
+		      (pb::proto-type-name->lisp-type-symbol
+		       type-name :package package)
 		      type)) ;; TODO do this properly; same code in target-serializer
-	   (packed? (when options (recur options))))
+	   (packed? (when options (recur options)))
+	   (class-name (intern* (make-lisp-class-name
+				 (pb::message-desc-name parent)
+				 grandparent)))) ;; TODO make a function
       #'(lambda ()
-	  (generate-slot name1 type1 label packed?)))))
+	  (generate-slot name1 type1 label packed?
+			 :class-name class-name)))))
 
 (defmethod emit ((node   pb::field-options)
 		 (target (eql :class)))

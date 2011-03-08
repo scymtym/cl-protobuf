@@ -135,41 +135,8 @@ read."
   (+ (binio:uvarint-size length) length))
 
 
-;;; Fixed-width decoders
+;;; Decoding functions
 ;;
-
-(declaim (inline decode-uint32
-                 decode-sint32
-                 decode-uint64
-                 decode-sint64
-                 decode-double
-                 decode-bool))
-
-(defun decode-uint32 (buffer start)
-  (values (binio:decode-uint32-le buffer start)
-          4))
-
-(defun decode-sint32 (buffer start)
-  (values (binio:decode-sint32-le buffer start)
-          4))
-
-(defun decode-uint64 (buffer start)
-  (values (binio:decode-uint64-le buffer start)
-          8))
-
-(defun decode-sint64 (buffer start)
-  (values (binio:decode-sint64-le buffer start)
-          8))
-
-(defun decode-double (buffer start)
-  (values (binio:decode-double-float-le buffer start)
-					;(binio:decode-double-float buffer :little start)
-          8))
-
-
-(defun decode-single (buffer start)
-  (values (binio:decode-float-le buffer start)
-          4))
 
 (defmacro decode-length-and-incf-start (start-place buffer)
   "reads the length field,
@@ -221,9 +188,7 @@ returns (values length length-of-length)"
                        #'(lambda (buffer start end)
 			   (declare (type octet-vector         buffer)
 				    (type non-negative-integer start end))
-			   (binio:decode-utf8 buffer
-					      :buffer-start start
-					      :buffer-end end))))
+			   (binio:decode-utf8 buffer start end))))
 
 (declaim (ftype (function ((array (unsigned-byte 8) (*)) octet-vector non-negative-fixnum)
 			  (values non-negative-fixnum octet-vector))

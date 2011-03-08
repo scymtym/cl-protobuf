@@ -165,29 +165,29 @@
 		`(def-decoder-cffi ,c-type ,swap?)))))))
 
 ;; Note: swapping the byte-order is about 5 times slower
-(def-decoder decode-double-float-le :double double-float       :little)
-(def-decoder decode-double-float-be :double double-float       :big)
+(def-decoder decode-double-le :double double-float       :little)
+(def-decoder decode-double-be :double double-float       :big)
 
-(def-decoder decode-float-le        :float  single-float       :little)
-(def-decoder decode-float-be        :float  single-float       :big)
+(def-decoder decode-float-le  :float  single-float       :little)
+(def-decoder decode-float-be  :float  single-float       :big)
 
-(def-decoder decode-sint64-le       :int64  (signed-byte 64)   :little)
-(def-decoder decode-sint64-be       :int64  (signed-byte 64)   :big)
+(def-decoder decode-sint64-le :int64  (signed-byte 64)   :little)
+(def-decoder decode-sint64-be :int64  (signed-byte 64)   :big)
 
-(def-decoder decode-uint64-le       :uint64 (unsigned-byte 64) :little)
-(def-decoder decode-uint64-be       :uint64 (unsigned-byte 64) :big)
+(def-decoder decode-uint64-le :uint64 (unsigned-byte 64) :little)
+(def-decoder decode-uint64-be :uint64 (unsigned-byte 64) :big)
 
-(def-decoder decode-sint32-le       :int32  (signed-byte 32)   :little)
-(def-decoder decode-sint32-be       :int32  (signed-byte 32)   :big)
+(def-decoder decode-sint32-le :int32  (signed-byte 32)   :little)
+(def-decoder decode-sint32-be :int32  (signed-byte 32)   :big)
 
-(def-decoder decode-uint32-le       :uint32 (unsigned-byte 32) :little)
-(def-decoder decode-uint32-be       :uint32 (unsigned-byte 32) :big)
+(def-decoder decode-uint32-le :uint32 (unsigned-byte 32) :little)
+(def-decoder decode-uint32-be :uint32 (unsigned-byte 32) :big)
 
-(def-decoder decode-sint16-le       :int16  (signed-byte 16)   :little)
-(def-decoder decode-sint16-be       :int16  (signed-byte 16)   :big)
+(def-decoder decode-sint16-le :int16  (signed-byte 16)   :little)
+(def-decoder decode-sint16-be :int16  (signed-byte 16)   :big)
 
-(def-decoder decode-uint16-le       :uint16 (unsigned-byte 16) :little)
-(def-decoder decode-uint16-be       :uint16 (unsigned-byte 16) :big)
+(def-decoder decode-uint16-le :uint16 (unsigned-byte 16) :little)
+(def-decoder decode-uint16-be :uint16 (unsigned-byte 16) :big)
 
 
 ;;; CFFI encoders
@@ -262,113 +262,6 @@
 (def-encoder encode-uint16-be :uint16 (unsigned-byte 16) :big)
 (def-encoder encode-sint16-le :int16  (signed-byte 16)   :little)
 (def-encoder encode-sint16-be :int16  (signed-byte 16)   :big)
-
-;;;;;;;;;;;;;;;;;;;;;
-;;; integer types ;;;
-;;;;;;;;;;;;;;;;;;;;;
-
-(declaim (inline decode-uint decode-sint encode-int))
-
-(defun decode-uint (buffer endian &optional (start 0) (bits 32))
-  (declare (fixnum start bits)
-           (type octet-vector buffer))
-  (do* ((n (the fixnum (/ bits 8)))
-        (end (+ start n))
-        (accum 0)
-        (i start (1+ i))
-        (k (the fixnum
-             (ecase endian
-               (:little 0)
-               (:big (* 8 (1- n)))))
-           (the fixnum
-             (ecase endian
-               (:little (+ k 8))
-               (:big (- k 8))))))
-       ((= i end) (values accum n))
-    (setq accum (dpb (aref buffer i)
-                     (byte 8 k)
-                     accum))))
-
-(defun decode-sint (buffer endian &optional (start 0) (bits 32) )
-  (declare (fixnum start bits)
-           (type (octet-vector) buffer))
-  (let ((result (decode-uint buffer endian start bits))
-        (count (/ bits 8)))
-    (declare (fixnum count))
-    (when (logbitp (1- bits) result)
-      (decf result (ash 1 bits)))
-    (values result count)))
-
-(declaim (ftype (function (integer symbol &optional (or null binio:octet-vector) fixnum fixnum) *)
-		encode-int))
-
-(defun encode-int (val endian
-		   &optional
-		   buffer
-		   (start 0)
-		   (bits  32))
-  (do* ((n (the fixnum (/ bits 8)))
-        (buffer (or buffer (make-octet-vector n)))
-        (end (+ start n))
-        (i start (1+ i))
-        (k (the fixnum
-             (ecase endian
-               (:little 0)
-               (:big    (* 8 (1- n)))))
-           (the fixnum
-             (ecase endian
-               (:little (+ 8 k))
-               (:big    (- k 8))))))
-       ((= i end) (values n buffer))
-    (setf (aref buffer i) (ldb (byte 8 k) val))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; floating point types ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defmacro def-cffi-cast (name from-lisp-type from-c-type to-c-type)
-  (with-unique-names (val x)
-    `(progn
-       (declaim (inline ,name))
-       (defun ,name (,val)
-         "Use CFFI to extract the bits of val by a C-like cast."
-         (declare (type ,from-lisp-type ,val))
-         (cffi:with-foreign-object (,x ,from-c-type)
-           (setf (cffi:mem-ref ,x ,from-c-type) ,val)
-           (cffi:mem-ref ,x ,to-c-type))))))
-
-(def-cffi-cast scary-single-float-bits single-float       :float  :uint32)
-(def-cffi-cast scary-make-single-float (unsigned-byte 32) :uint32 :float)
-
-(def-cffi-cast scary-double-float-bits double-float       :double :uint64)
-(def-cffi-cast scary-make-double-float (unsigned-byte 64) :uint64 :double)
-
-(declaim (inline decode-double-float)
-	 (ftype (function (octet-vector symbol &optional integer) *) decode-double-float))
-
-(defun decode-double-float (buffer endian &optional (start 0))
-  (scary-make-double-float (decode-uint buffer endian start 64)))
-
-(declaim (inline encode-double-float))
-
-(defun encode-double-float (val endian &optional buffer (start 0))
-  (let ((bits   (scary-double-float-bits val))
-        (buffer (or buffer (make-octet-vector 8))))
-    (declare (type octet-vector buffer))
-    (encode-int bits endian buffer start 64)))
-
-(declaim (ftype (function (octet-vector t &optional integer) *) decode-single-float))
-
-(defun decode-single-float (buffer endian &optional (start 0))
-  (scary-make-single-float (decode-sint buffer endian start)))
-
-(defun encode-single-float (val endian
-			    &optional
-			    (buffer (binio:make-octet-vector 4))
-			    (start  0))
-  (let ((bits (scary-single-float-bits val)))
-    (declare (type octet-vector buffer))
-    (encode-int bits endian buffer start)))
 
 
 ;;; Unsigned varint type
@@ -489,6 +382,30 @@
 ;;; Strings
 ;;
 
+(declaim (ftype (function (string
+			   &optional
+			   octet-vector
+			   non-negative-integer
+			   non-negative-integer  ;; string-start
+			   non-negative-integer) ;; string-end
+			  (values non-negative-integer octet-vector))
+		encode-utf8))
+
+(declaim (ftype (function (octet-vector
+			   &optional
+			   non-negative-integer
+			   non-negative-integer) ;; end
+			  (values string non-negative-integer))
+		decode-utf8))
+
+(declaim (ftype (function (octet-vector string
+			   &key
+			   (:buffer-start non-negative-integer)
+			   (:buffer-end   non-negative-integer)
+			   (:string-start non-negative-integer))
+			  (values string non-negative-integer))
+		decode-utf8-into))
+
 #-sbcl
 (defun encode-utf8 (string
                          &key
@@ -520,33 +437,39 @@
 
 #+sbcl
 (defun encode-utf8 (string
-                    &key
-                    (string-start 0)
-		    (string-end   (length string))
-                    buffer
-		    (buffer-start 0))
+		    &optional
+		    buffer
+		    (start        0)
+		    (string-start 0)
+		    (string-end   (length string)))
   (let ((octets (sb-ext:string-to-octets string
                                          :start string-start
                                          :end   string-end)))
     (values (length octets)
             (if buffer
-                (replace buffer octets :start1 buffer-start)
+                (replace buffer octets :start1 start)
                 octets))))
 
-
-
 #+sbcl
-(defun decode-utf8 (buffer &key
-                    (string-start 0) string
-                    (buffer-start 0) (buffer-end (length buffer)))
-  (let ((str (sb-ext:octets-to-string buffer
-                                      :start           buffer-start
-                                      :end             buffer-end
-                                      :external-format :utf8)))
-    (values (if string
-               (replace string str :start1 string-start)
-               str)
-            (- buffer-end buffer-start))))
+(defun decode-utf8 (buffer
+		    &optional
+		    (start 0)
+		    (end   (length buffer)))
+  (values
+   (the string (sb-ext:octets-to-string buffer
+					:start           start
+					:end             end
+					:external-format :utf8))
+   (- end start)))
+
+(defun decode-utf8-into (buffer string
+			 &key
+			 (buffer-start 0)
+			 (buffer-end   (length buffer))
+			 (string-start 0))
+  (let ((decoded (decode-utf8 buffer buffer-start buffer-end)))
+    (replace string decoded :start1 string-start)
+    (values string (- buffer-end buffer-start))))
 
 (defun utf8-size (string)
   "Return the number of bytes required to encode the UTF-8 string

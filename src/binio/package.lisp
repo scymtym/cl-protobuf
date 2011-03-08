@@ -42,33 +42,34 @@
    :cl
    :alexandria)
 
-  ;; Octet vector type
+  ;; Octet vector type and constructors
   (:export
    :octet :octet-vector :make-octet-vector)
 
-  ;; En- and decoders
+  ;; Fixed-width en- and decoders
   (:export
-                     :decode-uint
-		     :decode-sint
+   :encode-bool      :decode-bool
 
-   :encode-int
+   :encode-double-le :decode-double-le
+   :encode-double-be :decode-double-be
+   :encode-float-le  :decode-float-le
+   :encode-float-be  :decode-float-be
 
-   :encode-double-float :decode-double-float
-   :encode-single-float :decode-single-float
+   :encode-uint32-le :decode-uint32-le
+   :encode-uint32-be :decode-uint32-be
+   :encode-sint32-le :decode-sint32-le
+   :encode-sint32-be :decode-sint32-be
+   :encode-uint64-le :decode-uint64-le
+   :encode-uint64-be :decode-uint64-be
+   :encode-sint64-le :decode-sint64-le
+   :encode-sint64-be :decode-sint64-be)
 
+  ;; Variable-width en- and decoders
+  (:export
    :encode-svarint   :decode-svarint :svarint-size
    :encode-uvarint   :decode-uvarint :uvarint-size
 
-   :encode-utf8      :decode-utf8    :utf8-size
-
-   :encode-bool      :decode-bool
-
-   :decode-double-float-le :decode-double-float-be
-   :decode-float-le  :decode-float-be
-   :decode-uint32-le :decode-uint32-be
-   :decode-sint32-le :decode-sint32-be
-   :decode-uint64-le :decode-uint64-be
-   :decode-sint64-le :decode-sint64-be)
+   :encode-utf8      :decode-utf8    :utf8-size)
   (:documentation
    "This package contains functions for binary conversion between
 fundamental Lisp types and the corresponding protocol buffer types."))

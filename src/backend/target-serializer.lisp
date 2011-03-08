@@ -52,10 +52,11 @@ obtained by parsing the binary output of protoc.")
     (bind (((:accessors-r/o
 	     (name   pb::message-desc-name)
 	     (nested pb::message-desc-nested-type)
-	     (fields pb::message-desc-field)) node))
+	     (fields pb::message-desc-field)) node)
+	   (name1 (intern* (make-lisp-class-name name parent))))
       (map 'nil #'recur nested)
       (eval (generate-packed-size-method
-	     (intern* name) (map 'list #'recur fields))))))
+	     name1 (map 'list #'recur fields))))))
 
 (defmethod emit ((node   pb::field-desc)
 		 (target (eql :packed-size)))
@@ -68,17 +69,18 @@ obtained by parsing the binary output of protoc.")
 	     (number    pb::field-desc-number)
 	     (label     pb::field-desc-label)
 	     (options   pb::field-desc-options)) node)
+	   (name1     (intern* (make-lisp-slot-name name)))
 	   (repeated? (eq label :repeated))
-	   (packed?   (pb::field-options-packed options)))
-      (let ((type (if (member type '(:message :enum))
+	   (packed?   (when options
+			(pb::field-options-packed options))))
+      (let ((type (if (member type '(:message :enum)) ;; TODO maybe make-lisp-slot-type?
 		      (intern* type-name)
-		      type))) ;; TODO do this properly; same code in target-class,
+		      type))) ;; TODO do this properly; same code in target-class
 	#'(lambda (object-var)
-	    (generate-slot-packed-size
-	     (intern* name) type number
-	     :object-var object-var
-	     :repeated?  repeated?
-	     :packed?    packed?))))))
+	    (generate-slot-packed-size name1 type number
+				       :object-var object-var
+				       :repeated?  repeated?
+				       :packed?    packed?))))))
 
 
 ;;; Serializer
@@ -95,26 +97,30 @@ obtained by parsing the binary output of protoc.")
     (bind (((:accessors-r/o
 	     (name   pb::message-desc-name)
 	     (nested pb::message-desc-nested-type)
-	     (fields pb::message-desc-field)) node))
+	     (fields pb::message-desc-field)) node)
+	   (name1 (intern* (make-lisp-class-name name parent))))
       (map 'nil #'recur nested)
-      (eval (generate-pack-method name (map nil #'recur fields))))))
+      (eval (generate-pack-method name1 (map 'list #'recur fields))))))
 
 (defmethod emit ((node   pb::field-desc)
 		 (target (eql :serializer)))
   "Generate code to pack a single slot."
-  (bind (((:accessors-r/o
-	   (name    pb::field-desc-name)
-	   (type    pb::field-desc-type)
-	   (number  pb::field-desc-number)
-	   (label   pb::field-desc-label)
-	   (options pb::field-desc-options)) node)
-	 (repeated? (eq label :repeated))
-	 (packed?   (pb::field-options-packed options)))
-    #'(lambda (object-var)
-	(generate-slot-packer name type number
-			      :repeated   repeated?
-			      :packed?    packed?
-			      :object-var object-var))))
+  (with-emit-symbols
+    (bind (((:accessors-r/o
+	     (name    pb::field-desc-name)
+	     (number  pb::field-desc-number)
+	     (type    pb::field-desc-type)
+	     (label   pb::field-desc-label)
+	     (options pb::field-desc-options)) node)
+	   (name1     (intern* (make-lisp-slot-name name)))
+	   (repeated? (eq label :repeated))
+	   (packed?   (when options
+			(pb::field-options-packed options))))
+      #'(lambda (buffer-var offset-var object-var)
+	  (generate-slot-packer
+	   type name1 number buffer-var offset-var object-var
+	   :repeated? repeated?
+	   :packed?   packed?)))))
 
 
 ;;; Deserializer
@@ -165,16 +171,14 @@ obtained by parsing the binary output of protoc.")
 	  (values
 	   number
 	   `((unless (= ,read-wire-type-var ,desired-wire-type) ;; TODO move to generator-code
-	       (error "~@<Invalid wire-type for field ~A. Wanted ~D (~A)
+	       (error "~@<Invalid wire-type for field ~A. Wanted ~D (~A) ~
 but found ~D (~A).~@:>"
 		      ',name1
 		      ,desired-wire-type
 		      (pb:wire-type-meaning ,desired-wire-type)
 		      ,read-wire-type-var
 		      (pb:wire-type-meaning ,read-wire-type-var))) ;; TODO use condition class
-	     ,@(generate-slot-unpacker name1 type1
-				       :repeated?  repeated?
-				       :packed?    packed?
-				       :buffer-var buffer-form
-				       :startsym   offset-form
-				       :object-var object-form)))))))
+	     ,@(generate-slot-unpacker
+		type1 name1 buffer-form offset-form object-form
+		:repeated? repeated?
+		:packed?   packed?)))))))
