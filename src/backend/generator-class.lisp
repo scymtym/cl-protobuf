@@ -42,7 +42,8 @@
 (defun generate-enum (name values)
   "Generate code to map between enum codes and keyword symbols."
   (setf (get name 'pb::enum) t)
-  (bind ((enum-symbol (pb::symcat name 'symbol))) ;; TODO check this
+  (bind ((enum-symbol (pb::symcat name 'symbol))
+	 (enum-code   (pb::symcat name 'code)))
     (with-unique-names (sym code buffer start value length)
       `((deftype ,name ()
 	  '(or null (member ,@(mapcar #'first values))))
@@ -54,6 +55,8 @@
 	  (case ,sym
 	    ,@(iter (for (symbol code) in values) (collect `(,symbol ,code)))
 	    (t (error "Unknown enum ~A symbol: ~A" ',name ,sym))))
+	(defun ,(pb::symcat name 'encode) (,value ,buffer ,start)
+	  (binio:encode-uvarint (,enum-code ,value) ,buffer ,start))
 	(defun ,(pb::symcat name 'decode) (,buffer ,start)
 	  (pb::with-decoding (,value ,length)
 	      (binio:decode-uvarint ,buffer ,start)
