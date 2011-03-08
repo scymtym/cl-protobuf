@@ -213,6 +213,20 @@ returns (values length length-of-length)"
         (assert (= val-len len))
         (values val (+ len len-len))))))
 
+(declaim (ftype (function (string octet-vector non-negative-fixnum)
+			  (values non-negative-fixnum octet-vector))
+		encode-string))
+
+(defun encode-string (value buffer start)
+  (bind ((offset start)
+	 ((:values temp-size temp-buffer)
+	  (binio:encode-utf8 value)))
+    (incf offset (binio:encode-uvarint temp-size buffer start))
+    (replace buffer temp-buffer
+	     :start1 offset
+	     :end1   (incf offset temp-size))
+    (values (- offset start) buffer)))
+
 (declaim (ftype (function (octet-vector non-negative-fixnum)
 			  (values string non-negative-fixnum))
 		decode-string))
@@ -220,11 +234,26 @@ returns (values length length-of-length)"
 (defun decode-string (buffer start)
   (decode-length-delim buffer start
                        #'(lambda (buffer start end)
-			   (binio::decode-utf8 buffer
-					       :buffer-start start
-					       :buffer-end end))))
+			   (declare (type octet-vector         buffer)
+				    (type non-negative-integer start end))
+			   (binio:decode-utf8 buffer
+					      :buffer-start start
+					      :buffer-end end))))
 
-(declaim (ftype (function (octet-vector integer)
+(declaim (ftype (function ((array (unsigned-byte 8) (*)) octet-vector non-negative-fixnum)
+			  (values non-negative-fixnum octet-vector))
+		encode-bytes))
+
+(defun encode-bytes (value buffer start)
+  (let ((value-size (length value))
+	(offset     start))
+    (incf offset (binio:encode-uvarint value-size buffer start))
+    (replace buffer  value
+	     :start1 offset
+	     :end1   (incf offset value-size))
+    (values (- offset start) buffer)))
+
+(declaim (ftype (function (octet-vector non-negative-fixnum)
 			  (values (array (unsigned-byte 8) (*)) non-negative-fixnum))
 		decode-bytes))
 
