@@ -62,14 +62,14 @@ generated classes will not automatically have associated `pack' and
 	     (nested pb::message-desc-nested-type)
 	     (enums  pb::message-desc-enum-type)
 	     (fields pb::message-desc-field)) node) ;; field is actually a sequence of fields
-	   (name1 (intern* (make-lisp-class-name name parent)))
-	   (forms (generate-class name1 (map 'list #'recur fields))))
+	   (name1 (intern* (make-lisp-class-name name parent))))
       ;; Evaluate nested definitions immediately so types are
       ;; available.
       (map nil #'recur enums)
       (map nil #'recur nested)
       ;;
-      (eval `(progn ,@forms)))))
+      (eval `(progn ,@(generate-class
+		       name1 (map 'list #'recur fields)))))))
 
 ;; TODO handle default value
 (defmethod emit ((node   pb::field-desc)
