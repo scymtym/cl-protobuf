@@ -67,22 +67,23 @@ class and potentially associated enums."
 	   &key
 	   optional required repeated
 	   packed) form))
-    (declare (ignore marker))
-    `(make-instance 'pb::field-desc
-		    :name    ,(string name)
-		    :type    ',(cond
-				((keywordp type)
-				 type)
-				((pb::enum-type-p type)
-				 :enum)
-				(t
-				 :message)) ;; TODO do this properly
-		    ,@(unless (keywordp type)
-			      `(:type-name ,(string type)))
-		    :number  ,position
-		    :label   ',(first args) ;; TODO hack
-		    :options (make-instance 'pb::field-options
-					    :packed ,packed))))
+    (declare (ignore marker optional required repeated))
+    (let ((labels (intersection args '(:optional :required :repeated))))
+      `(make-instance 'pb::field-desc
+		      :name    ,(string name)
+		      :type    ',(cond
+				  ((keywordp type)
+				   type)
+				  ((pb::enum-type-p type)
+				   :enum)
+				  (t
+				   :message)) ;; TODO do this properly
+		      ,@(unless (keywordp type)
+				`(:type-name ,(string type)))
+		      :number  ,position
+		      :label   ',(or (first labels) :required)
+		      :options (make-instance 'pb::field-options
+					      :packed ,packed)))))
 
 (defun process-enum (form)
   (bind (((marker name &rest values) form))
