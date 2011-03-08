@@ -49,6 +49,19 @@ which are stored as binary protocol buffers."))
 			&key
 			(start 0)
 			end
-			(object (make-instance 'pb::file-set-desc))) ;; TODO call this unpack?
+			(object (make-instance 'pb::file-set-desc)))
   "Load OBJECT from stream SOURCE."
   (apply #'pb::unpack source object start (when end (list end))))
+
+(defmethod load/binary ((source list)
+			&key &allow-other-keys)
+  "Load and merge descriptor from all files in the list SOURCE."
+  (bind ((descs  (map 'list #'load/binary source))
+	 (result (first descs))
+	 ((:flet merge-one (file))
+	  (vector-push-extend
+	   file (pb::file-set-desc-file result)))
+	 ((:flet merge-all (desc))
+	  (map nil #'merge-one (pb::file-set-desc-file desc))))
+    (map nil #'merge-all (rest descs))
+    result))
