@@ -72,13 +72,13 @@
    ;; Scalar types
    ((and (not repeated?) (not packed?))
     (cond
-     ((member type '(:bool :boolean)) nil)
-     ((eq type :double)               0d0)
-     ((eq type :float)                0s0)
-     ((enum-type-p type)              nil) ;; has be check before integer-type-p
-     ((integer-type-p type)           0)
-     ((eq type :string)               "") ;; TODO
-     (t                               nil)))
+     ((eq type :bool)       nil)
+     ((eq type :double)     0d0)
+     ((eq type :float)      0s0)
+     ((enum-type-p type)    nil) ;; has be check before integer-type-p
+     ((integer-type-p type) 0)
+     ((eq type :string)     "") ;; TODO
+     (t                     nil)))
 
    ;; Packed array
    ((and repeated? packed?)

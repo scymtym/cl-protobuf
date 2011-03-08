@@ -48,13 +48,12 @@
 ;;
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defparameter +proto-types+ '(:double   :float
-				:int32    :int64
-				:uint32   :uint64
-				:sint32   :sint64
-				:fixed32  :fixed64
-				:sfixed32 :sfixed64
-				:boolean  :bool
+  (defparameter +proto-types+ '(:bool
+				:fixed32  :sfixed32
+				:fixed64  :sfixed64
+				:float    :double
+				:int32    :uint32   :sint32
+				:int64    :uint64   :sint64
 				:string   :bytes)))
 
 (deftype proto-type ()
@@ -78,7 +77,7 @@
       (fixed64-p type)))
 
 (defun varint-p (type)
-  (member type '(:boolean :bool
+  (member type '(:bool
 		 :int32 :sint32 :uint32 :int64 :sint64 :uint64
 		 :enum)))
 
@@ -131,7 +130,7 @@
     ((:uint32 :fixed32)          '(cl:unsigned-byte 32))
     ((:int64  :sfixed64 :sint64) '(cl:signed-byte 64))
     ((:uint64 :fixed64)          '(cl:unsigned-byte 64))
-    ((:bool   :boolean)          'cl:boolean)
+    (:bool                       'cl:boolean)
     (:double                     'cl:double-float)
     (:float                      'cl:single-float)
     (:string                     'cl:string)

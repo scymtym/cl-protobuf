@@ -54,7 +54,7 @@
 	 8)
         ((fixed32-p type)
 	 4)
-        ((member type '(:bool :boolean))
+        ((eq type :bool)
 	 1)
         ((uvarint-p type)
          `(binio:uvarint-size ,slot))
@@ -98,7 +98,7 @@
 	    `(* 8 (length ,value-var)))
            ((fixed32-p type)
 	    `(* 4 (length ,value-var)))
-           ((member type '(:bool :boolean))
+           ((eq type :boo)
 	    `(length ,value-var))
            ((uvarint-p type)
             `(pb::packed-uvarint-size ,value-var))
@@ -161,7 +161,7 @@
 	   ,(case type
 	      ((:int32 :uint32 :uint64 :int64 :enum)
 	       `(binio:encode-uvarint ,place ,buffer-var ,offset-var))
-	      ((:bool :boolean)
+	      (:bool
 	       `(pb::encode-bool ,place ,buffer-var ,offset-var))
 	      ((:sint32 :sint64)
 	       `(binio:encode-svarint ,place ,buffer-var ,offset-var))
@@ -285,7 +285,7 @@
      'pb::decode-double)
     (:float
      'pb::decode-single)
-    ((:bool :boolean)
+    (:bool
      'pb::decode-bool)
     (t
      (if (enum-type-p proto-type)
