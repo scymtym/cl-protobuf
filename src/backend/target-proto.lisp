@@ -171,7 +171,7 @@ printed around the output."
   (with-proto-emit-symbols stream
     (bind (((:accessors-r/o
 	     (packed pb::field-options-packed)) node))
-      (format stream " [packed=~A]" packed))))
+      (format stream " [packed = ~:[false~;true~]]" packed))))
 
 (defmethod emit ((node   pb::enum-desc)
 		 (target target-proto))
