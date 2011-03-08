@@ -46,36 +46,62 @@
 (defmacro with-decoding ((value length) decode-expr &body body)
   `(multiple-value-bind (,value ,length)
        ,decode-expr
-     (declare (fixnum ,length))
+     (declare (non-negative-fixnum ,length))
      ,@body))
 
-(declaim (ftype (function (fixnum fixnum) *) make-start-code))
+
+;;; Start codes
+;;
 
-(defun make-start-code (slot-position wire-type)
-  (logior (ash slot-position 3) wire-type))
+(declaim (ftype (function ((member 0 1 2 5))
+			  (member :varint :fixed64 :fixed32 :size-delimited))
+		wire-type-meaning)
+	 (inline wire-type-meaning))
 
-(declaim (inline read-start-code)
-	 (ftype (function (binio:octet-vector fixnum) (values integer integer))
-		read-start-code))
+(defun wire-type-meaning (type)
+  (ecase type
+    (0 :varint)
+    (1 :fixed64)
+    (5 :fixed32)
+    (2 :size-delimited)))
+
+(declaim (ftype (function (non-negative-fixnum non-negative-fixnum)
+			  non-negative-fixnum)
+		make-start-code)
+	 (inline make-start-code))
+
+(defun make-start-code (field-number wire-type)
+  (logior (ash field-number 3) wire-type))
+
+(declaim (ftype (function (octet-vector non-negative-fixnum)
+			  (values non-negative-fixnum non-negative-fixnum non-negative-fixnum))
+		read-start-code)
+	 (inline read-start-code))
 
 (defun read-start-code (buffer start)
   "Read a start code from BUFFER at position START.
 Return three values: position, wire-type and the number of bytes
 read."
-  (with-decoding (position-and-wire-type length)
+  (with-decoding (number-and-wire-type length)
       (decode-uvarint buffer start)
-    (declare (type fixnum position-and-wire-type length))
+    (declare (type non-negative-fixnum number-and-wire-type length))
     (values
-     (ash position-and-wire-type -3)
-     (ldb (byte 3 0) position-and-wire-type)
+     (ash number-and-wire-type -3)
+     (ldb (byte 3 0) number-and-wire-type)
      length)))
 
-(declaim (ftype (function (fixnum fixnum octet-vector fixnum) *)
-		encode-start-code))
+(declaim (ftype (function (non-negative-fixnum (member 0 1 2 5) octet-vector non-negative-fixnum)
+			  (values non-negative-fixnum octet-vector))
+		encode-start-code)
+	 (inline encode-start-code))
 
-(defun encode-start-code (slot-position typecode buffer start)
-  (encode-uvarint (make-start-code slot-position typecode)
-		  buffer start))
+(defun encode-start-code (field-number wire-type buffer start)
+  (binio:encode-uvarint (make-start-code field-number wire-type)
+			buffer start))
+
+
+;;;
+;;
 
 (declaim (ftype (function (t octet-vector fixnum) *) pack-embedded))
 
@@ -109,13 +135,6 @@ read."
 
 (defun length-delim-size (length)
   (+ (binio::uvarint-size length) length))
-
-(defun wire-type-meaning (type)
-  (ecase type
-    (0 :varint)
-    (1 :fixed64)
-    (5 :fixed32)
-    (2 :size-delimited)))
 
 (declaim (ftype (function (t octet-vector fixnum) bit) encode-bool))
 
