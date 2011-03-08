@@ -70,17 +70,19 @@ error occurs."))
    "This condition is signaled when a typecode is encountered that
 cannot be processed in the context in which it appears."))
 
-(define-condition unhandled-position (decoding-error) ;; should be continueable with corresponding restart
-  ((position :initarg  :position
-	     :type     non-negative-integer
-	     :documentation
-	     ""))
+(define-condition unhandled-field-number (condition)
+  ((number :initarg  :number
+	   :type     non-negative-integer
+	   :accessor unhandled-field-number-number
+	   :documentation
+	   ""))
   (:report
    (lambda (condition stream)
      (with-slots (position) condition
-       (format stream "~@<Unhandled position ~D in class ~A, buffer ~A, need to skip~@:>"
-	       position ',name ,buffer))))
+       (format stream "~@<Unhandled field number ~D in class ~A, ~
+buffer ~A, need to skip~@:>"
+	       (unhandled-field-number-number condition)
+	       name buffer))))
   (:documentation
-   "This condition is signaled when a position designator is
-encountered that cannot be processed in the context in which it
-appears."))
+   "This condition is signaled when a field number is encountered that
+cannot be processed in the context in which it appears."))
