@@ -281,7 +281,7 @@ VALUE-FORM."
 	 (lambda (buffer start end)
 	   (pb::decode-array
 	    ',(proto-type->lisp-type proto-type)
-	    #',(generate-decoder-name proto-type)
+	    #',(%proto-type->coder :decode proto-type)
 	    buffer-form
 	    :fixed-bit-size ,(when (fixed-p proto-type)
 				   (* 8 (fixed-size proto-type)))
