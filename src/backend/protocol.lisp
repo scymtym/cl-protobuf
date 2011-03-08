@@ -133,9 +133,12 @@ state of a particular emission process. This state consists of:
 ;;
 
 (defmethod  emit :around ((node t) (target list))
-  (let ((target1 (apply #'make-instance
-			(intern (string (first target)) :pbb)
-			(rest target))))
+  (let* ((target-name (first target))
+	 (class-name  (or (find-symbol
+			   (format nil "TARGET-~A" target-name)
+			   :pbb)
+			  (error "No such target ~A" target-name)))
+	 (target1    (apply #'make-instance class-name (rest target))))
     (emit node target1)))
 
 
