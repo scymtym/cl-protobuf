@@ -601,7 +601,8 @@
             (- buffer-end buffer-start))))
 
 (defun utf8-size (string)
-  (multiple-value-bind (size buffer)
-      (encode-utf8 string)
-    (declare (ignore buffer))
-    size))
+  "Return the number of bytes required to encode the UTF-8 string
+  STRING.
+Note: This is rather expensive since STRING has to actually be encoded
+to determine the number of required bytes."
+  (nth-value 0 (encode-utf8 string)))
