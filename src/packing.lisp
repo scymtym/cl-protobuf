@@ -213,7 +213,8 @@ returns (values length length-of-length)"
         (assert (= val-len len))
         (values val (+ len len-len))))))
 
-(declaim (ftype (function (octet-vector integer) *)
+(declaim (ftype (function (octet-vector non-negative-fixnum)
+			  (values string non-negative-fixnum))
 		decode-string))
 
 (defun decode-string (buffer start)
@@ -223,7 +224,8 @@ returns (values length length-of-length)"
 					       :buffer-start start
 					       :buffer-end end))))
 
-(declaim (ftype (function (octet-vector integer) *)
+(declaim (ftype (function (octet-vector integer)
+			  (values (array (unsigned-byte 8) (*)) non-negative-fixnum))
 		decode-bytes))
 
 (defun decode-bytes (buffer start)
