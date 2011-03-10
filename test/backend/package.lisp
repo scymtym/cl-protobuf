@@ -44,8 +44,8 @@
 		    (asdf:component-pathname
 		     (asdf:find-component
 		      (asdf:find-system :cl-protobuf-test)
-		      `("test" "descriptors"
-			       ,(format nil "~A.protobin" name))))))
+		      `("test" "precompiled-descriptors"
+			,(format nil "~A.protobin" name))))))
 		 '("addressbook" "developer-guide"))))
   (:documentation
    "Superclass for emitter test suites."))
