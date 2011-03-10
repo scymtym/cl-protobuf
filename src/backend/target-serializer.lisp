@@ -52,7 +52,7 @@ obtained by parsing the binary output of protoc.")
 
 (defmethod emit ((node   pb::message-desc)
 		 (target target-packed-size))
-  "Generate code for the `pack' method."
+  "Generate code for the `packed-size' method."
   (with-emit-symbols
     (bind (((:accessors-r/o
 	     (name   pb::message-desc-name)
@@ -65,7 +65,7 @@ obtained by parsing the binary output of protoc.")
 
 (defmethod emit ((node   pb::field-desc)
 		 (target target-packed-size))
-  "Generate code to pack a single slot."
+  "Generate code to compute the packed size of a single slot."
   (with-emit-symbols
     (bind (((:accessors-r/o
 	     (name      pb::field-desc-name)
