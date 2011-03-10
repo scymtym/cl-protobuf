@@ -89,14 +89,20 @@ cannot be processed in the context in which it appears."))
 	   :accessor unhandled-field-number-number
 	   :documentation
 	   "The number of the field that cannot be handled in the
-current unpacking context."))
+current unpacking context.")
+   (class  :initarg  :class
+	   :type     symbol
+	   :accessor unhandled-field-number-class
+	   :documentation
+	   "The name of the class an instance of was currently being
+decoded when the unhandled field number was encountered."))
   (:report
    (lambda (condition stream)
      (with-slots (position) condition
-       (format stream "~@<Unhandled field number ~D in class ~A, ~
-buffer ~A, need to skip~@:>"
+       (format stream "~@<Unhandled field number ~D when decoding an ~
+instance of class ~A.~@:>"
 	       (unhandled-field-number-number condition)
-	       name buffer))))
+	       (unhandled-field-number-class condition)))))
   (:documentation
    "This condition is signaled when a field number is encountered that
 cannot be processed in the context in which it appears."))

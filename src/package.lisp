@@ -58,7 +58,8 @@
    :unexpected-wire-type-found-type
 
    :unhandled-field-number
-   :unhandled-field-number-number)
+   :unhandled-field-number-number
+   :unhandled-field-number-class)
 
   ;; Wire types
   (:export
