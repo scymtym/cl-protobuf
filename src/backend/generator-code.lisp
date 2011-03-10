@@ -347,10 +347,9 @@ VALUE-FORM."
 		      ,@body)))
 		fields)
              (t
-	      (cerror
-	       "Skip the field"
-	       "~@<Unhandled field number ~D in class ~A, buffer ~A, need to skip.~@:>" ;; TODO use condition class
-	       ,number-var ',name ,buffer-var))))))))
+	      (signal 'unhandled-field-number
+		      :number ,number-var
+		      :class  ',name))))))))
 
 
 ;;; Utility functions
