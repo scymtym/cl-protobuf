@@ -47,6 +47,10 @@
 
   ;; Conditions
   (:export
+   :missing-required-initarg
+   :missing-required-initarg-class
+   :missing-required-initarg-initarg
+
    :encoding-error
 
    :decoding-error

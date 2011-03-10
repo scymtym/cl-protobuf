@@ -35,6 +35,27 @@
 
 (in-package :protocol-buffer)
 
+(define-condition missing-required-initarg (error)
+  ((class   :initarg  :class
+	    :type     symbol
+	    :accessor missing-required-initarg-class
+	    :documentation
+	    "The class which requires the missing initarg.")
+   (initarg :initarg  :initarg
+	    :type     symbol
+	    :accessor missing-required-initarg-initarg
+	    :documentation
+	    "The missing initarg."))
+  (:report
+   (lambda (condition stream)
+     (format stream "~@<The initarg ~S is required by class ~S, but ~
+has not been provided.~@:>"
+	     (missing-required-initarg-initarg condition)
+	     (missing-required-initarg-class   condition))))
+  (:documentation
+   "This condition is signaled when an initarg that is required by a
+class is not provided."))
+
 (define-condition encoding-error (error)
   ()
   (:documentation
