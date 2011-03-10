@@ -22,6 +22,15 @@
 (deftestsuite target-proto-root (backend-root
 				 emitter-suite)
   ()
+  (:function
+   (expected-output-for-descriptor (descriptor)
+     (let* ((name              (pb::file-desc-name
+				(aref (pb::file-set-desc-file descriptor) 0)))
+	    (expected-pathname (asdf:system-relative-pathname
+				(asdf:find-system :cl-protobuf-test)
+				(format nil "test/data/~A" name)
+				:type "expected")))
+       (read-file-into-string expected-pathname))))
   (:documentation
    "Unit tests for the proto target."))
 
@@ -31,6 +40,11 @@
   smoke
 
   (iter (for descriptor in descriptors)
-	(ensure (stringp
-		 (with-output-to-string (stream)
-		   (emit descriptor `(:proto :stream ,stream)))))))
+	(let ((result   (with-output-to-string (stream)
+			  (emit descriptor `(:proto :stream ,stream))))
+	      (expected (expected-output-for-descriptor descriptor)))
+	(ensure-same
+	 result expected
+	 :test      #'string=
+	 :report    "~@<First mismatch at ~D.~@:>"
+	 :arguments ((mismatch result expected))))))
