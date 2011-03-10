@@ -35,6 +35,9 @@
 
 (cl:in-package :cl-user)
 
+#.(when (asdf:find-system :asdf-system-connections)
+  (asdf:load-system :asdf-system-connections))
+
 (defpackage :cl-protobuf-system
   (:use
    :cl
@@ -137,3 +140,17 @@
 			       :depends-on ("bootstrap"
 					    "backend")))))
   :in-order-to ((test-op (test-op :cl-protobuf-test))))
+
+#+asdf-system-connections
+(defsystem-connection :cl-protobuf-and-yacc
+  :author      "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
+  :maintainer  "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
+  :version     "0.1.0"
+  :license     "GPL3; see COPYING file for details."
+  :description "This system connection provides a yacc-based parser
+for the textual protocol buffer description format."
+  :requires    (cl-protobuf
+		yacc)
+  :components  ((:module     "src"
+		 :components ((:module     "frontend"
+			       :components ((:file       "proto")))))))

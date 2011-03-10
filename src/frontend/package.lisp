@@ -56,6 +56,10 @@
   (:export
    :load/binary)
 
+  ;; Textual descriptor format
+  (:export
+   :load/text)
+
   (:documentation
    "The frontend package of the protocol buffer system contains
 mechanism for getting protocol buffer descriptor into the Lisp system
