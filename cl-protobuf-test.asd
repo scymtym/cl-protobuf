@@ -78,9 +78,14 @@
 
 			      (:file       "util"
 			       :depends-on ("package"))
+			      (:file       "pack"
+			       :depends-on ("package"))
+			      (:file       "unpack"
+			       :depends-on ("package"))
 
 			      (:module     "backend"
-			       :depends-on ("package")
+			       :depends-on ("package"
+					    "descriptors")
 			       :components ((:file       "package")
 					    (:file       "target-proto"
 					     :depends-on ("package"))))
