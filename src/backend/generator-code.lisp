@@ -387,7 +387,7 @@ be any protocol buffer type but a nested protocol buffer."
 		((eq proto-type :bytes)
 		 `(:pb "BYTES"))
 		(t
-		 (error "Invalid primitive protocol buffer type ~S"
-			proto-type)))))
+		 (error 'no-coder
+			:type proto-type)))))
 	(intern (format nil "~A-~A" direction name) package))
       (pb::symcat proto-type direction)))

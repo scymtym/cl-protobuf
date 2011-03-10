@@ -121,7 +121,8 @@
 					    (:file       "stream-target-mixin"
 					     :depends-on ("protocol"))
 					    (:file       "generator-code"
-					     :depends-on ("util"))
+					     :depends-on ("conditions"
+							  "util"))
 					    (:file       "target-class"
 					     :depends-on ("protocol"
 							  "code-generating-target-mixin"))
