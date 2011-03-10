@@ -66,6 +66,8 @@
 			      ;; and utilities
 			      (:file       "package"
 			       :depends-on ("binio"))
+			      (:file       "conditions"
+			       :depends-on ("package"))
 			      (:file       "util"
 			       :depends-on ("package"))
 			      (:file       "types"
