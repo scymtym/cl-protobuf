@@ -142,7 +142,7 @@ state of a particular emission process. This state consists of:
 	 (class       (or (find-class class-name)
 			  (error 'no-such-target
 				 :name class-name)))
-	 (target1     (apply #'make-instance class-name (rest target))))
+	 (target1     (apply #'make-instance class (rest target))))
     (emit node target1)))
 
 (defmethod emit ((node t) (target symbol))
