@@ -193,7 +193,7 @@ VALUE-FORM."
 	;; write start code
 	,(generate-start-code-encoder :bytes number buffer-form offset-form)
 	;; write length
-	,(generate-value-packer
+	,(generate-pack-and-incf
 	  :uint64 (generate-repeated-packed-size proto-type value-var)
 	  buffer-form offset-form)
 	;; write elements
