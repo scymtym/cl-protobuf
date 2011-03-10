@@ -129,16 +129,20 @@ state of a particular emission process. This state consists of:
    "Emit the appropriate object for NODE with respect to TARGET."))
 
 
-;;;
+;;; Target class lookup
 ;;
 
-(defmethod  emit ((node t) (target list))
+(defmethod emit ((node t) (target list))
   (let* ((target-name (first target))
 	 (class-name  (or (find-symbol
 			   (format nil "TARGET-~A" target-name)
 			   :pbb)
-			  (error "No such target ~A" target-name)))
-	 (target1    (apply #'make-instance class-name (rest target))))
+			  (error 'no-such-target
+				 :name target-name)))
+	 (class       (or (find-class class-name)
+			  (error 'no-such-target
+				 :name class-name)))
+	 (target1     (apply #'make-instance class-name (rest target))))
     (emit node target1)))
 
 (defmethod emit ((node t) (target symbol))

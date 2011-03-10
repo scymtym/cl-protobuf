@@ -115,7 +115,8 @@
 			       :components ((:file       "conditions")
 					    (:file       "util")
 					    (:file       "protocol"
-					     :depends-on ("util"))
+					     :depends-on ("util"
+							  "conditions"))
 					    (:file       "code-generating-target-mixin"
 					     :depends-on ("util"))
 					    (:file       "stream-target-mixin"

@@ -14,7 +14,10 @@
   ;; Conditions
   (:export
    :no-coder
-   :no-coder-type)
+   :no-coder-type
+
+   :no-such-target
+   :no-such-target-name)
 
   ;; Code generation
   (:export

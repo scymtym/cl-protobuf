@@ -33,3 +33,17 @@ found."))
   (:documentation
    "This error is signaled when no en- or decoder can be found for a
 specified protocol buffer type."))
+
+(define-condition no-such-target (error)
+  ((name :initarg  :name
+	 :type     (or string symbol)
+	 :accessor no-such-target-name
+	 :documentation
+	 ""))
+  (:report
+   (lambda (condition stream)
+     (format stream "~@<The specified target class ~S cannot be found.~@:>"
+	     (no-such-target-name condition))))
+  (:documentation
+   "This error is signaled if a specified target class cannot be
+found."))
