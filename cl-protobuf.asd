@@ -112,7 +112,8 @@
 			      (:module     "backend"
 			       :depends-on ("backend-early"
 					    "bootstrap")
-			       :components ((:file       "util")
+			       :components ((:file       "conditions")
+					    (:file       "util")
 					    (:file       "protocol"
 					     :depends-on ("util"))
 					    (:file       "code-generating-target-mixin"

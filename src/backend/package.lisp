@@ -11,6 +11,11 @@
 
    :protocol-buffer)
 
+  ;; Conditions
+  (:export
+   :no-coder
+   :no-coder-type)
+
   ;; Code generation
   (:export
    :generate-packed-size-method
