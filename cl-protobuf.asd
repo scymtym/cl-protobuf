@@ -128,7 +128,10 @@
 							  "code-generating-target-mixin"))
 					    (:file       "target-proto"
 					     :depends-on ("protocol"
-							  "stream-target-mixin"))))
+							  "stream-target-mixin"))
+					    (:file       "target-s-expr"
+					     :depends-on ("protocol"
+							  "code-generating-target-mixin"))))
 
 			      (:module     "frontend"
 			       :depends-on ("frontend-early"
