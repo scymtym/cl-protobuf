@@ -135,8 +135,7 @@
 					     :depends-on ("protocol"
 							  "stream-target-mixin"))
 					    (:file       "target-protofile"
-					     :depends-on ("package"
-							  "protocol"
+					     :depends-on ("protocol"
 							  "target-proto"))
 					    (:file       "target-s-expr"
 					     :depends-on ("protocol"
