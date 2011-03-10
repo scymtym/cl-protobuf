@@ -25,10 +25,16 @@
 	   :accessor target-stream
 	   :documentation
 	   "The stream to which the output of the emission process
-should be written.."))
+should be written."))
   (:documentation
    "This class can be mixed into target classes which write some
 output onto a stream."))
+
+(defmethod initialize-instance :after ((instance stream-target-mixin)
+				       &key
+				       (stream (missing-required-initarg
+						'stream-target-mixin :stream)))
+  (declare (ignore stream)))
 
 (defmacro with-stream-emit-symbols (stream-var &body body)
   "Execute BODY with the additional symbols provided by

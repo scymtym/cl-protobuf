@@ -106,3 +106,14 @@ not fully qualified.~@:>"
     (or (do-it)
 	(error "~@<Could not find a symbol named ~S in package ~S.~@:>"
 	       name package))))
+
+
+;;;
+;;
+
+(defun missing-required-initarg (class initarg)
+  "This function can be used to signal an error when INITARG required
+by CLASS has not been provided."
+  (error 'missing-required-initarg
+	 :class class
+	 :initarg initarg))
