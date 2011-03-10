@@ -49,8 +49,9 @@
   :author      "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :maintainer  "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :version     "0.1.0"
-  :license     "GPL3; see COPYING file for details."
-  :description "A protocol buffer compiler. Based on s-protobuf."
+  :license     "Modified BSD License; see COPYING file for details."
+  :description "A protocol buffer compiler. Based on s-protobuf by
+Neil T. Dantam."
   :depends-on  (:alexandria
 		:metabang-bind
 		:iterate
@@ -165,7 +166,7 @@
   :author      "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :maintainer  "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :version     "0.1.0"
-  :license     "GPL3; see COPYING file for details."
+  :license     "Modified BSD License; see COPYING file for details."
   :description "This system connection provides a yacc-based parser
 for the textual protocol buffer description format."
   :requires    (cl-protobuf

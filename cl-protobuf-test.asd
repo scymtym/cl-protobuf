@@ -48,7 +48,7 @@
   :author      "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :maintainer  "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :version     "0.1.0"
-  :license     "GPL3; see COPYING file for details."
+  :license     "Modified BSD License; see COPYING file for details."
   :description "Unit tests for the cl-protobuf system"
   :depends-on  (:cl-protobuf
 		:lift)
