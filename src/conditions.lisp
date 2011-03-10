@@ -1,4 +1,4 @@
-;;; conditions.lisp --- Conditions used in the s-protobuf System.
+;;; conditions.lisp --- Conditions used in the cl-protobuf system.
 ;;
 ;; Copyright (C) 2010, 2011 Jan Moringen
 ;;
@@ -44,28 +44,41 @@ error occurs."))
 (define-condition decoding-error (error)
   ((offset :initarg  :offset
 	   :type     non-negative-integer
+	   :accessor decoding-error-offset
 	   :documentation
-	   ""))
+	   "The buffer offset at which the decoding error occurred."))
   (:documentation
    "Conditions of this type and subtypes are signaled when a decoding
 error occurs."))
 
 (define-condition unexpected-wire-type (decoding-error)
-  ((expected-type :initarg  :expected-type
-		  :type     wire-type
+  ((field         :initarg  :field
+		  :type     (or symbol string)
+		  :accessor unexpected-wire-type-field
 		  :documentation
-		  "")
+		  "The name of the field that was being processed when
+the unexpected wire type was encountered. ")
+   (expected-type :initarg  :expected-type
+		  :type     wire-type
+		  :accessor unexpected-wire-type-expected-type
+		  :documentation
+		  "The assumed wire type of the field.")
    (found-type    :initarg  :found-type
 		  :type     wire-type
+		  :accessor unexpected-wire-type-found-type
 		  :documentation
-		  ""))
+		  "The wire type found in the data stream being
+decoded."))
   (:report
    (lambda (condition stream)
-     (with-slots (expected-type found-type) condition
-       (format stream "~@<Invalid wire-type for field ~A. Wanted ~A (~A) but found ~A (~A).~@>"
-	       'TODO
-	       desired-type (pb:wire-type-meaning desired-type)
-	       found-type (pb:wire-type-meaning found-type)))))
+     (let ((expected-type (unexpected-wire-type-expected-type condition))
+	   (found-type    (unexpected-wire-type-found-type condition)))
+       (format stream "~@<Invalid wire-type for field ~A at offset ~
+~D. Wanted ~A (~A) but found ~A (~A).~@:>"
+	       (unexpected-wire-type-field condition)
+	       (decoding-error-offset condition)
+	       expected-type (wire-type-meaning expected-type)
+	       found-type   (wire-type-meaning found-type)))))
   (:documentation
    "This condition is signaled when a typecode is encountered that
 cannot be processed in the context in which it appears."))
@@ -75,7 +88,8 @@ cannot be processed in the context in which it appears."))
 	   :type     non-negative-integer
 	   :accessor unhandled-field-number-number
 	   :documentation
-	   ""))
+	   "The number of the field that cannot be handled in the
+current unpacking context."))
   (:report
    (lambda (condition stream)
      (with-slots (position) condition

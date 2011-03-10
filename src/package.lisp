@@ -47,7 +47,18 @@
 
   ;; Conditions
   (:export
-   :unhandled-field-number)
+   :encoding-error
+
+   :decoding-error
+   :decoding-error-offset
+
+   :unexpected-wire-type
+   :unexpected-wire-type-field
+   :unexpected-wire-type-expected-type
+   :unexpected-wire-type-found-type
+
+   :unhandled-field-number
+   :unhandled-field-number-number)
 
   ;; Wire types
   (:export
