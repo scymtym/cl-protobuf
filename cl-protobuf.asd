@@ -138,6 +138,11 @@
 			      ;; Late "bootstrapping"
 			      (:file       "bootstrap-late"
 			       :depends-on ("bootstrap"
+					    "backend"))
+
+			      ;; ASDF support
+			      (:file       "asdf"
+			       :depends-on ("frontend"
 					    "backend")))))
   :in-order-to ((test-op (test-op :cl-protobuf-test))))
 
