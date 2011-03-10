@@ -53,14 +53,22 @@
   :depends-on  (:cl-protobuf
 		:lift)
   :components  ((:module     "test"
-		 :components ((:module     "precompiled-descriptors"
+		 :components (;; Protocol buffer descriptors for tests
+			      (:module     "precompiled-descriptors"
 			       :pathname   "data"
 			       :components ((:static-file "addressbook.protobin")
 					    (:static-file "addressbook.proto.expected")
 					    (:static-file "developer-guide.protobin")
 					    (:static-file "developer-guide.proto.expected")))
 
-			      (:file       "package")
+			      (:module     "descriptors"
+			       :pathname   "data"
+			       :default-component-class asdf::protocol-buffer-descriptor
+			       :components ((:file "addressbook")
+					    (:file "developer-guide")))
+
+			      (:file       "package"
+			       :depends-on ("descriptors"))
 
 			      (:module     "binio"
 			       :depends-on ("package")
