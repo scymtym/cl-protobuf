@@ -50,3 +50,36 @@
   ()
   (:documentation
    "Root unit test suite for the cl-protobuf system."))
+
+(deftestsuite data-suite ()
+  ((data-1 (make-array 3
+		       :element-type     '(unsigned-byte 8)
+		       :initial-contents '(#x08 #x96 #x01)))
+   (data-2 (make-array 9
+		       :element-type     '(unsigned-byte 8)
+		       :initial-contents '(#x12 #x07 #x74 #x65 #x73 #x74 #x69 #x6e #x67)))
+   (data-3 (make-array 5
+		       :element-type     '(unsigned-byte 8)
+		       :initial-contents '(#x1a #x03 #x08 #x96 #x01)))
+   (data-4 (make-array 8
+		       :element-type     '(unsigned-byte 8)
+		       :initial-contents '(#x22 #x06 #x03 #x8E #x02 #x9E #xA7 #x05))))
+  (:documentation
+   "This class can be mixed into test suite classes that required
+serialized protocol buffer data."))
+
+(deftestsuite descriptor-suite ()
+  ((descriptor-1 (make-instance 'developer-guide::test1
+				:a 150))
+   (descriptor-2 (make-instance 'developer-guide::test2
+				:b "testing"))
+   (descriptor-3 (make-instance 'developer-guide::test3
+				:c (make-instance 'developer-guide::test1
+						  :a 150)))
+   (descriptor-4 (make-instance 'developer-guide::test4
+				:d (make-array 3
+					       :element-type     '(signed-byte 32)
+					       :initial-contents '(3 270 86942)))))
+  (:documentation
+   "This class can be mixed into test suite classes that require
+protocol buffer descriptor instances."))
