@@ -38,6 +38,8 @@
 (defpackage :protocol-buffer.frontend.test
   (:use
    :cl
+   :alexandria
+   :iterate
    :lift
 
    :protocol-buffer.frontend)

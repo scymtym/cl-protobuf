@@ -65,7 +65,8 @@
 			       :pathname   "data"
 			       :default-component-class asdf::protocol-buffer-descriptor
 			       :components ((:file "addressbook")
-					    (:file "developer-guide")))
+					    (:file "developer-guide")
+					    (:file "empty")))
 
 			      (:file       "package"
 			       :depends-on ("descriptors"))
@@ -96,6 +97,8 @@
 					    (:file       "s-expr"
 					     :depends-on ("package"))
 					    (:file       "protobin"
+					     :depends-on ("package"))
+					    (:file       "proto"
 					     :depends-on ("package")))))))
   :in-order-to ((test-op (load-op :cl-protobuf-test))))
 
