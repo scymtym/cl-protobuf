@@ -187,13 +187,11 @@ obtained by parsing the binary output of protoc.")
 	  (values
 	   number
 	   `((unless (= ,read-wire-type-var ,desired-wire-type) ;; TODO move to generator-code
-	       (error "~@<Invalid wire-type for field ~A. Wanted ~D (~A) ~
-but found ~D (~A).~@:>"
-		      ',name1
-		      ,desired-wire-type
-		      (pb:wire-type-meaning ,desired-wire-type)
-		      ,read-wire-type-var
-		      (pb:wire-type-meaning ,read-wire-type-var))) ;; TODO use condition class
+	       (error 'pb:unexpected-wire-type
+		      :field         ',name1
+		      :offset        ,offset-form
+		      :expected-type ,desired-wire-type
+		      :found-type    ,read-wire-type-var))
 	     ,@(generate-slot-unpacker
 		type1 name1 buffer-form offset-form object-form
 		:repeated? repeated?
