@@ -1,9 +1,18 @@
 * TODO Optional values
   + How to represent (unbound slots vs. nil)
-* TODO Start/Type code terminology
-* TODO Use conditions
+* TODO Coerce sequence data automatically
+  Generate =initialize-instance= methods, and maybe =setf= methods,
+  that coerce initargs to the correct types where required (currently
+  vectors for repeated fields)
+* STARTED Use proper conditions
   browns protocol buffer stuff seems to have nice error handling
-* TODO Get rid of =with-gensyms=
+* DONE Get rid of =with-gensyms=
+* DONE Start/Type code terminology
+  Seems to be like this:
+  + start code :: part of the wire format; ORed field number and wire
+                  type
+  + wire type :: a small integer indicating the type of the next chunk
+                 of data
 
 # Local Variables:
 # mode: org
