@@ -146,7 +146,7 @@
 	  (:uint32   13)
 	  (:enum     14)
 	  (:sfixed32 15)
-	  (:sfixex64 16)
+	  (:sfixed64 16)
 	  (:sint32   17)
 	  (:sint64   18))
   (:enum  label
