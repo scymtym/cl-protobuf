@@ -57,7 +57,8 @@
   (defvar +punctuation+ "=,;.{}[]")
 
   (defvar +keywords+ '(optional required repeated
-		       package import option message enum service default))
+		       syntax import package option
+		       message enum service default))
 
   (defun %children-of-type (type list)
     (coerce (remove-if-not (of-type type) list) 'vector))
@@ -159,8 +160,11 @@
       proto*
 
     (proto->
-     import-> #||# package-> #||# option-> #| ;extend-> |# message-> #||# enum->
+     syntax-> #||# import-> #||# package-> #||# option-> #| ;extend-> |# message-> #||# enum->
      ( :SEMICOLON (constantly (values)) ))
+
+    (syntax->
+     ( syntax :EQUALS_SIGN :string :SEMICOLON ))
 
     (import->
      ( import :string :SEMICOLON (%index-filter #'list 0 1) ))
