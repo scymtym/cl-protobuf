@@ -115,9 +115,11 @@ Neil T. Dantam."
 					    "bootstrap")
 			       :components ((:file       "conditions")
 					    (:file       "util")
+					    (:file       "macros")
 					    (:file       "protocol"
 					     :depends-on ("util"
-							  "conditions"))
+							  "conditions"
+							  "macros"))
 					    (:file       "code-generating-target-mixin"
 					     :depends-on ("util"))
 					    (:file       "stream-target-mixin"

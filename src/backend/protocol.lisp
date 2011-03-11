@@ -161,15 +161,9 @@ state of a particular emission process. This state consists of:
     (format *standard-output* "~@<; ~@;emitting (~A)~@:>~%" (type-of node))))
 
 (defmethod emit :around ((node t) (target standard-object))
-  ;; Set current target type and push the current node onto the
-  ;; context stack.
-  (let ((old-target (context-target *context*)))
-    (setf (context-target *context*) target)
-    (push node (context-stack *context*))
-    (unwind-protect
-	 (call-next-method)
-      (pop (context-stack *context*))
-      (setf (context-target *context*) old-target))))
+  (with-emit-restarts node target
+    (with-updated-context node target
+	(call-next-method))))
 
 
 ;;; Default recursion behavior
