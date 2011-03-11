@@ -57,9 +57,9 @@
   (defvar +identifier-chars+ "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890_")
   (defvar +punctuation+      "=,;.{}[]")
 
-  (defvar +keywords+ '(optional required repeated
-		       syntax import package option
-		       message enum service default))
+  (defvar +keywords+ '(:optional :required :repeated
+		       :syntax :import :package :option
+		       :message :enum :service :default))
 
   (defun %children-of-type (type list)
     (coerce (remove-if-not (of-type type) list) 'vector))
@@ -100,7 +100,7 @@
 	     :number    number
 	     :type      (if (stringp type) :enum type)
 	     :type-name (string type)
-	     :label     (pb::symbol->keyword label)
+	     :label     label
 	     :options   other-options
 	     (when default
 	       (list :default-value default)))))
@@ -153,7 +153,7 @@
       `(yacc:define-parser *proto-parser*
 	 (:start-symbol proto*)
 	 (:terminals    (,@(map 'list #'%intern-char +punctuation+)
-			 :type :ident :string :number :bool
+			 :type :ident :%string :%number :%bool
 			 ,@+keywords+))
 	 ,@rules)))
 
@@ -165,16 +165,16 @@
      ( :SEMICOLON (constantly (values)) ))
 
     (syntax->
-     ( syntax :EQUALS_SIGN :string :SEMICOLON ))
+     ( :syntax :EQUALS_SIGN :%string :SEMICOLON ))
 
     (import->
-     ( import :string :SEMICOLON (%index-filter #'list 0 1) ))
+     ( :import :%string :SEMICOLON (%index-filter #'list 0 1) ))
 
     (package->
-     ( package :ident :SEMICOLON (%index-filter #'list 0 1) ))
+     ( :package :ident :SEMICOLON (%index-filter #'list 0 1) ))
 
     (option->
-     ( option option-body-> :SEMICOLON (%index-filter #'identity 1) ))
+     ( :option option-body-> :SEMICOLON (%index-filter #'identity 1) ))
 
     (option-body->
      ( :ident
@@ -182,11 +182,11 @@
        :EQUALS_SIGN constant-> (%index-filter #'make-option 0 2) ))
 
     (message->
-     ( message :ident message-body-> (%index-filter #'make-message 1 2) ))
+     ( :message :ident message-body-> (%index-filter #'make-message 1 2) ))
 
     (message-body->
      ( :LEFT_CURLY_BRACKET message-body-element* :RIGHT_CURLY_BRACKET
-			   (%index-filter #'identity 1)) )
+       (%index-filter #'identity 1)) )
 
     message-body-element*
 
@@ -197,11 +197,11 @@
      ( :SEMICOLON (constantly (values)) ))
 
     (field->
-     ( modifier-> type-> :ident :EQUALS_SIGN :number field-options-> :SEMICOLON
-		  (%index-filter #'make-field 0 1 2 4 5) ))
+     ( modifier-> type-> :ident :EQUALS_SIGN :%number field-options-> :SEMICOLON
+       (%index-filter #'make-field 0 1 2 4 5) ))
 
     (modifier->
-     required #||# optional #||# repeated)
+     :required #||# :optional #||# :repeated)
 
     (type->
      :type #||# user-type->)
@@ -212,7 +212,7 @@
 
     (field-options->
      ( :LEFT_SQUARE_BRACKET field-option-list-> :RIGHT_SQUARE_BRACKET
-			    (%index-filter #'make-field-options 1) )
+       (%index-filter #'make-field-options 1) )
      ( (constantly (make-field-options nil)) ))
 
     (field-option-list->
@@ -221,83 +221,128 @@
 
     (field-option->
      option-body->
-     ( default :EQUALS_SIGN constant-> (%index-filter #'make-option 0 2) ))
+     ( :default :EQUALS_SIGN constant-> (%index-filter #'make-option 0 2) ))
 
     (enum->
-     ( enum :ident :LEFT_CURLY_BRACKET enum-body-element* :RIGHT_CURLY_BRACKET
-	    (%index-filter #'make-enum 1 3) ))
+     ( :enum :ident :LEFT_CURLY_BRACKET enum-body-element* :RIGHT_CURLY_BRACKET
+       (%index-filter #'make-enum 1 3) ))
 
     enum-body-element*
 
     (enum-body-element->
      option->
-     ( :ident :EQUALS_SIGN :number :SEMICOLON
-	      (%index-filter #'make-enum-value 0 2) )
+     ( :ident :EQUALS_SIGN :%number :SEMICOLON
+       (%index-filter #'make-enum-value 0 2) )
      ( :SEMICOLON (constantly (values)) ))
 
     (constant->
-     :ident #||# :string #||# :number #||# :bool)))
+     :ident #||# :%string #||# :%number #||# :%bool)))
+
+
+;;; Lexer
+;;
+
+(defun make-char-reader (stream)
+  "Return three values: a read-char function, an unread-char function
+and a position function. The read-char function reads a single char
+from STREAM, skipping over comments. The unread-char function behaves
+as usual. The position function returns three values: the current
+offset, line and column in STREAM. "
+  (bind ((offset      0)
+	 (line        1)
+	 (column      0)
+	 (in-comment? nil)
+	 (did-unread? nil)
+	 ((:flet read1 ())
+	  (iter (for c next (read-char stream nil :eof))
+		(unless did-unread?
+		  (incf offset)
+		  (incf column)
+		  (case c
+		    (#\Newline (incf line)
+			       (setf column      0
+				     in-comment? nil))
+		    (#\/       (setf in-comment? t))))
+		(setf did-unread? nil)
+		(while (and (not (eq c :eof)) in-comment?))
+		(finally (return c))))
+	 ((:flet unread (c))
+	  (setf did-unread? t)
+	  (unread-char c stream)))
+    (values #'read1 #'unread #'(lambda () (values offset line column)))))
 
 (defun make-stream-lexer (stream)
-  (bind (((:flet skip-comment ())
-	  (iter (for c next (read-char stream nil :eof))
-		(until (member c '(#\Newline :eof)))))
-	 ((:flet read-one ())
-	  (iter (for c next (read-char stream nil :eof))
-		(while (find c +ignored-chars+))
-		(when (eq c #\/) (skip-comment))
-		(finally (return c))))
+  (bind (((:values read unread position) (make-char-reader stream))
+	 ((:flet read-while (allowed-chars &key invert?))
+	  (iter (for c next (funcall read))
+		(cond
+		  ((eq c :eof) (terminate))
+		  ((find c allowed-chars
+			 :test (if invert? (complement #'eq) #'eq))
+		               (collect c :result-type string))
+		  (t           (funcall unread c)
+			       (terminate)))))
 	 ((:flet read-number ())
-	  (read-from-string
-	   (iter (for c next (read-char stream nil :eof))
-		 (while (find c +number-chars+))
-		 (collect c :result-type string)
-		 (finally (unread-char c stream)))))
-	 ;; numeric literals should be
-	 ;; intLit ::= decInt | hexInt | octInt
-	 ;;   decInt ::= /\d+/
-	 ;;   hexInt ::= /0[xX]([A-Fa-f0-9])+/
-	 ;;   octInt ::= /0[0-7]+/
-	 ;; floatLit ::= /\d+(\.\d+)?([Ee][\+-]?\d+)?/ # allow_f_after_float_ is
-	 ((:flet read-identifier-or-keyword-or-type-chars ())
-	  (iter (for c next (read-char stream nil :eof))
-		(while (find c +identifier-chars+))
-		(collect c :result-type string)
-		(finally (unread-char c stream))))
-	 ((:flet read-identifier-or-keyword-or-type ())
-	  (let* ((string  (read-identifier-or-keyword-or-type-chars))
-		 (symbol  (find-symbol (string-upcase string) :pbf))
+	  (values :%number (read-from-string (read-while +number-chars+))))
+	 ((:flet read-string ())
+	  (funcall read) ;; consume opening quote
+	  (multiple-value-prog1
+	      (values :%string (read-while "\"" :invert? t))
+	    (funcall read)))
+	 ((:flet read-identifier-like ())
+	  (let* ((string  (read-while +identifier-chars+))
 		 (keyword (find-symbol (string-upcase string) :keyword)))
 	    (cond
-	      ((find symbol +keywords+)
-	       (values symbol symbol))
-	      ((find keyword pb:+proto-types+)
-	       (values :type keyword))
-	      ((or (string= string "false") (string= string "true"))
-	       (values :bool string))
-	      (t
-	       (values :ident string))))))
-    #'(lambda ()
-	(let ((c (read-one)))
-	  (cond
-	    ((eq c :eof) nil)
-	    ((find c +punctuation+)
-	     (values (%intern-char c) c))
-	    ((find c +number-chars+)
-	     (unread-char c stream)
-	     (values :number (read-number)))
-	    ((eq c #\")
-	     (unread-char c stream)
-	     (values :string (read stream)))
-	    ;; string literals should be
-	    ;; strLit ::= quote ( hexEscape | octEscape | charEscape | /[^\0\n]/ )* quote
-	    ;;   quote ::= /["']/
-	    ;;   hexEscape ::= /\\[Xx][A-Fa-f0-9]{1,2}/
-	    ;;   octEscape ::= /\\0?[0-7]{1,3}/
-	    ;;   charEscape ::= /\\[abfnrtv\\\?'"]/
-	    (t
-	     (unread-char c stream)
-	     (read-identifier-or-keyword-or-type)))))))
+	      ((find keyword +keywords+)       (values keyword keyword))
+	      ((find keyword pb:+proto-types+) (values :type   keyword))
+	      ((eq keyword :true)	       (values :%bool   t))
+	      ((eq keyword :false)	       (values :%bool   nil))
+	      (t                               (values :ident  string))))))
+    (values
+     #'(lambda ()
+	 (read-while +ignored-chars+)
+	 (let ((c (peek-char t stream nil :eof)))
+	   (cond
+	     ((eq c :eof)             nil)
+	     ((find c +punctuation+)  (progn
+					(funcall read)
+					(values (%intern-char c) c)))
+	     ((find c +number-chars+) (read-number))
+	     ((eq c #\")              (read-string))
+	     (t                       (read-identifier-like)))))
+     position)))
+
+;; numeric literals should be
+;; intLit ::= decInt | hexInt | octInt
+;;   decInt ::= /\d+/
+;;   hexInt ::= /0[xX]([A-Fa-f0-9])+/
+;;   octInt ::= /0[0-7]+/
+;; floatLit ::= /\d+(\.\d+)?([Ee][\+-]?\d+)?/ # allow_f_after_float_ is
+
+;; string literals should be
+;; strLit ::= quote ( hexEscape | octEscape | charEscape | /[^\0\n]/ )* quote
+;;   quote ::= /["']/
+;;   hexEscape ::= /\\[Xx][A-Fa-f0-9]{1,2}/
+;;   octEscape ::= /\\0?[0-7]{1,3}/
+;;   charEscape ::= /\\[abfnrtv\\\?'"]/
+
+
+;;;
+;;
+
+(defun parse (source)
+  "The the contents of the stream SOURCE and return the resulting
+partially post-processed syntax tree."
+  (bind (((:values lexer position1) (make-stream-lexer source)))
+    (handler-case
+	(yacc:parse-with-lexer lexer *proto-parser*)
+      (yacc:yacc-runtime-error (condition)
+	(bind (((:values offset line column) (funcall position1)))
+	  (error 'proto-parse-error
+		 :offset            offset
+		 :line              line
+		 :column            column
+		 :causing-condition condition))))))
 
 
 ;;; Public interface
@@ -315,14 +360,12 @@ protocol buffer descriptors using the grammar described at
 http://code.google.com/apis/protocolbuffers/docs/proto.html."))
 
 (defmethod load/text ((source stream))
-  (let* ((lexer  (make-stream-lexer source))
-	 (parsed (yacc:parse-with-lexer lexer *proto-parser*))
-	 (result (make-instance 'pb::file-set-desc)))
-    (setf (pb::file-set-desc-file result)
-	  (make-array 1
-		      :initial-element (make-file-desc "<stream>" parsed)
-		      :fill-pointer    1))
-    result))
+  (make-instance
+   'pb::file-set-desc
+   :file (make-array 1
+		     :initial-element (make-file-desc
+				       "<stream>" (parse source))
+		     :fill-pointer    1)))
 
 (defmethod load/text ((source pathname))
   (let* ((set  (with-input-from-file (stream source)
