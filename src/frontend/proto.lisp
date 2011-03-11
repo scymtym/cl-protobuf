@@ -52,9 +52,10 @@
 ;;
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defvar +number-chars+ "01234567890.")
-
-  (defvar +punctuation+ "=,;.{}[]")
+  (defvar +ignored-chars+    (coerce '(#\Newline #\Space #\Tab #\/) 'string))
+  (defvar +number-chars+     "01234567890.")
+  (defvar +identifier-chars+ "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890_")
+  (defvar +punctuation+      "=,;.{}[]")
 
   (defvar +keywords+ '(optional required repeated
 		       syntax import package option
@@ -243,7 +244,7 @@
 		(until (member c '(#\Newline :eof)))))
 	 ((:flet read-one ())
 	  (iter (for c next (read-char stream nil :eof))
-		(while (member c '(#\Space #\Tab #\Newline #\/)))
+		(while (find c +ignored-chars+))
 		(when (eq c #\/) (skip-comment))
 		(finally (return c))))
 	 ((:flet read-number ())
@@ -260,7 +261,7 @@
 	 ;; floatLit ::= /\d+(\.\d+)?([Ee][\+-]?\d+)?/ # allow_f_after_float_ is
 	 ((:flet read-identifier-or-keyword-or-type-chars ())
 	  (iter (for c next (read-char stream nil :eof))
-		(until (member c '(#\Space #\Tab #\Newline #\/ #\; #\] #\,)))
+		(while (find c +identifier-chars+))
 		(collect c :result-type string)
 		(finally (unread-char c stream))))
 	 ((:flet read-identifier-or-keyword-or-type ())
@@ -275,7 +276,7 @@
 	      ((or (string= string "false") (string= string "true"))
 	       (values :bool string))
 	      (t
-	       (values :ident string)))))) ;; should be /[A-Za-z_][\w_]*/
+	       (values :ident string))))))
     #'(lambda ()
 	(let ((c (read-one)))
 	  (cond
