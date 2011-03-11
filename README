@@ -1,0 +1,47 @@
+#+TITLE:  cl-protobuf README
+#+AUTHOR: Jan Moringen
+#+EMAIL:  jmoringe@techfak.uni-bielefeld.de
+
+* Introduction
+#+begin_ditaa overview.png -r -S
+:
+:  Frontend ----> Model -------> Backend
+:
+: +--------------+--------------+--------------+
+: | S-Expr       | Descriptor   | Code         |
+: +--------------+ -based       +--------------+
+: | Binary       | Intermediate | Textual      |
+: | Descriptors  | Representat. | Descriptors  |
+: +--------------+              +--------------+
+: | Textual      |              | Visualization|
+: | Descriptors  |              |              |
+: +--------------+--------------+--------------+
+:
+#+end_ditaa
+* Tutorial
+#+BEGIN_SRC lisp
+  (defvar *descriptors* (pbf:load/text (asdf:component-pathname
+                                        (asdf:find-component
+                                         (asdf:find-system :cl-protobuf-test)
+                                         '("test" "descriptors" "addressbook")))))
+
+  (pbb:emit *descriptors* :class)
+#+END_SRC
+* Reference
+** Overview
+** Frontends
+*** Binary Protocol Buffer Descriptor Format Frontend
+*** Textual Protocol Buffer Descriptor Format Frontend
+*** S-Expr Frontend
+** Backends
+*** Code Generation Backend
+*** Textual Protocol Buffer Descriptor Format Backend
+*** Graphviz Backend
+
+* Settings :noexport:
+
+#+OPTIONS: H:2 num:t toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+
+# Local Variables:
+# mode: org
+# End:
