@@ -70,7 +70,8 @@ buffer descriptions into multiple files in a common directory."))
 ;;
 
 (defmethod emit ((node   pb::file-desc)
-		 (target target-protofile))
+		 (target target-protofile)
+		 &key)
   (bind (((:accessors-r/o
 	   (file pb::file-desc-name)) node))
     (with-output-to-file (stream (merge-pathnames

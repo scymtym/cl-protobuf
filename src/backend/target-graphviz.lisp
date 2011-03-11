@@ -88,12 +88,14 @@ printed around the output."
 ;;
 
 (defmethod emit ((node   pb::file-set-desc)
-		 (target target-graphviz))
+		 (target target-graphviz)
+		 &key)
   (with-graphviz-logical-block ("digraph" "foo")
     (call-next-method)))
 
 (defmethod emit ((node   pb::message-desc)
-		 (target target-graphviz))
+		 (target target-graphviz)
+		 &key)
   (with-stream-emit-symbols stream
     (bind (((:accessors-r/o
 	     (name   pb::message-desc-name)
@@ -107,7 +109,8 @@ printed around the output."
     (call-next-method)))
 
 (defmethod emit ((node   pb::field-desc)
-		 (target target-graphviz-record-line))
+		 (target target-graphviz-record-line)
+		 &key)
   (with-stream-emit-symbols stream
     (bind (((:accessors-r/o
 	     (name   pb::field-desc-name)
@@ -119,7 +122,8 @@ printed around the output."
 	      number))))
 
 (defmethod emit ((node   pb::field-desc)
-		 (target target-graphviz))
+		 (target target-graphviz)
+		 &key)
   "Generate code to unpack a single slot"
   (with-stream-emit-symbols stream
     (bind (((:accessors-r/o
@@ -134,7 +138,8 @@ printed around the output."
 		name)))))
 
 (defmethod emit ((node   pb::enum-desc)
-		 (target target-graphviz))
+		 (target target-graphviz)
+		 &key)
   "Generate a record-shaped node for the enum NODE."
   (with-stream-emit-symbols stream
     (bind (((:accessors-r/o
@@ -146,7 +151,8 @@ printed around the output."
       (format stream "</TABLE>>]~%"))))
 
 (defmethod emit ((node   pb::enum-value-desc)
-		 (target target-graphviz))
+		 (target target-graphviz)
+		 &key)
   "Generate a table row for the enum value NODE."
   (with-stream-emit-symbols stream
     (bind (((:accessors-r/o

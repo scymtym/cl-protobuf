@@ -26,7 +26,8 @@
 represent a code generation target."))
 
 (defmethod emit :around ((node   pb::file-desc)
-			 (target code-generating-target-mixin))
+			 (target code-generating-target-mixin)
+			 &key)
   (let* ((package-name (pb::file-desc-package node))
 	 (package      (progn
 			 (maybe-make-package package-name)

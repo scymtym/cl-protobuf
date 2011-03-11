@@ -77,13 +77,14 @@
 (declaim (special *emit-verbose*))
 
 (defvar *emit-verbose* nil
-  "If non-nil print strings to standard output during `emit' calls
-which describe what is being emitted.")
+  "When non-nil, print strings to `*standard-output*' during `emit'
+calls which describe what is being emitted.")
 
 (declaim (special *emit-print*))
 
 (defvar *emit-print* nil
-  "TODO")
+  "When non-nil, print concise messages to `*standard-output*' during
+`emit' calls. Analogue to `*load-print*'.")
 
 
 ;;; Backend Context
@@ -124,7 +125,11 @@ state of a particular emission process. This state consists of:
 ;;;
 ;;
 
-(defgeneric emit (node target) ;; &key verbose print &allow-other-keys
+(defgeneric emit (node target
+		  &key
+		  verbose
+		  print
+		  &allow-other-keys)
   (:documentation
    "Emit the appropriate object for NODE with respect to TARGET."))
 
@@ -132,7 +137,8 @@ state of a particular emission process. This state consists of:
 ;;; Target class lookup
 ;;
 
-(defmethod emit ((node t) (target list))
+(defmethod emit ((node t) (target list)
+		 &key)
   (let* ((target-name (first target))
 	 (class-name  (or (find-symbol
 			   (format nil "TARGET-~A" target-name)
@@ -145,22 +151,27 @@ state of a particular emission process. This state consists of:
 	 (target1     (apply #'make-instance class (rest target))))
     (emit node target1)))
 
-(defmethod emit ((node t) (target symbol))
+(defmethod emit ((node t) (target symbol)
+		 &key)
   (emit node (list target)))
 
 
 ;;; Housekeeping and such
 ;;
 
-(defmethod emit :before ((node t) (target standard-object)) ;; TODO &key for verbose print
+(defmethod emit :before ((node t) (target standard-object)
+			 &key
+			 (verbose *emit-verbose*)
+			 (print   *emit-print*))
   ;; Printing
-  (when *emit-verbose*
+  (when verbose
     (format *standard-output* "~@<; ~@;emitting ~S for target ~S~@:>~%"
 	    node target))
-  (when *emit-print*
+  (when print
     (format *standard-output* "~@<; ~@;emitting (~A)~@:>~%" (type-of node))))
 
-(defmethod emit :around ((node t) (target standard-object))
+(defmethod emit :around ((node t) (target standard-object)
+			 &key)
   (with-emit-restarts node target
     (with-updated-context node target
 	(call-next-method))))
@@ -169,15 +180,18 @@ state of a particular emission process. This state consists of:
 ;;; Default recursion behavior
 ;;
 
-(defmethod emit ((node t) (target standard-object))
+(defmethod emit ((node t) (target standard-object)
+		 &key)
   (values))
 
-(defmethod emit ((node pb::file-set-desc) (target standard-object))
+(defmethod emit ((node pb::file-set-desc) (target standard-object)
+		 &key)
   "Multi-file container; default behavior is recursion over files."
   (with-emit-symbols
     (map nil #'recur (pb::file-set-desc-file node))))
 
-(defmethod emit ((node pb::file-desc) (target standard-object))
+(defmethod emit ((node pb::file-desc) (target standard-object)
+		 &key)
   "File; default behavior is recursion over messages, enums, services,
 extensions and options."
   (with-emit-symbols
@@ -187,7 +201,8 @@ extensions and options."
     (map nil #'recur (pb::file-desc-extension    node))
     (map nil #'recur (pb::file-desc-options      node))))
 
-(defmethod emit ((node pb::message-desc) (target standard-object))
+(defmethod emit ((node pb::message-desc) (target standard-object)
+		 &key)
   "Message; default behavior is recursion over contained elements."
   (with-emit-symbols
     (map nil #'recur (pb::message-desc-enum-type   node))
@@ -195,7 +210,8 @@ extensions and options."
     (map nil #'recur (pb::message-desc-field       node))
     (map nil #'recur (pb::message-desc-extension   node))))
 
-(defmethod emit ((node pb::field-desc) (target standard-object))
+(defmethod emit ((node pb::field-desc) (target standard-object)
+		 &key)
   "Field; default behavior is recursion into options it any."
   (with-emit-symbols
     (bind (((:accessors-r/o
@@ -203,7 +219,8 @@ extensions and options."
       (when options
 	(recur options)))))
 
-(defmethod emit ((node pb::enum-desc) (target standard-object))
+(defmethod emit ((node pb::enum-desc) (target standard-object)
+		 &key)
   "Enum; default behavior is recursion over enum values."
   (with-emit-symbols
     (map 'list #'recur (pb::enum-desc-value node))))

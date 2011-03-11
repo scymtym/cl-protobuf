@@ -58,18 +58,21 @@ representation.")
 ;;; Emit methods
 ;;
 
-(defmethod emit ((node t) (target target-s-expr))
+(defmethod emit ((node t) (target target-s-expr)
+		 &key)
   node)
 
 (defmethod emit ((node   pb::file-set-desc)
-		 (target target-s-expr))
+		 (target target-s-expr)
+		 &key)
   (with-emit-symbols
     (bind (((:accessors-r/o
 	     (file pb::file-set-desc-file)) node))
       (apply #'nconc (map 'list #'recur file)))))
 
 (defmethod emit ((node   pb::file-desc)
-		 (target target-s-expr))
+		 (target target-s-expr)
+		 &key)
   (with-emit-symbols
     (bind (((:accessors-r/o
 	     (enums    pb::file-desc-enum-type)
@@ -78,7 +81,8 @@ representation.")
 	     (map 'list #'recur messages)))))
 
 (defmethod emit ((node   pb::message-desc)
-		 (target target-s-expr))
+		 (target target-s-expr)
+		 &key)
   (with-emit-symbols
     (bind (((:accessors-r/o
 	     (name   pb::message-desc-name)
@@ -92,7 +96,8 @@ representation.")
 		 ,@(map 'list #'recur fields)))))
 
 (defmethod emit ((node   pb::field-desc)
-		 (target target-s-expr))
+		 (target target-s-expr)
+		 &key)
   (with-emit-symbols
     (bind (((:accessors-r/o
 	     (name      pb::field-desc-name)
@@ -119,7 +124,8 @@ representation.")
 	       ,@(when packed? '(:packed t))))))
 
 (defmethod emit ((node   pb::enum-desc)
-		 (target target-s-expr))
+		 (target target-s-expr)
+		 &key)
   (with-emit-symbols
     (bind (((:accessors-r/o
 	     (name   pb::enum-desc-name)
@@ -129,7 +135,8 @@ representation.")
 	      ,@(map 'list #'recur values)))))
 
 (defmethod emit ((node   pb::enum-value-desc)
-		 (target target-s-expr))
+		 (target target-s-expr)
+		 &key)
   (bind (((:accessors-r/o
 	   (name   pb::enum-value-desc-name)
 	   (number pb::enum-value-desc-number)) node)

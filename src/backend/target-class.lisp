@@ -54,7 +54,8 @@ generated classes will not automatically have associated `pack' and
 ;;
 
 (defmethod emit ((node   pb::message-desc)
-		 (target target-class))
+		 (target target-class)
+		 &key)
   "Define a Lisp class for NODE. "
   (with-emit-symbols
     (bind (((:accessors-r/o
@@ -73,7 +74,8 @@ generated classes will not automatically have associated `pack' and
 
 ;; TODO handle default value
 (defmethod emit ((node   pb::field-desc)
-		 (target target-class))
+		 (target target-class)
+		 &key)
   "Emit a slot specification for NODE."
   (with-emit-symbols
     (bind (((:accessors-r/o
@@ -96,13 +98,15 @@ generated classes will not automatically have associated `pack' and
 			 :class-name class-name)))))
 
 (defmethod emit ((node   pb::field-options)
-		 (target target-class))
+		 (target target-class)
+		 &key)
   "Emit a Boolean value indicating whether the packed option is set in
 NODE."
   (pb::field-options-packed node))
 
 (defmethod emit ((node   pb::enum-desc)
-		 (target target-class))
+		 (target target-class)
+		 &key)
   "Emit enum definition for NODE."
   (with-emit-symbols
     (bind (((:accessors-r/o
@@ -113,7 +117,8 @@ NODE."
       (eval `(progn ,@forms)))))
 
 (defmethod emit ((node   pb::enum-value-desc)
-		 (target target-class))
+		 (target target-class)
+		 &key)
   "Emit name-value-pair for NODE."
   (bind (((:accessors-r/o
 	   (name   pb::enum-value-desc-name)

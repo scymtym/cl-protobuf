@@ -79,16 +79,18 @@ printed around the output."
 ;;; Emitter methods
 ;;
 
-(defmethod emit ((node t) (target (eql :proto)))
+(defmethod emit ((node t) (target (eql :proto)) &key)
   (error "Have to specify stream for :proto target"))
 
 (defmethod emit :before ((node   pb::file-set-desc)
-			 (target target-proto))
+			 (target target-proto)
+			 &key)
   (with-stream-emit-symbols stream
     (format stream "// File Descriptor Set~%")))
 
 (defmethod emit ((node   pb::file-desc)
-		 (target target-proto))
+		 (target target-proto)
+		 &key)
   (with-stream-emit-symbols stream
     (bind (((:accessors-r/o
 	     (name     pb::file-desc-name)
@@ -112,7 +114,8 @@ printed around the output."
       (format stream "// END File Descriptor Proto~%"))))
 
 (defmethod emit ((node   pb::file-options)
-		 (target target-proto))
+		 (target target-proto)
+		 &key)
   (with-stream-emit-symbols stream
     (iter (for (slot label) in
 	       '((pb::java-package         "java_package")
@@ -122,12 +125,14 @@ printed around the output."
 	      (format stream "option ~A = ~S;~%" label value))))))
 
 (defmethod emit ((node   pb::message-desc)
-		 (target target-proto))
+		 (target target-proto)
+		 &key)
   (with-proto-logical-block ("message" (pb::message-desc-name node))
     (call-next-method)))
 
 (defmethod emit ((node   pb::field-desc)
-		 (target target-proto))
+		 (target target-proto)
+		 &key)
   (with-stream-emit-symbols stream
     (bind (((:accessors-r/o
 	     (name      pb::field-desc-name)
@@ -151,19 +156,22 @@ printed around the output."
       (format stream ";~%"))))
 
 (defmethod emit ((node   pb::field-options)
-		 (target target-proto))
+		 (target target-proto)
+		 &key)
   (with-stream-emit-symbols stream
     (bind (((:accessors-r/o
 	     (packed pb::field-options-packed)) node))
       (format stream " ~:[~;[packed = true]~]" packed))))
 
 (defmethod emit ((node   pb::enum-desc)
-		 (target target-proto))
+		 (target target-proto)
+		 &key)
   (with-proto-logical-block ("enum" (pb::enum-desc-name node))
     (call-next-method)))
 
 (defmethod emit ((node   pb::enum-value-desc)
-		 (target target-proto))
+		 (target target-proto)
+		 &key)
   (with-stream-emit-symbols stream
     (bind (((:accessors-r/o
 	     (name   pb::enum-value-desc-name)

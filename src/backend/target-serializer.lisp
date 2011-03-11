@@ -51,7 +51,8 @@ obtained by parsing the binary output of protoc.")
    "Target class for packed-size target."))
 
 (defmethod emit ((node   pb::message-desc)
-		 (target target-packed-size))
+		 (target target-packed-size)
+		 &key)
   "Generate code for the `packed-size' method."
   (with-emit-symbols
     (bind (((:accessors-r/o
@@ -64,7 +65,8 @@ obtained by parsing the binary output of protoc.")
 	     name1 (map 'list #'recur fields))))))
 
 (defmethod emit ((node   pb::field-desc)
-		 (target target-packed-size))
+		 (target target-packed-size)
+		 &key)
   "Generate code to compute the packed size of a single slot."
   (with-emit-symbols
     (bind (((:accessors-r/o
@@ -101,7 +103,8 @@ obtained by parsing the binary output of protoc.")
    "Target class for serializer target."))
 
 (defmethod emit ((node   pb::message-desc)
-		 (target target-serializer))
+		 (target target-serializer)
+		 &key)
   "Generate code for the `pack' method."
   (with-emit-symbols
     (bind (((:accessors-r/o
@@ -113,7 +116,8 @@ obtained by parsing the binary output of protoc.")
       (eval (generate-pack-method name1 (map 'list #'recur fields))))))
 
 (defmethod emit ((node   pb::field-desc)
-		 (target target-serializer))
+		 (target target-serializer)
+		 &key)
   "Generate code to pack a single slot."
   (with-emit-symbols
     (bind (((:accessors-r/o
@@ -146,7 +150,8 @@ obtained by parsing the binary output of protoc.")
    "Target class for deserializer target."))
 
 (defmethod emit ((node   pb::message-desc)
-		 (target target-deserializer))
+		 (target target-deserializer)
+		 &key)
   "Generate code for the UNPACK method"
   (with-emit-symbols
     (bind (((:accessors-r/o
@@ -158,7 +163,8 @@ obtained by parsing the binary output of protoc.")
       (eval (generate-unpack-method name1 (map 'list #'recur fields))))))
 
 (defmethod emit ((node   pb::field-desc)
-		 (target target-deserializer))
+		 (target target-deserializer)
+		 &key)
   "Generate code to unpack a single slot"
   (with-emit-symbols
     (bind (((:accessors-r/o
