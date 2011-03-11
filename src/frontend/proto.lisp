@@ -98,8 +98,8 @@
 	     :name      name
 	     :number    number
 	     :type      (if (stringp type) :enum type)
-	     :type-name type
-	     :label     label
+	     :type-name (string type)
+	     :label     (pb::symbol->keyword label)
 	     :options   other-options
 	     (when default
 	       (list :default-value default)))))
