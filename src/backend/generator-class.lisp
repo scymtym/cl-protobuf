@@ -50,7 +50,7 @@
 	(defun ,enum-symbol (,code)
 	  (case ,code
 	    ,@(iter (for (symbol code) in values) (collect `(,code ,symbol)))
-	    (t (error "Unknown enum ~A code: ~A" ',name ,code))))
+	    (t (error "Unknown enum ~A code: ~A" ',name ,code)))) ;; TODO proper condition
 	(defun ,(pb::symcat name 'code) (,sym)
 	  (case ,sym
 	    ,@(iter (for (symbol code) in values) (collect `(,symbol ,code)))
@@ -66,7 +66,7 @@
 ;;; Class Generation
 ;;
 
-(defun generate-initform (type repeated? packed?) ;; TODO we do not need label; only repeated?
+(defun generate-initform (type repeated? packed?)
   "Generate an initform for a slot of type TYPE."
   (cond
    ;; Scalar types
@@ -93,7 +93,7 @@
 
    ;; Packed, not repeated
    (t
-    (error "Can't make initform for packed, non-repeated elements."))))
+    (error "Can't make initform for packed, non-repeated elements.")))) ;; TODO proper condition
 
 (defun generate-slot (name type label packed?
 		      &key
