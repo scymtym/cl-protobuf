@@ -43,6 +43,14 @@
    :iterate
    :bind)
 
+  ;; Conditions
+  (:export
+   :proto-parse-error
+   :proto-parse-error-line
+   :proto-parse-error-column
+   :proto-parse-error-offset
+   :proto-parse-error-causing-condition)
+
   ;; S-expr frontend
   (:export
    :define-message
