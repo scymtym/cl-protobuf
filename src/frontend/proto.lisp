@@ -145,7 +145,7 @@
 		   (single (intern (concatenate 'string base "->") :pbf)))
 	      `(,rule
 		( ,single ,rule #'%cleaning-cons )
-		( ,single )))))
+		( )))))
       (iter (for rule next (find-if #'list-rule? rules))
 	    (while rule)
 	    (setf rules (substitute (expand-rule rule) rule rules)))
