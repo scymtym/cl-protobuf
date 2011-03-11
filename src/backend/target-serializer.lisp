@@ -152,7 +152,7 @@ obtained by parsing the binary output of protoc.")
 (defmethod emit ((node   pb::message-desc)
 		 (target target-deserializer)
 		 &key)
-  "Generate code for the UNPACK method"
+  "Generate code for the `unpack' method."
   (with-emit-symbols
     (bind (((:accessors-r/o
 	     (name   pb::message-desc-name)
