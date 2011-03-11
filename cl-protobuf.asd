@@ -148,7 +148,8 @@ Neil T. Dantam."
 			      (:module     "frontend"
 			       :depends-on ("frontend-early"
 					    "bootstrap")
-			       :components ((:file       "protobin")))
+			       :components ((:file       "conditions")
+					    (:file       "protobin")))
 
 			      ;; Late "bootstrapping"
 			      (:file       "bootstrap-late"
