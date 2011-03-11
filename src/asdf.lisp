@@ -44,6 +44,15 @@ proto file format is documented at
 http://code.google.com/apis/protocolbuffers/docs/proto.html."))
 
 
+;;;
+;;
+
+(defmethod pbf:load/text ((source protocol-buffer-descriptor))
+  "Load a textual protocol buffer description from the ASDF component
+SOURCE."
+  (pbf:load/text (component-pathname source)))
+
+
 ;;; Compile Operation
 ;;
 
