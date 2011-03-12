@@ -72,8 +72,9 @@
   (if (and name (string/= name "")) ;; TODO can we avoid the ugly "" case?
       (let ((package-name (pb::->lisp-name name :allow-dots? t)))
 	(or (find-package package-name)
-	    (error "Could not find package ~S (for ~S)" ;; TODO proper condition
-		   package-name name)))
+	    (error 'no-such-package-for-name
+		   :name      package-name
+		   :orig-name name)))
       (find-package :cl-user)))
 
 (defun maybe-make-package (name)
