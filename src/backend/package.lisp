@@ -17,7 +17,13 @@
    :no-coder-type
 
    :no-such-target
-   :no-such-target-name)
+   :no-such-target-name
+
+   :no-such-package
+   :no-such-package-name
+
+   :no-such-package-for-name
+   :no-such-package-orig-name)
 
   ;; Code generation
   (:export

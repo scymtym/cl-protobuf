@@ -47,3 +47,35 @@ specified protocol buffer type."))
   (:documentation
    "This error is signaled if a specified target class cannot be
 found."))
+
+(define-condition no-such-package (error)
+  ((name :initarg  :name
+	 :type     (or string symbol)
+	 :accessor no-such-package-name
+	 :documentation
+	 "The name designating the package that could not be found."))
+  (:report
+   (lambda (condition stream)
+     (format stream "~@<The name ~S does not designate a package.~@:>"
+	     (no-such-package-name condition))))
+  (:documentation
+   "This error is signaled when a package that has been specified as
+the target for a code generation process could not be found."))
+
+(define-condition no-such-package-for-name (no-such-package)
+  ((orig-name :initarg  :orig-name
+	      :type     (or string symbol)
+	      :accessor no-such-package-orig-name
+	      :documentation
+	      "The original name from which the package name has been
+derived."))
+  (:report
+   (lambda (condition stream)
+     (format stream "~@<The name ~S (translated from ~S) does not ~
+designate a package.~@:>"
+	     (no-such-package-name      condition)
+	     (no-such-package-orig-name condition))))
+  (:documentation
+   "This error is signaled when a package that is designated by a name
+which has been translated from some other name cannot be found. Most
+commonly, \"other\" names are protocol buffer package names."))
