@@ -40,19 +40,22 @@
 ;;
 
 (defun make-lisp-enum-name (name &optional parent)
-  "DOC"
+  "Return a suitable name for an enumeration based on NAME and
+PARENT. PARENT should be non-nil for nested enumerations."
   (pb::->lisp-name (%maybe-nested-name name parent)))
 
 (defun make-lisp-enum-value (name)
-  "DOC"
+  "Return a suitable name for the enumeration value originally named
+NAME."
   (intern (pb::->lisp-name name) :keyword))
 
 (defun make-lisp-class-name (name &optional parent)
-  "DOC"
+  "Return a suitable name for a class based on NAME and PARENT. PARENT
+should be non-nil for nested messages."
   (pb::->lisp-name (%maybe-nested-name name parent)))
 
 (defun make-lisp-slot-name (name)
-  "DOC"
+  "Return a suitable name for a slot based on the field name NAME."
   (pb::->lisp-name name))
 
 (defun make-lisp-accessor-name (class-name slot-name)
