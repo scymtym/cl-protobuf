@@ -389,3 +389,8 @@ collects the resulting `pb::file-desc' instance in one
 	   (pb::file-set-desc-file result))))
     (map nil #'merge-one rest)
     result))
+
+(defmethod load/text ((source asdf::protocol-buffer-descriptor))
+  "Load a textual protocol buffer description from the ASDF component
+SOURCE."
+  (load/text (asdf:component-pathname source)))
