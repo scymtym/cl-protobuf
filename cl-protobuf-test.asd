@@ -58,8 +58,10 @@
 			       :pathname   "data"
 			       :components ((:static-file "addressbook.protobin")
 					    (:static-file "addressbook.proto.expected")
+					    (:static-file "addressbook.sexpr.expected")
 					    (:static-file "developer-guide.protobin")
-					    (:static-file "developer-guide.proto.expected")))
+					    (:static-file "developer-guide.proto.expected")
+					    (:static-file "developer-guide.sexpr.expected")))
 
 			      (:module     "descriptors"
 			       :pathname   "data"
@@ -89,6 +91,8 @@
 					    "descriptors")
 			       :components ((:file       "package")
 					    (:file       "target-proto"
+					     :depends-on ("package"))
+					    (:file       "target-s-expr"
 					     :depends-on ("package"))))
 
 			      (:module     "frontend"

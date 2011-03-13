@@ -1,0 +1,13 @@
+(
+(:message developer-guide::test1
+  (:field developer-guide::a :int32             1 :required t))
+
+(:message developer-guide::test2
+  (:field developer-guide::b :string            2 :required t))
+
+(:message developer-guide::test3
+  (:field developer-guide::c developer-guide::test1 3 :required t))
+
+(:message developer-guide::test4
+  (:field developer-guide::d :int32             4 :repeated t :packed t))
+)
