@@ -55,15 +55,11 @@ syntax.")
 	      :documentation
 	      "The directory into which the one or more proto files
 should be written."))
+  (:default-initargs
+   :directory (missing-required-initarg 'target-protofile :directory))
   (:documentation
    "Instances of this class can be used to print textual protocol
 buffer descriptions into multiple files in a common directory."))
-
-(defmethod initialize-instance :after ((instance target-protofile)
-				       &key
-				       (directory (missing-required-initarg
-						   'target-protofile :directory)))
-  (declare (ignore directory)))
 
 
 ;;; Emitter methods
