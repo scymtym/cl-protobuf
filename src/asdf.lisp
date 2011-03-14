@@ -104,8 +104,8 @@ to compile ~A to ~A.~@:>"
 
 (defmethod perform :around ((operation load-op)
 			    (file      protocol-buffer-descriptor))
-  (let ((pbb::*emit-print*   t);*asdf-verbose*)
-	(pbb::*emit-verbose* t));*asdf-verbose*))
+  (let ((pbb::*emit-print*   *asdf-verbose*)
+	(pbb::*emit-verbose* nil))
     (call-next-method)))
 
 ;; TODO allow control over what is generated
