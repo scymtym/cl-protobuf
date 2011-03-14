@@ -51,7 +51,7 @@ field number NUMBER."
 field number NUMBER."
   (binio:uvarint-size (generate-start-code-symbol proto-type number)))
 
-(defun generate-scalar-size (value-form proto-type number) ;; TODO compare against default value?
+(defun generate-scalar-size (proto-type number value-form) ;; TODO compare against default value?
   "Generate code to compute the packed size of a scalar field value
 VALUE-FORM of type PROTO-TYPE when stored in field number NUMBER."
   (check-type proto-type proto-type "a protocol buffer type designator")
@@ -81,7 +81,7 @@ VALUE-FORM of type PROTO-TYPE when stored in field number NUMBER."
 	      (pb::length-delim-size (pb:packed-size ,value-form))
 	      0)))))
 
-(defun generate-repeated-size (value-form proto-type number)
+(defun generate-repeated-size (proto-type number value-form)
   "Generate packed size of a repeated field of type PROTO-TYPE."
   (if (fixed-p proto-type)
 
@@ -93,10 +93,10 @@ VALUE-FORM of type PROTO-TYPE when stored in field number NUMBER."
         `(let ((,accum 0))
            (dotimes (,i (length ,value-form))
              (incf ,accum
-                   ,(generate-scalar-size `(aref ,value-form ,i) proto-type number)))
+                   ,(generate-scalar-size proto-type number `(aref ,value-form ,i))))
            ,accum))))
 
-(defun generate-repeated-packed-size (proto-type value-form &optional number) ;; TODO ever called without number?
+(defun generate-repeated-packed-size (proto-type number value-form)
   "Generate packed size of a repeated, packed field of type TYPE."
   (let ((array-size
          (cond
@@ -117,23 +117,21 @@ VALUE-FORM of type PROTO-TYPE when stored in field number NUMBER."
             (pb::length-delim-size ,array-size))
         array-size)))
 
-(defun generate-slot-packed-size (name proto-type number
+(defun generate-slot-packed-size (name proto-type number object-var
 				  &key
-				  packed? repeated?
-				  object-var
-				  &allow-other-keys)
+				  packed?
+				  repeated?
+				  &allow-other-keys) ;; TODO arguments
   "Generate code to find the packed size of a single slot."
   (let ((slot-value    `(slot-value  ,object-var ',name))
 	(slot-boundp   `(slot-boundp ,object-var ',name))
 	(length-delim? (pb::length-delim-p proto-type)))
     `(if (and ,slot-boundp ,@(when length-delim? `(,slot-value)))
-	 ,(cond
-	   ((and (not repeated?) (not packed?))
-	    (generate-scalar-size slot-value proto-type number))
-	   ((and repeated? (not packed?))
-	    (generate-repeated-size slot-value proto-type number))
-	   (packed?
-	    (generate-repeated-packed-size proto-type slot-value number)))
+	 ,(funcall (cond
+		     ((not repeated?) #'generate-scalar-size)
+		     ((not packed?)   #'generate-repeated-size)
+		     (t               #'generate-repeated-packed-size))
+		   proto-type number slot-value)
 	 0)))
 
 (defun generate-packed-size-method (name fields)
@@ -194,7 +192,7 @@ VALUE-FORM."
 	,(generate-start-code-encoder :bytes number buffer-form offset-form)
 	;; write length
 	,(generate-pack-and-incf
-	  :uint64 (generate-repeated-packed-size proto-type value-var)
+	  :uint64 (generate-repeated-packed-size proto-type nil value-var)
 	  buffer-form offset-form)
 	;; write elements
 	(dotimes (,index-var (length ,value-var))
@@ -297,9 +295,7 @@ VALUE-FORM."
 			       repeated?
 			       packed?)
   "Generate code to unpack a single slot"
-  (let ((slot-value  `(slot-value  ,object-form ',name))
-	;(slot-boundp `(slot-boundp ,object-var ',name))
-	)
+  (let ((slot-value `(slot-value  ,object-form ',name)))
     (funcall (cond
 	       ((not repeated?) #'generate-scalar-slot-unpacker)
 	       ((not packed?)   #'generate-repeated-slot-unpacker)

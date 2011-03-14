@@ -84,8 +84,7 @@ obtained by parsing the binary output of protoc.")
 			  (intern* type-name)
 			  type))) ;; TODO do this properly; same code in target-class
       #'(lambda (object-var)
-	  (generate-slot-packed-size name1 type number
-				     :object-var object-var
+	  (generate-slot-packed-size name1 type number object-var
 				     :repeated?  repeated?
 				     :packed?    packed?)))))
 
