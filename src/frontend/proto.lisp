@@ -38,12 +38,14 @@
 ;;
 ;; This part of the grammar is not implemented:
 ;;
-;; extend     ::= "extend" userType messageBody
+;; extend     ::= "extend" userType "{" ( field | group | ";" )* "}"
 ;; service    ::= "service" ident "{" ( option | rpc | ";" )* "}"
 ;; rpc        ::= "rpc" ident "(" userType ")" "returns" "(" userType ")" ";"
 ;; group      ::= modifier "group" camelIdent "=" intLit messageBody
-;; extensions ::= "extensions" intLit "to" ( intLit | "max" ) ";"
-;; # tag number must be 2^28-1 or lower
+;; extensions ::= extRange ( "," extRange )* ";"
+;; extRange   ::= intLit ( "to" ( intLit | "max" ) )?
+;; tag number must be 2^29-1 or lower. Also, they must be positive
+;; (non-zero), and the range 19000 through 19999 is reserved.
 
 (in-package :protocol-buffer.frontend)
 
