@@ -105,7 +105,7 @@
 	     :label     label
 	     :options   other-options
 	     (when default
-	       (list :default-value default)))))
+	       (list :default-value (princ-to-string default))))))
 
   (defun make-field-options (children)
     (list
@@ -303,8 +303,8 @@ offset, line and column in STREAM. "
 	    (cond
 	      ((find keyword +keywords+)       (values keyword keyword))
 	      ((find keyword pb:+proto-types+) (values :type   keyword))
-	      ((eq keyword :true)	       (values :%bool   t))
-	      ((eq keyword :false)	       (values :%bool   nil))
+	      ((eq keyword :true)	       (values :%bool  "true"))
+	      ((eq keyword :false)	       (values :%bool  "false"))
 	      (t                               (values :ident  string))))))
     (values
      #'(lambda ()
