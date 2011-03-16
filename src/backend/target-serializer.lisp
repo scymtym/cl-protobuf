@@ -120,18 +120,22 @@ obtained by parsing the binary output of protoc.")
   "Generate code to pack a single slot."
   (with-emit-symbols
     (bind (((:accessors-r/o
-	     (name    pb::field-desc-name)
-	     (number  pb::field-desc-number)
-	     (type    pb::field-desc-type)
-	     (label   pb::field-desc-label)
-	     (options pb::field-desc-options)) node)
+	     (name      pb::field-desc-name)
+	     (number    pb::field-desc-number)
+	     (type      pb::field-desc-type)
+	     (type-name pb::field-desc-type-name)
+	     (label     pb::field-desc-label)
+	     (options   pb::field-desc-options)) node)
 	   (name1     (intern* (make-lisp-slot-name name)))
+	   (type1     (if (member type '(:message :enum)) ;; TODO maybe make-lisp-slot-type?
+			  (intern* type-name)
+			  type))
 	   (repeated? (eq label :repeated))
 	   (packed?   (when options
 			(pb::field-options-packed options))))
       #'(lambda (buffer-var offset-var object-var)
 	  (generate-slot-packer
-	   type name1 number buffer-var offset-var object-var
+	   type1 name1 number buffer-var offset-var object-var
 	   :repeated? repeated?
 	   :packed?   packed?)))))
 
