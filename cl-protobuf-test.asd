@@ -70,6 +70,11 @@
 					    (:file "developer-guide")
 					    (:file "empty")))
 
+			      (:module     "syntax-errors"
+			       :pathname   "data/syntax-errors"
+			       :components ((:static-file "adjacent-dots.proto")
+					    (:static-file "invalid-toplevel.proto")))
+
 			      (:file       "package"
 			       :depends-on ("descriptors"))
 

@@ -24,10 +24,17 @@
 			   (asdf:find-component
 			    (asdf:find-system :cl-protobuf-test)
 			    '("test" "descriptors"))))
-   (descriptor-files))
+   (descriptor-files)
+   (error-components      (asdf:module-components
+			   (asdf:find-component
+			    (asdf:find-system :cl-protobuf-test)
+			    '("test" "syntax-errors"))))
+   (error-files))
   (:setup
    (setf descriptor-files (map 'list #'asdf:component-pathname
-			       descriptor-components)))
+			       descriptor-components)
+	 error-files      (map 'list #'asdf:component-pathname
+			       error-components)))
   (:documentation
    "Unit tests for the textual protocol buffer description
 frontend."))
@@ -47,6 +54,15 @@ frontend.")
 		 :report    "~@<When parsing the file ~A, the result ~S was ~
 of type ~S, not ~S.~@:>"
 		 :arguments (file result (type-of result) 'pb::file-set-desc))))))
+
+(addtest (proto-frontend-root
+          :documentation
+	  "Ensure that syntax errors signal parse errors.")
+  syntax-errors
+
+  (iter (for file in error-files)
+	(ensure-condition 'proto-parse-error
+	  (load/text file))))
 
 (addtest (proto-frontend-root
           :documentation
