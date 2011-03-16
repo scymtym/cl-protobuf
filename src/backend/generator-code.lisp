@@ -178,10 +178,9 @@ BUFFER-FORM and increment OFFSET-FORM appropriately."
   (with-unique-names (value-var index-var)
     `((let ((,value-var ,value-form))
 	(dotimes (,index-var (length ,value-var))
-	  ,(generate-start-code-encoder
-	    proto-type number buffer-form offset-form)
-	  ,(generate-pack-and-incf
-	    proto-type `(aref ,value-var ,index-var) buffer-form offset-form))))))
+	  ,@(generate-scalar-slot-packer
+	     proto-type number buffer-form offset-form
+	     `(aref ,value-var ,index-var)))))))
 
 (defun generate-repeated-packed-slot-packer (proto-type number buffer-form offset-form value-form)
   "Generate code to pack the repeated and packed slot value
@@ -245,7 +244,7 @@ number NUMBER."
   "Unpack a scalar value and increment START-FORM."
   (with-unique-names (value length)
     `(pb::with-decoding (,value ,length)
-         ,(generate-value-unpacker proto-type buffer-form offset-form instance)
+       ,(generate-value-unpacker proto-type buffer-form offset-form instance)
        ,@(when (primitive-type-p proto-type)
                `((declare (type ,(pb::scalar-proto-type->lisp-type proto-type) ,value))))
        (incf ,offset-form ,length)
@@ -295,7 +294,7 @@ VALUE-FORM."
 			       repeated?
 			       packed?)
   "Generate code to unpack a single slot"
-  (let ((slot-value `(slot-value  ,object-form ',name)))
+  (let ((slot-value `(slot-value ,object-form ',name)))
     (funcall (cond
 	       ((not repeated?) #'generate-scalar-slot-unpacker)
 	       ((not packed?)   #'generate-repeated-slot-unpacker)
