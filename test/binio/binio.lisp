@@ -67,6 +67,14 @@
 			      :test #'=)))))))))))
 
 
+;;; Bool
+;;
+
+(define-coder-suite bool 1
+  :random-generator t-or-nil
+  :test             #'eq)
+
+
 ;;; Unsigned and signed 16 bit integers
 ;;
 
