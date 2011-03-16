@@ -70,7 +70,7 @@
   (member type '(:double :fixed64 :sfixed64)))
 
 (defun fixed32-p (type)
-  (member type '(:float :sfixed32 :fixed32)))
+  (member type '(:float :fixed32 :sfixed32)))
 
 (defun fixed-p (type)
   (or (fixed32-p type)
@@ -78,7 +78,8 @@
 
 (defun varint-p (type)
   (member type '(:bool
-		 :int32 :sint32 :uint32 :int64 :sint64 :uint64
+		 :int32 :sint32 :uint32
+		 :int64 :sint64 :uint64
 		 :enum)))
 
 (defun varint-enum-p (type)
