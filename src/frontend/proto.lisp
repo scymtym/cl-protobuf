@@ -76,9 +76,9 @@
     (third (%find-option name list)))
 
   (defun make-file-desc (name parser-output)
-    (let ((package  (second (find-if (curry #'starts-with 'package) parser-output)))
+    (let ((package  (second (find-if (curry #'starts-with :package) parser-output)))
 	  (includes (mapcar #'second
-			    (remove-if-not (curry #'starts-with 'import)
+			    (remove-if-not (curry #'starts-with :import)
 					   parser-output))))
       (apply #'make-instance 'pb::file-desc
 	     :name         name
@@ -109,7 +109,7 @@
 
   (defun make-field-options (children)
     (list
-     (%option-value 'default children)
+     (%option-value :default children)
      (make-instance 'pb::field-options
 		    :packed (%option-value "packed" children))))
 
