@@ -173,18 +173,18 @@
      ( :import :%string :SEMICOLON (%index-filter #'list 0 1) ))
 
     (package->
-     ( :package :ident :SEMICOLON (%index-filter #'list 0 1) ))
+     ( :package dotted-ident-> :SEMICOLON (%index-filter #'list 0 1) ))
 
     (option->
      ( :option option-body-> :SEMICOLON (%index-filter #'identity 1) ))
 
     (option-body->
-     ( :ident
-					;( "." ident )*
-       :EQUALS_SIGN constant-> (%index-filter #'make-option 0 2) ))
+     ( dotted-ident-> :EQUALS_SIGN constant->
+       (%index-filter #'make-option 0 2) ))
 
     (message->
-     ( :message :ident message-body-> (%index-filter #'make-message 1 2) ))
+     ( :message :ident message-body->
+       (%index-filter #'make-message 1 2) ))
 
     (message-body->
      ( :LEFT_CURLY_BRACKET message-body-element* :RIGHT_CURLY_BRACKET
@@ -209,8 +209,8 @@
      :type #||# user-type->)
 
     (user-type->
-     ( :FULL_STOP :ident (%index-filter (curry #'format nil ".~A") 1) )
-     :ident)
+     dotted-ident->
+     ( :FULL_STOP dotted-ident-> (%index-filter (curry #'format nil ".~A") 1) ))
 
     (field-options->
      ( :LEFT_SQUARE_BRACKET field-option-list-> :RIGHT_SQUARE_BRACKET
@@ -238,7 +238,12 @@
      ( :SEMICOLON (constantly (values)) ))
 
     (constant->
-     :ident #||# :%string #||# :%number #||# :%bool)))
+     :ident #||# :%string #||# :%number #||# :%bool)
+
+    (dotted-ident->
+     :ident
+     ( :ident :FULL_STOP dotted-ident->
+       (%index-filter (curry #'format nil "~A.~A") 0 2 )))))
 
 
 ;;; Lexer
