@@ -174,7 +174,7 @@ state of a particular emission process. This state consists of:
 			 &key)
   (with-emit-restarts node target
     (with-updated-context node target
-	(call-next-method))))
+      (call-next-method))))
 
 
 ;;; Default recursion behavior
@@ -188,15 +188,15 @@ state of a particular emission process. This state consists of:
 		 &key)
   "Multi-file container; default behavior is recursion over files."
   (with-emit-symbols
-    (map nil #'recur (pb::file-set-desc-file node))))
+    (map 'list #'recur (pb::file-set-desc-file node))))
 
 (defmethod emit ((node pb::file-desc) (target standard-object)
 		 &key)
-  "File; default behavior is recursion over messages, enums, services,
+  "File; default behavior is recursion over enums, messages, services,
 extensions and options."
   (with-emit-symbols
-    (map nil #'recur (pb::file-desc-message-type node))
     (map nil #'recur (pb::file-desc-enum-type    node))
+    (map nil #'recur (pb::file-desc-message-type node))
     (map nil #'recur (pb::file-desc-service      node))
     (map nil #'recur (pb::file-desc-extension    node))
     (map nil #'recur (pb::file-desc-options      node))))
