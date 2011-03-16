@@ -65,11 +65,15 @@
 
 (defmethod print-object ((object field-desc) stream)
   (bind (((:accessors-r/o
-	   (name  field-desc-name)
-	   (type  field-desc-type)
-	   (label field-desc-label)) object))
+	   (name          field-desc-name)
+	   (type          field-desc-type)
+	   (label         field-desc-label)
+	   (default-value field-desc-default-value)) object))
     (print-unreadable-object (object stream :type t :identity t)
-      (format stream "~S ~A ~A" name type label))))
+      (format stream "~S ~A ~A~:[~; [~S]~]"
+	      name type label
+	      (and default-value (string/= default-value "")) ;; TODO avoid string stuff
+	      default-value))))
 
 (defmethod print-object ((object enum-desc) stream)
   (bind (((:accessors-r/o
