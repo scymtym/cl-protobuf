@@ -1,4 +1,4 @@
-;;; macros.lisp ---
+;;; macros.lisp --- Macros for backends.
 ;;
 ;; Copyright (C) 2011 Jan Moringen
 ;;
