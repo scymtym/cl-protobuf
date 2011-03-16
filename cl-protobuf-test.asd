@@ -98,6 +98,8 @@
 					    (:file       "target-proto"
 					     :depends-on ("package"))
 					    (:file       "target-s-expr"
+					     :depends-on ("package"))
+					    (:file       "target-class"
 					     :depends-on ("package"))))
 
 			      (:module     "frontend"
