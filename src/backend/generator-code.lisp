@@ -69,17 +69,17 @@ VALUE-FORM of type PROTO-TYPE when stored in field number NUMBER."
         ((eq proto-type :string)
          `(if (and ,value-form (not (emptyp ,value-form)))
 	      (pb::length-delim-size (binio:utf8-size ,value-form))
-	      0))
+	      1))
         ((eq proto-type :bytes)
          `(if (and ,value-form (not (emptyp ,value-form)))
 	      (pb::length-delim-size (length ,value-form))
-	      0))
+	      1))
 	((enum-type-p proto-type)
          `(binio:uvarint-size (,(pb::symcat proto-type 'code) ,value-form)))
         (t ;; embedded protocol buffer
 	 `(if ,value-form
 	      (pb::length-delim-size (pb:packed-size ,value-form))
-	      0)))))
+	      1)))))
 
 (defun generate-repeated-size (proto-type number value-form)
   "Generate packed size of a repeated field of type PROTO-TYPE."
