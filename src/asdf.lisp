@@ -118,3 +118,9 @@ to compile ~A to ~A.~@:>"
     (pbb:emit descriptors :packed-size)
     (pbb:emit descriptors :serializer)
     (pbb:emit descriptors :deserializer)))
+
+
+;;; Add a feature
+;;
+
+(pushnew :asdf-protocol-buffer-descriptors *features*)
