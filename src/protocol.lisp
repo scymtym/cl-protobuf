@@ -71,12 +71,16 @@ consumed octets."))
 ;;; Default behavior
 ;;
 
-(defmethod unpack ((buffer t) (object symbol) &optional (start 0) end)
-  "Instantiate the class designated by OBJECT and load BUFFER into the
-instance."
+(defmethod unpack ((buffer t) (object class) &optional (start 0) end)
+  "Instantiate the class OBJECT and load BUFFER into the instance."
   (let ((instance (make-instance object)))
     (apply #'unpack buffer instance start
 	   (when end (list end)))))
+
+(defmethod unpack ((buffer t) (object symbol) &optional (start 0) end)
+  "Instantiate the class designated by OBJECT and load BUFFER into the
+instance."
+  (unpack buffer (find-class object) start end))
 
 (defmethod unpack ((source stream) (object t) &optional (start 0) end)
   "Unpack OBJECT from stream SOURCE."
