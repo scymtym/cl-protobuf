@@ -38,6 +38,14 @@
   (:documentation
    "Root unit test suite for the backend module."))
 
+(addtest (backend-root
+          :documentation
+	  "Ensure specifying an invalid target signals an error.")
+  invalid-target
+
+  (ensure-condition 'no-such-target
+    (emit nil :does-not-exist)))
+
 (deftestsuite emitter-suite ()
   ((descriptors (mapcar
 		 (lambda (name)
