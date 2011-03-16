@@ -66,38 +66,69 @@
 ;;; Class Generation
 ;;
 
-(defun generate-initform (type repeated? packed?)
+(defun generate-initform (type repeated? packed?
+			  &key
+			  (default nil default-supplied?))
   "Generate an initform for a slot of type TYPE."
   (cond
    ;; Scalar types
-   ((and (not repeated?) (not packed?))
+   ((not repeated?)
     (cond
-     ((eq type :bool)       nil)
-     ((eq type :double)     0d0)
-     ((eq type :float)      0s0)
-     ((enum-type-p type)    nil) ;; has be check before integer-type-p
-     ((integer-type-p type) 0)
-     ((eq type :string)     "") ;; TODO
-     (t                     nil)))
+     ((eq type :bool)
+      (if default-supplied?
+	  (cond
+	    ((string= default "true")  t)
+	    ((string= default "false") nil)
+	    (t                         (error "invalid default"))) ;; TODO
+	   nil))
+     ((eq type :double)
+      (if default-supplied?
+	  (coerce (read-from-string default) 'double-float)
+	  0d0))
+     ((eq type :float)
+      (if default-supplied?
+	  (coerce (read-from-string default) 'single-float)
+	  0s0))
+     ((enum-type-p type)
+      (if default-supplied?
+	  (make-lisp-enum-value default)
+	  nil))
+     ((integer-type-p type)
+      (if default-supplied?
+	  (read-from-string default)
+	  0))
+     ((eq type :string)
+      (or default ""))
+     ((eq type :bytes)
+      (if default-supplied?
+	  (sb-ext:string-to-octets default) ;; TODO this is not correct: from descriptor.proto: For bytes, contains the C escaped value.  All bytes >= 128 are escaped.
+	  '(make-array 0 :element-type '(unsigned-byte 8))))
+     ((find-class type)
+      `(make-instance ',type))
 
-   ;; Packed array
-   ((and repeated? packed?)
-    nil)
+     (t
+      (error "Cannot generate initform for ~:[~; repeated~] ~:[~; ~
+packed~] type ~S"
+	     repeated? packed? type)))) ;; TODO can this happen? proper condition?
 
    ;; Not packed array
-   ((and repeated? (not packed?))
+   ((not packed?)
     `(make-array 0
 		 :element-type ',(proto-type->lisp-type type)
 		 :fill-pointer t
 		 :adjustable   t))
 
-   ;; Packed, not repeated
+   ;; Packed array
    (t
-    (error "Can't make initform for packed, non-repeated elements.")))) ;; TODO proper condition
+    `(make-array 0
+		 :element-type ',(proto-type->lisp-type type)
+		 :fill-pointer nil
+		 :adjustable   nil))))
 
 (defun generate-slot (name type label packed?
 		      &key
-		      class-name)
+		      class-name
+		      (default nil default-supplied?))
   (let ((repeated? (eq label :repeated))
 	(optional? (eq label :optional)))
     `(,name
@@ -105,7 +136,9 @@
       :type     ,(proto-type->lisp-type type repeated? optional?)
       ,@(when class-name
 	      `(:accessor ,(%make-lisp-accessor-name class-name name)))
-      :initform ,(generate-initform type repeated? packed?)))) ;; TODO use default value
+      :initform ,(apply #'generate-initform type repeated? packed?
+			(when default-supplied?
+			  (list :default default)))))) ;; TODO use default value
 
 (defun generate-class (name fields &optional doc)
   "Generate a class definition for a class named NAME with slots
@@ -114,9 +147,8 @@ specified by SPECS."
   ;; time with slots which may refer to the generated class itself.
   `((cl:defclass ,name () ())
     (cl:defclass ,name ()
-      ,(mapcar #'funcall fields)
-      ,@(when doc
-	      `((:documentation ,doc))))))
+      ,(map 'list #'funcall fields)
+      ,@(when doc `((:documentation ,doc))))))
 
 
 ;;; Utility functions

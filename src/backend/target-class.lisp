@@ -82,11 +82,12 @@ generated classes will not automatically have associated `pack' and
   "Emit a slot specification for NODE."
   (with-emit-symbols
     (bind (((:accessors-r/o
-	     (name      pb::field-desc-name)
-	     (type      pb::field-desc-type)
-	     (type-name pb::field-desc-type-name)
-	     (label     pb::field-desc-label)
-	     (options   pb::field-desc-options)) node)
+	     (name          pb::field-desc-name)
+	     (type          pb::field-desc-type)
+	     (type-name     pb::field-desc-type-name)
+	     (label         pb::field-desc-label)
+	     (default-value pb::field-desc-default-value)
+	     (options       pb::field-desc-options)) node)
 	   (name1 (intern* (make-lisp-slot-name name)))
 	   (type1 (if (member type '(:message :enum))
 		      (pb::proto-type-name->lisp-type-symbol
@@ -97,8 +98,11 @@ generated classes will not automatically have associated `pack' and
 				 (pb::message-desc-name parent)
 				 grandparent)))) ;; TODO make a function
       #'(lambda ()
-	  (generate-slot name1 type1 label packed?
-			 :class-name class-name)))))
+	  (apply #'generate-slot
+		 name1 type1 label packed?
+		 :class-name class-name
+		 (unless (emptyp default-value)
+		   (list :default default-value)))))))
 
 (defmethod emit ((node   pb::field-options)
 		 (target target-class)
