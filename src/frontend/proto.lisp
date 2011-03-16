@@ -111,7 +111,8 @@
     (list
      (%option-value :default children)
      (make-instance 'pb::field-options
-		    :packed (%option-value "packed" children))))
+		    :packed (string= (%option-value "packed" children)
+				     "true"))))
 
   (defun make-enum (name values)
     (make-instance 'pb::enum-desc
