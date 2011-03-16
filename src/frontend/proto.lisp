@@ -255,7 +255,7 @@ offset, line and column in STREAM. "
 	 (column      0)
 	 (in-comment? nil)
 	 (did-unread? nil)
-	 ((:flet read1 ())
+	 ((:flet read1 (&key (skip-comments? t)))
 	  (iter (for c next (read-char stream nil :eof))
 		(unless did-unread?
 		  (incf offset)
@@ -264,7 +264,8 @@ offset, line and column in STREAM. "
 		    (#\Newline (incf line)
 			       (setf column      0
 				     in-comment? nil))
-		    (#\/       (setf in-comment? t))))
+		    (#\/       (when skip-comments?
+				 (setf in-comment? t)))))
 		(setf did-unread? nil)
 		(while (and (not (eq c :eof)) in-comment?))
 		(finally (return c))))
@@ -275,8 +276,8 @@ offset, line and column in STREAM. "
 
 (defun make-stream-lexer (stream)
   (bind (((:values read unread position) (make-char-reader stream))
-	 ((:flet read-while (allowed-chars &key invert?))
-	  (iter (for c next (funcall read))
+	 ((:flet read-while (allowed-chars &key invert? (comments? t)))
+	  (iter (for c next (funcall read :skip-comments? comments?))
 		(cond
 		  ((eq c :eof) (terminate))
 		  ((find c allowed-chars
@@ -289,8 +290,8 @@ offset, line and column in STREAM. "
 	 ((:flet read-string ())
 	  (funcall read) ;; consume opening quote
 	  (multiple-value-prog1
-	      (values :%string (read-while "\"" :invert? t))
-	    (funcall read)))
+	      (values :%string (read-while "\"" :invert? t :comments? nil))
+	    (funcall read))) ;; consume closing quote
 	 ((:flet read-identifier-like ())
 	  (let* ((string  (read-while +identifier-chars+))
 		 (keyword (find-symbol (string-upcase string) :keyword)))
