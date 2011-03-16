@@ -100,6 +100,8 @@
 					    (:file       "target-s-expr"
 					     :depends-on ("package"))
 					    (:file       "target-class"
+							 :depends-on ("package"))
+					    (:file       "target-serializer"
 					     :depends-on ("package"))))
 
 			      (:module     "frontend"
