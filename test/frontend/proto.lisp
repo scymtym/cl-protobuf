@@ -39,12 +39,14 @@ frontend.")
   smoke
 
   (iter (for file in descriptor-files)
-	(let ((result (load/text file)))
-	  (ensure
-	   (typep result 'pb::file-set-desc)
-	   :report    "~@<When parsing the file ~A, the result ~S was ~
+	(let ((result-pathname (load/text file))
+	      (result-string   (load/text (namestring file))))
+	  (iter (for result in (list result-pathname result-string))
+		(ensure
+		 (typep result 'pb::file-set-desc)
+		 :report    "~@<When parsing the file ~A, the result ~S was ~
 of type ~S, not ~S.~@:>"
-	   :arguments (file result (type-of result) 'pb::file-set-desc)))))
+		 :arguments (file result (type-of result) 'pb::file-set-desc))))))
 
 (addtest (proto-frontend-root
           :documentation
