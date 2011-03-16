@@ -25,6 +25,14 @@
    "This class can be used as a superclass for target classes that
 represent a code generation target."))
 
+(defmethod emit ((node   pb::file-desc)
+		 (target code-generating-target-mixin)
+		 &key)
+  (with-emit-symbols
+    (nconc
+     (map 'list #'recur (pb::file-desc-enum-type    node))
+     (map 'list #'recur (pb::file-desc-message-type node)))))
+
 (defmethod emit :around ((node   pb::file-desc)
 			 (target code-generating-target-mixin)
 			 &key)
