@@ -70,7 +70,10 @@ generated classes will not automatically have associated `pack' and
       (map nil #'recur nested)
       ;;
       (eval `(progn ,@(generate-class
-		       name1 (map 'list #'recur fields)))))))
+		       name1 (map 'list #'recur fields))))
+
+      ;; Return name of generated class.
+      name1)))
 
 ;; TODO handle default value
 (defmethod emit ((node   pb::field-desc)
