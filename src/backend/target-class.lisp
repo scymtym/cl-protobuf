@@ -75,7 +75,6 @@ generated classes will not automatically have associated `pack' and
       ;; Return name of generated class.
       name1)))
 
-;; TODO handle default value
 (defmethod emit ((node   pb::field-desc)
 		 (target target-class)
 		 &key)
