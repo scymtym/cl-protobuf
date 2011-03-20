@@ -47,8 +47,11 @@ frontend.")
 
   (iter (for file in descriptor-files)
 	(let ((result-pathname (load/text file))
-	      (result-string   (load/text (namestring file))))
-	  (iter (for result in (list result-pathname result-string))
+	      (result-string   (load/text (namestring file)))
+	      (result-list     (load/text (list file))))
+	  (iter (for result in (list result-pathname
+				     result-string
+				     result-list))
 		(ensure
 		 (typep result 'pb::file-set-desc)
 		 :report    "~@<When parsing the file ~A, the result ~S was ~
