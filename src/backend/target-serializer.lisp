@@ -77,15 +77,12 @@ obtained by parsing the binary output of protoc.")
 	     (label     pb::field-desc-label)
 	     (options   pb::field-desc-options)) node)
 	   (name1     (intern* (make-lisp-slot-name name)))
+	   (type1     (make-lisp-slot-type type type-name package))
 	   (repeated? (eq label :repeated))
 	   (packed?   (when options
-			(pb::field-options-packed options)))
-	   (type      (if (member type '(:message :enum)) ;; TODO maybe make-lisp-slot-type?
-			  (pb::proto-type-name->lisp-type-symbol
-			   type-name :package package)
-			  type))) ;; TODO do this properly; same code in target-class
+			(pb::field-options-packed options))))
       #'(lambda (object-var)
-	  (generate-slot-packed-size name1 type number object-var
+	  (generate-slot-packed-size name1 type1 number object-var
 				     :repeated?  repeated?
 				     :packed?    packed?)))))
 
@@ -128,10 +125,7 @@ obtained by parsing the binary output of protoc.")
 	     (label     pb::field-desc-label)
 	     (options   pb::field-desc-options)) node)
 	   (name1     (intern* (make-lisp-slot-name name)))
-	   (type1     (if (member type '(:message :enum)) ;; TODO maybe make-lisp-slot-type?
-			  (pb::proto-type-name->lisp-type-symbol
-			   type-name :package package)
-			  type))
+	   (type1     (make-lisp-slot-type type type-name package))
 	   (repeated? (eq label :repeated))
 	   (packed?   (when options
 			(pb::field-options-packed options))))
@@ -180,10 +174,7 @@ obtained by parsing the binary output of protoc.")
 	     (label     pb::field-desc-label)
 	     (options   pb::field-desc-options)) node)
 	   (name1     (intern* (make-lisp-slot-name name)))
-	   (type1     (if (member type '(:message :enum))
-			  (pb::proto-type-name->lisp-type-symbol
-			   type-name :package package)
-			  type)) ;; TODO make a function for this?
+	   (type1     (make-lisp-slot-type type type-name package))
 	   (repeated? (eq label :repeated))
 	   (packed?   (when options
 			(pb::field-options-packed options)))

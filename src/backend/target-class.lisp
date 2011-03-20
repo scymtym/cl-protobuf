@@ -87,12 +87,9 @@ generated classes will not automatically have associated `pack' and
 	     (label         pb::field-desc-label)
 	     (default-value pb::field-desc-default-value)
 	     (options       pb::field-desc-options)) node)
-	   (name1 (intern* (make-lisp-slot-name name)))
-	   (type1 (if (member type '(:message :enum))
-		      (pb::proto-type-name->lisp-type-symbol
-		       type-name :package package)
-		      type)) ;; TODO do this properly; same code in target-serializer
-	   (packed? (when options (recur options)))
+	   (name1      (intern* (make-lisp-slot-name name)))
+	   (type1      (make-lisp-slot-type type type-name package))
+	   (packed?    (when options (recur options)))
 	   (class-name (intern* (make-lisp-class-name
 				 (pb::message-desc-name parent)
 				 grandparent)))) ;; TODO make a function

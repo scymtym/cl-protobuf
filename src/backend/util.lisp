@@ -39,7 +39,7 @@
 ;;; Naming-related functions
 ;;
 
-(defun make-lisp-enum-name (name &optional parent)
+(defun make-lisp-enum-name (name &optional parent) ;; TODO change to parents
   "Return a suitable name for an enumeration based on NAME and
 PARENT. PARENT should be non-nil for nested enumerations."
   (pb::->lisp-name (%maybe-nested-name name parent)))
@@ -57,6 +57,14 @@ should be non-nil for nested messages."
 (defun make-lisp-slot-name (name)
   "Return a suitable name for a slot based on the field name NAME."
   (pb::->lisp-name name))
+
+(defun make-lisp-slot-type (type type-name package)
+  "Return a symbol that designates a suitable slot type for the field
+type TYPE. "
+  (if (member type '(:message :enum))
+      (pb::proto-type-name->lisp-type-symbol
+       type-name :package package)
+      type))
 
 (defun make-lisp-accessor-name (class-name slot-name)
   "CLASS-NAME and SLOT-NAME have to be proper symbolic names."
