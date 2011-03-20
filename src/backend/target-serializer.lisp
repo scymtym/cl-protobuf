@@ -81,7 +81,8 @@ obtained by parsing the binary output of protoc.")
 	   (packed?   (when options
 			(pb::field-options-packed options)))
 	   (type      (if (member type '(:message :enum)) ;; TODO maybe make-lisp-slot-type?
-			  (intern* type-name)
+			  (pb::proto-type-name->lisp-type-symbol
+			   type-name :package package)
 			  type))) ;; TODO do this properly; same code in target-class
       #'(lambda (object-var)
 	  (generate-slot-packed-size name1 type number object-var
@@ -128,7 +129,8 @@ obtained by parsing the binary output of protoc.")
 	     (options   pb::field-desc-options)) node)
 	   (name1     (intern* (make-lisp-slot-name name)))
 	   (type1     (if (member type '(:message :enum)) ;; TODO maybe make-lisp-slot-type?
-			  (intern* type-name)
+			  (pb::proto-type-name->lisp-type-symbol
+			   type-name :package package)
 			  type))
 	   (repeated? (eq label :repeated))
 	   (packed?   (when options
