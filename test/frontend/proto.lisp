@@ -23,12 +23,12 @@
   ((descriptor-components (asdf:module-components
 			   (asdf:find-component
 			    (asdf:find-system :cl-protobuf-test)
-			    '("test" "descriptors"))))
+			    '("descriptors"))))
    (descriptor-files)
    (error-components      (asdf:module-components
 			   (asdf:find-component
 			    (asdf:find-system :cl-protobuf-test)
-			    '("test" "syntax-errors"))))
+			    '("syntax-errors"))))
    (error-files))
   (:setup
    (setf descriptor-files (map 'list #'asdf:component-pathname

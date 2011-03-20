@@ -53,7 +53,7 @@
 		    (asdf:component-pathname
 		     (asdf:find-component
 		      (asdf:find-system :cl-protobuf-test)
-		      `("test" "precompiled-descriptors"
+		      `("precompiled-descriptors"
 			,(format nil "~A.protobin" name))))))
 		 '("addressbook" "developer-guide"))))
   (:documentation

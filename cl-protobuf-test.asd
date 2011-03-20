@@ -52,67 +52,72 @@
   :description "Unit tests for the cl-protobuf system"
   :depends-on  (:cl-protobuf
 		:lift)
-  :components  ((:module     "test"
-		 :components (;; Protocol buffer descriptors for tests
-			      (:module     "precompiled-descriptors"
-			       :pathname   "data"
-			       :components ((:static-file "addressbook.protobin")
-					    (:static-file "addressbook.proto.expected")
-					    (:static-file "addressbook.sexpr.expected")
-					    (:static-file "developer-guide.protobin")
-					    (:static-file "developer-guide.proto.expected")
-					    (:static-file "developer-guide.sexpr.expected")))
+  :components  (;; Protocol buffer descriptors for tests
+		(:module     "precompiled-descriptors"
+	         :pathname   "test/data"
+		 :components ((:static-file "addressbook.protobin")
+			      (:static-file "addressbook.proto.expected")
+			      (:static-file "addressbook.sexpr.expected")
+			      (:static-file "developer-guide.protobin")
+			      (:static-file "developer-guide.proto.expected")
+			      (:static-file "developer-guide.sexpr.expected")))
 
-			      (:module     "descriptors"
-			       :pathname   "data"
-			       :default-component-class asdf::protocol-buffer-descriptor
-			       :components ((:file "addressbook")
-					    (:file "developer-guide")
-					    (:file "empty")))
+		(:module     "descriptors"
+		 :pathname   "test/data"
+		 :default-component-class asdf::protocol-buffer-descriptor
+		 :components ((:file "addressbook")
+			      (:file "developer-guide")
+			      (:file "empty")))
 
-			      (:module     "syntax-errors"
-			       :pathname   "data/syntax-errors"
-			       :components ((:static-file "adjacent-dots.proto")
-					    (:static-file "invalid-toplevel.proto")))
+		(:module     "syntax-errors"
+		 :pathname   "test/data/syntax-errors"
+		 :components ((:static-file "adjacent-dots.proto")
+			      (:static-file "invalid-toplevel.proto")))
 
-			      (:file       "package"
-			       :depends-on ("descriptors"))
+		(:file       "package"
+		 :pathname   "test/package"
+		 :depends-on ("descriptors"))
 
-			      (:module     "binio"
-			       :depends-on ("package")
-			       :components ((:file       "package")
-					    (:file       "binio"
-					     :depends-on ("package"))))
+		(:module     "binio"
+		 :pathname   "test/binio"
+		 :depends-on ("package")
+		 :components ((:file       "package")
+			      (:file       "binio"
+			       :depends-on ("package"))))
 
-			      (:file       "util"
+		(:file       "util"
+		 :pathname   "test/util"
+		 :depends-on ("package"))
+		(:file       "pack"
+		 :pathname   "test/pack"
+		 :depends-on ("package"))
+		(:file       "unpack"
+		 :pathname   "test/unpack"
+		 :depends-on ("package"))
+
+		(:module     "backend"
+		 :pathname   "test/backend"
+		 :depends-on ("package" "descriptors")
+		 :components ((:file       "package")
+			      (:file       "target-proto"
 			       :depends-on ("package"))
-			      (:file       "pack"
+			      (:file       "target-s-expr"
 			       :depends-on ("package"))
-			      (:file       "unpack"
+			      (:file       "target-class"
 			       :depends-on ("package"))
+			      (:file       "target-serializer"
+			       :depends-on ("package"))))
 
-			      (:module     "backend"
-			       :depends-on ("package"
-					    "descriptors")
-			       :components ((:file       "package")
-					    (:file       "target-proto"
-					     :depends-on ("package"))
-					    (:file       "target-s-expr"
-					     :depends-on ("package"))
-					    (:file       "target-class"
-							 :depends-on ("package"))
-					    (:file       "target-serializer"
-					     :depends-on ("package"))))
-
-			      (:module     "frontend"
-			       :depends-on ("package")
-			       :components ((:file       "package")
-					    (:file       "s-expr"
-					     :depends-on ("package"))
-					    (:file       "protobin"
-					     :depends-on ("package"))
-					    (:file       "proto"
-					     :depends-on ("package")))))))
+		(:module     "frontend"
+		 :pathname   "test/frontend"
+		 :depends-on ("package")
+		 :components ((:file       "package")
+			      (:file       "s-expr"
+			       :depends-on ("package"))
+			      (:file       "protobin"
+			       :depends-on ("package"))
+			      (:file       "proto"
+			       :depends-on ("package")))))
   :in-order-to ((test-op (load-op :cl-protobuf-test))))
 
 (defmethod perform ((op test-op) (system (eql (find-system :cl-protobuf-test))))
