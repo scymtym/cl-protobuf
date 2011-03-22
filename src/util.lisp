@@ -81,7 +81,7 @@ to be supplied via the PACKAGE parameter. If name contains multiple
 `.'s, all possible package-name splits are tried until a matching
 symbol is found."
   (bind ((fully-qualified? (eq (aref name 0) #\.))
-	 ((:function possible-splits (start))
+	 ((:labels possible-splits (start))
 	  (let ((index (position #\. name :start start)))
 	    (when index
 	      (cons index (possible-splits (1+ index))))))
