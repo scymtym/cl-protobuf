@@ -79,9 +79,6 @@ printed around the output."
 ;;; Emitter methods
 ;;
 
-(defmethod emit ((node t) (target (eql :proto)) &key)
-  (error "Have to specify stream for :proto target"))
-
 (defmethod emit :before ((node   pb::file-set-desc)
 			 (target target-proto)
 			 &key)
