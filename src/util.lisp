@@ -81,6 +81,14 @@ to be supplied via the PACKAGE parameter. If name contains multiple
 `.'s, all possible package-name splits are tried until a matching
 symbol is found."
   (bind ((fully-qualified? (eq (aref name 0) #\.))
+	 (tried)
+	 ((:flet find-symbol* (name package))
+	  (push (list name package) tried)
+	  (let ((symbol (find-symbol name package)))
+	    (when (and symbol
+		       (or (enum-type-p symbol)
+			   (find-class symbol nil)))
+	      symbol)))
 	 ((:labels possible-splits (start))
 	  (let ((index (position #\. name :start start)))
 	    (when index
@@ -91,21 +99,26 @@ symbol is found."
 	  (let ((package1 (find-package
 			   (->lisp-name package :allow-dots? t))))
 	    (when package1
-	      (find-symbol (->lisp-name name) package1))))
+	      (find-symbol* (->lisp-name name) package1))))
 	 ((:flet do-it ())
 	  (if fully-qualified?
 	      (some (curry #'apply #'find-name-in-package)
 		    (map 'list #'split (possible-splits 1)))
-	      (find-symbol (->lisp-name name) package))))
+	      (find-symbol* (->lisp-name name) package))))
     (unless (or package fully-qualified?)
-      (error "~@<Can only handle fully qualified (e.g. start starting ~
-with `.') names unless a context package is specified. Name ~S is ~
-not fully qualified.~@:>"
-	     name))
+      (error 'name-resolution-failed
+	     :name             name
+	     :package          package
+	     :format-control   "~@<Can only handle fully ~
+qualified (e.g. start starting with `.') names unless a context ~
+package is specified. Name ~S is not fully qualified.~@:>"
+	     :format-arguments `(,name)))
 
     (or (do-it)
-	(error "~@<Could not find a symbol named ~S in package ~S.~@:>"
-	       name package))))
+	(error 'name-resolution-failed
+	       :name       name
+	       :package    package
+	       :candidates tried))))
 
 
 ;;;
