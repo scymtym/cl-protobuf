@@ -362,10 +362,12 @@ partially post-processed syntax tree."
    "Parse content of SOURCE as textual protocol buffer description.
 Return a `pb::file-set-desc' instance that contains the complete
 description in its child nodes.
+
 Note: Currently, the grammar accepts only a (quite usable) subset of
 the textual protocol buffer description language.
-Note: This function does not load domain protocol buffers, but textual
-protocol buffer descriptors using the grammar described at
+
+Note: This function does not load data in a protocol buffer format,
+but textual protocol buffer descriptors using the grammar described at
 http://code.google.com/apis/protocolbuffers/docs/proto.html."))
 
 (defmethod load/text ((source stream))
