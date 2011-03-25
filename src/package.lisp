@@ -102,5 +102,9 @@
    :packed-size
    :pack :unpack)
 
+  ;; Protocol buffer descriptors
+  (:export
+   :descriptor-name)
+
   (:documentation
    "This package contains generic protocol buffer infrastructure."))

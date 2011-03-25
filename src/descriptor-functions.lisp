@@ -37,6 +37,25 @@
 
 ;; Add some useful methods on the descriptor classes
 
+(defgeneric descriptor-name (descriptor)
+  (:documentation
+   "Return the name of DESCRIPTOR. The only purpose of this function
+is providing a unified interface."))
+
+(macrolet
+    ((generate-descriptor-name (class accessor)
+       `(defmethod descriptor-name ((descriptor ,class))
+	  (,accessor descriptor))))
+  (generate-descriptor-name file-desc       file-desc-name)
+  (generate-descriptor-name enum-desc       enum-desc-name)
+  (generate-descriptor-name message-desc    message-desc-name)
+  (generate-descriptor-name field-desc      field-desc-name)
+  (generate-descriptor-name enum-value-desc enum-value-desc-name))
+
+
+;;; `print-object' methods
+;;
+
 (defmethod print-object ((object file-set-desc) stream)
   (bind (((:accessors-r/o
 	   (files file-set-desc-file)) object))
