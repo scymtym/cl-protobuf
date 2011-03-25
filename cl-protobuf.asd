@@ -122,6 +122,7 @@ Neil T. Dantam."
 							  "macros"))
 					    (:file       "code-generating-target-mixin"
 					     :depends-on ("util"))
+					    (:file       "file-target-mixin")
 					    (:file       "stream-target-mixin"
 					     :depends-on ("protocol"))
 					    (:file       "generator-code"
