@@ -116,7 +116,9 @@ printed around the output."
 	     (name   pb::field-desc-name)
 	     (type   pb::field-desc-type)
 	     (number pb::field-desc-number)) node))
-      (format stream "<TR><TD>~A</TD><TD>~A</TD><TD>~D</TD></TR>"
+      (format stream "<TR><TD align=\"left\">~A</TD>~
+<TD align=\"left\">~A</TD>~
+<TD align=\"right\">~D</TD></TR>"
 	      (string->graphviz-label (string type))
 	      (string->graphviz-label name)
 	      number))))
@@ -158,7 +160,7 @@ printed around the output."
     (bind (((:accessors-r/o
 	     (name   pb::enum-value-desc-name)
 	     (number pb::enum-value-desc-number)) node))
-      (format stream "<TR><TD>~A</TD><TD>~A</TD></TR>"
+      (format stream "<TR><TD align=\"left\">~A</TD><TD align=\"right\">~A</TD></TR>"
 	      (string->graphviz-label name)
 	      number))))
 
