@@ -51,6 +51,11 @@
    :missing-required-initarg-class
    :missing-required-initarg-initarg
 
+   :name-resolution-failed
+   :name-resolution-failed-name
+   :name-resolution-failed-package
+   :name-resolution-failed-candidates
+
    :encoding-error
 
    :decoding-error

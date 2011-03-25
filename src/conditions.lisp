@@ -60,6 +60,48 @@ has not been provided.~@:>"
    "This condition is signaled when an initarg that is required by a
 class is not provided."))
 
+
+;;; Conditions related to naming problems
+;;
+
+(define-condition name-resolution-failed (simple-error)
+  ((name       :initarg  :name
+	       :type     string
+	       :reader   name-resolution-failed-name
+	       :documentation
+	       "The name for which the translation failed.")
+   (package    :initarg  :package
+	       :type     (or null package)
+	       :reader   name-resolution-failed-package
+	       :documentation
+	       "The package in which the Lisp symbol should have
+been.")
+   (candidates :initarg  :candidates
+	       :type     list
+	       :reader   name-resolution-failed-candidates
+	       :initform nil
+	       :documentation
+	       "A list of (symbol package) pairs that have been
+investigated."))
+  (:default-initargs
+   :format-control   nil
+   :format-arguments nil)
+  (:report
+   (lambda (condition stream)
+     (format stream "~@<Could not find a symbol for name ~S in package ~
+~S~:[~;~:* (tried ~{~{~S in ~S~}~^, ~})~]~@:>"
+	     (name-resolution-failed-name       condition)
+	     (name-resolution-failed-package    condition)
+	     (name-resolution-failed-candidates condition))
+     (maybe-add-explanation condition stream)))
+  (:documentation
+   "This error is signal when an attempt to translate a given name
+into a corresponding Lisp symbol fails."))
+
+
+;;;
+;;
+
 (define-condition encoding-error (error)
   ()
   (:documentation
@@ -148,3 +190,18 @@ instance of class ~A.~@:>"
   (:documentation
    "This condition is signaled when a field number is encountered that
 cannot be processed in the context in which it appears."))
+
+
+;;; Utility functions
+;;
+
+(defun maybe-add-explanation (condition stream)
+  "Format the message contained in the `simple-condition' CONDITION on
+STREAM."
+  (if (simple-condition-format-control condition)
+      (progn
+	(format stream ": ~%")
+	(apply #'format stream
+	       (simple-condition-format-control   condition)
+	       (simple-condition-format-arguments condition)))
+      (write-char #\. stream)))
