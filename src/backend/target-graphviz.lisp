@@ -45,8 +45,29 @@ the relationships of the supplied protocol buffer descriptor
 instances.")
 
 
-;;; Target class
+;;; Target classes
 ;;
+
+(defclass target-graphviz-dot-file (file-target-mixin)
+  ()
+  (:documentation
+   "Instances of this target class can be used to direct output in
+graphviz format into a file."))
+
+(defclass target-graphviz-image-file (file-target-mixin)
+  ((type :type     string
+	 :accessor target-type
+	 :documentation
+	 "The desired type of the image file."))
+  (:documentation
+   "Instances of this target class can be used to render graphviz
+figures of protocol buffer descriptors into image files."))
+
+(defmethod initialize-instance :after ((instance target-graphviz-image-file)
+				       &key
+				       (type (pathname-type
+					      (slot-value instance 'pathname))))
+  (setf (slot-value instance 'type) type))
 
 (defclass target-graphviz (stream-target-mixin)
   ()
@@ -86,6 +107,38 @@ printed around the output."
 
 ;;; Emitter methods
 ;;
+
+(defmethod emit ((node   pb::file-set-desc)
+		 (target target-graphviz-dot-file)
+		 &key)
+  (bind (((:accessors-r/o (pathname target-pathname)) target))
+    (with-output-to-file (stream (target-pathname target)
+				 :if-exists :supersede)
+      (emit node `(:graphviz :stream ,stream)))
+    pathname))
+
+(defmethod emit ((node   pb::file-set-desc)
+		 (target target-graphviz-image-file)
+		 &key)
+  (bind (((:accessors-r/o (pathname target-pathname)
+			  (type     target-type)) target)
+	 (graphviz  (sb-ext:run-program
+		     "dot" `(,(format nil "-T~A" type))
+		     :search           t
+		     :wait             nil
+		     :input            :stream
+		     :output           pathname
+		     :if-output-exists :supersede))
+	 (pipe      (sb-ext:process-input graphviz))
+	 (exit-code (progn
+		      (emit node `(:graphviz :stream ,pipe))
+		      (close pipe)
+		      (sb-ext:process-wait graphviz)
+		      (sb-ext:process-exit-code graphviz))))
+    (unless (zerop exit-code)
+      (error "~@<Graphviz failed with exit code ~D.~@:>"
+	     exit-code))
+    pathname))
 
 (defmethod emit ((node   pb::file-set-desc)
 		 (target target-graphviz)
