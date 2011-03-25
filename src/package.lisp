@@ -56,6 +56,9 @@
    :decoding-error
    :decoding-error-offset
 
+   :invalid-wire-type
+   :invalid-wire-type-designator
+
    :unexpected-wire-type
    :unexpected-wire-type-field
    :unexpected-wire-type-expected-type

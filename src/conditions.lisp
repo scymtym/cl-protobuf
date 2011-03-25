@@ -35,6 +35,10 @@
 
 (in-package :protocol-buffer)
 
+
+;;; Generic conditions
+;;
+
 (define-condition missing-required-initarg (error)
   ((class   :initarg  :class
 	    :type     symbol
@@ -71,6 +75,23 @@ error occurs."))
   (:documentation
    "Conditions of this type and subtypes are signaled when a decoding
 error occurs."))
+
+(define-condition invalid-wire-type (decoding-error)
+  ((designator :initarg  :designator
+	       :type     non-negative-fixnum
+	       :accessor invalid-wire-type-designator
+	       :documentation
+	       "The number that was found in the data stream being
+decoded instead of a valid wire type code."))
+  (:report
+   (lambda (condition stream)
+     (format stream "~@<Invalid wire-type designator ~D at offset ~
+~D (no such wire-type).~@:>"
+	     (invalid-wire-type-designator condition)
+	     (decoding-error-offset        condition))))
+  (:documentation
+   "This condition is signaled when a number that does not designate a
+wire-type is read in a place where a wire-type code is expected."))
 
 (define-condition unexpected-wire-type (decoding-error)
   ((field         :initarg  :field
