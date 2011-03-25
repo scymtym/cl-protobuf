@@ -1,4 +1,4 @@
-;;; target-s-expr.lisp ---
+;;; target-s-expr.lisp --- Unit tests for the s-expr backend.
 ;;
 ;; Copyright (C) 2011 Jan Moringen
 ;;
@@ -54,7 +54,6 @@
 	 (read stream)))))
   (:function
    (tree-mismatch (tree1 tree2)
-		  (format t "~S~%~S~%" tree1 tree2)
      (when (and (typep tree1 'sequence) (typep tree2 'sequence))
        (let* ((mismatch (mismatch tree1 tree2 :test #'equal))
 	      (child1   (elt tree1 mismatch))
