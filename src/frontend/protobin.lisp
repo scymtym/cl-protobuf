@@ -41,9 +41,20 @@
 			 end
 			 object)
   (:documentation
-   "Note: This function is not intended for deserializing domain
-protocol buffers, but for deserializing protocol buffer descriptors
-which are stored as binary protocol buffers."))
+   "Load protocol buffer descriptors from binary representation stored
+in SOURCE. Return a `pb::file-set-desc' instance that contains the
+complete description in its child nodes.
+When non-nil, START specifies an offset into the data of SOURCE at
+which the loading should start.
+When non-nil, END specifies an offset into the data of SOURCE at which
+the loading should stop.
+When OBJECT is non-nil, the protocol buffer descriptors which are
+loaded from SOURCE are stored in OBJECT. Usually, OBJECT should be an
+instance of `pb::file-set-desc'.
+
+Note: This function is not intended for deserializing data stored
+in protocol buffer format, but for deserializing protocol buffer
+descriptors which are stored as binary protocol buffers."))
 
 (defmethod load/binary ((source t)
 			&key
