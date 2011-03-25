@@ -65,12 +65,12 @@
   smoke
 
   (ensure-same
-   (pb::proto-type-name->lisp-type-symbol "findIf" :package :cl)
-   'cl:find-if
+   (pb::proto-type-name->lisp-type-symbol "StandardClass" :package :cl)
+   'cl:standard-class
    :test #'eq)
   (ensure-same
-   (pb::proto-type-name->lisp-type-symbol ".cl.findIf")
-   'cl:find-if
+   (pb::proto-type-name->lisp-type-symbol ".cl.StandardClass")
+   'cl:standard-class
    :test #'eq)
   (ensure-same
    (pb::proto-type-name->lisp-type-symbol ".ProtocolBuffer.Test.UtilRoot")
