@@ -41,7 +41,7 @@
 ;;; Wire-types
 ;;
 
-(deftype wire-type () '(integer 0 5))
+(deftype wire-type () '(member 0 1 2 5))
 
 
 ;;; Symbol-designated proto types
