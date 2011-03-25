@@ -80,17 +80,20 @@
 
 (defun read-start-code (buffer start)
   "Read a start code from BUFFER at position START.
-Return three values: position, wire-type and the number of bytes
+Return three values: field number, wire-type and the number of bytes
 read."
   (with-decoding (number-and-wire-type length)
       (decode-uvarint buffer start)
     (declare (type non-negative-fixnum number-and-wire-type length))
-    (values
-     (ash number-and-wire-type -3)
-     (ldb (byte 3 0) number-and-wire-type)
-     length)))
+    (let ((number    (ash number-and-wire-type -3))
+	  (wire-type (ldb (byte 3 0) number-and-wire-type)))
+      (unless (typep wire-type 'wire-type)
+	(error 'invalid-wire-type
+	       :offset     start
+	       :designator wire-type))
+      (values number wire-type length))))
 
-(declaim (ftype (function (non-negative-fixnum (member 0 1 2 5) octet-vector non-negative-fixnum)
+(declaim (ftype (function (non-negative-fixnum wire-type octet-vector non-negative-fixnum)
 			  (values non-negative-fixnum octet-vector))
 		encode-start-code)
 	 (inline encode-start-code))
