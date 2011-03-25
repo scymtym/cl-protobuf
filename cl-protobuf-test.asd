@@ -106,6 +106,8 @@
 			      (:file       "target-class"
 			       :depends-on ("package"))
 			      (:file       "target-serializer"
+			       :depends-on ("package"))
+			      (:file       "target-graphviz"
 			       :depends-on ("package"))))
 
 		(:module     "frontend"
