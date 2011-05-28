@@ -198,12 +198,18 @@ returns (values length length-of-length)"
 		encode-bytes))
 
 (defun encode-bytes (value buffer start)
+  (declare (optimize (speed 3) (safety 0) (debug 0)))
   (let ((value-size (length value))
 	(offset     start))
+    (declare (type non-negative-fixnum offset))
     (incf offset (binio:encode-uvarint value-size buffer start))
-    (replace buffer  value
-	     :start1 offset
-	     :end1   (incf offset value-size))
+    (if (typep value 'octet-vector)
+	(replace buffer value
+		 :start1 offset
+		 :end1   (incf offset value-size))
+	(replace buffer value
+		 :start1 offset
+		 :end1   (incf offset value-size)))
     (values (- offset start) buffer)))
 
 (declaim (ftype (function (octet-vector non-negative-fixnum)
