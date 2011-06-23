@@ -87,7 +87,8 @@ representation into a binary representation."
 
     ;; Run the compiler
     (format *standard-output* "~@<; ~@;Compiling protocol buffer ~
-descriptor ~A like this: ~_~A ~{~A~^ ~}~@:>~%" file "protoc" args)
+descriptor ~A like this: ~_~A ~{~A~^ ~}~@:>~%"
+	    file "protoc" args)
     (let ((result (sb-ext:process-exit-code
 		   (sb-ext:run-program "protoc" args
 				       :search t
@@ -120,7 +121,8 @@ to compile ~A to ~A.~@:>"
     (pbb:emit descriptors :deserializer)))
 
 
-;;; Add a feature
+;;; Add features
 ;;
 
 (pushnew :asdf-protocol-buffer-descriptors *features*)
+(pushnew :asdf-protocol-buffers-use-protoc *features*)
