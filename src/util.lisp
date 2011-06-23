@@ -109,9 +109,9 @@ symbol is found."
       (error 'name-resolution-failed
 	     :name             name
 	     :package          package
-	     :format-control   "~@<Can only handle fully ~
-qualified (e.g. start starting with `.') names unless a context ~
-package is specified. Name ~S is not fully qualified.~@:>"
+	     :format-control "~@<Can only handle fully ~
+qualified (e.g. starting with `.') names unless a context package is ~
+specified. Name ~S is not fully qualified.~@:>"
 	     :format-arguments `(,name)))
 
     (or (do-it)
