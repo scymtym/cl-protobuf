@@ -111,7 +111,8 @@
    :packed-size
    :pack :unpack
 
-   :offset)
+   :offset
+   :extract)
 
   ;; Protocol buffer descriptors
   (:export

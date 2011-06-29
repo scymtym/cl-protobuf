@@ -83,6 +83,12 @@ of the FIELD of the protocol buffer message MESSAGE occurs.
 When supplied, START and END restrict the search to a range within
 BUFFER."))
 
+(defgeneric extract (buffer message field &optional start end)
+  (:documentation
+   "Extract and return the value which FIELD of the protocol buffer
+message MESSAGE has in BUFFER. When supplied, START and END restrict
+the range within BUFFER in which the encoded value can be stored.."))
+
 
 ;;; Default behavior
 ;;
