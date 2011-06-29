@@ -357,26 +357,26 @@ be any protocol buffer type but a nested protocol buffer."
 
   (if (keywordp proto-type)
       (bind (((package name)
-	      (cond
-		((member proto-type '(:int32 :uint32 :int64 :uint64 :enum))
+	      (case proto-type
+		((:int32 :uint32 :int64 :uint64 :enum)
 		 '(:binio "UVARINT"))
-		((member proto-type '(:sint32 :sint64))
+		((:sint32 :sint64)
 		 '(:binio "SVARINT"))
-		((eq proto-type :bool)
+		(:bool
 		 '(:binio "BOOL"))
-		((eq proto-type :fixed32)
+		(:fixed32
 		 '(:binio "UINT32-LE"))
-		((eq proto-type :sfixed32)
+		(:sfixed32
 		 '(:binio "SINT32-LE"))
-		((eq proto-type :fixed64)
+		(:fixed64
 		 '(:binio "UINT64-LE"))
-		((eq proto-type :sfixed64)
+		(:sfixed64
 		 '(:binio "SINT64-LE"))
-		((member proto-type '(:double :float))
+		((:double :float)
 		 `(:binio ,(format nil "~A-LE" proto-type)))
-		((eq proto-type :string)
+		(:string
 		 `(:pb "STRING"))
-		((eq proto-type :bytes)
+		(:bytes
 		 `(:pb "BYTES"))
 		(t
 		 (error 'no-coder
