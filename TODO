@@ -1,19 +1,39 @@
-* TODO Optional values
-  + How to represent (unbound slots vs. nil)
-* TODO Coerce sequence data automatically
-  Generate =initialize-instance= methods, and maybe =setf= methods,
-  that coerce initargs to the correct types where required (currently
-  vectors for repeated fields)
-* STARTED Use proper conditions
-  browns protocol buffer stuff seems to have nice error handling
-* DONE Get rid of =with-gensyms=
-* DONE Start/Type code terminology
-  Seems to be like this:
-  + start code :: part of the wire format; ORed field number and wire
-                  type
-  + wire type :: a small integer indicating the type of the next chunk
-                 of data
+* Bugs
+** TODO /* */ Comments do not work
+** TODO Proper name resolution
+   + Name resolution function needs a stack of current parent objects
+   + There has to be a distinction between
+     + Finding the descriptor instance that is designated by some name
+     + Finding the Lisp type that is designated by some name
+* Refactor
+** TODO Use bind consistently
+   Since we already use bind, use it throughout
+** TODO Simplify module structure
+   In cl-protobuf.asd
+* Features
+** TODO Call a function to compute names of accessors
+** TODO Serializers and deserializers are generated without docstrings
+** STARTED Coerce sequence data automatically
+   Generate =initialize-instance= methods, and maybe =setf= methods,
+   that coerce initargs to the correct types where required (currently
+   vectors for repeated fields)
+** STARTED Use proper conditions
+   browns protocol buffer stuff seems to have nice error handling
+* Tasks
+** TODO How to deal with initforms?
+   Google's protocol buffer has some notion of a default object which
+   provides the initial values of uninitialized fields
+** TODO Optional fields
+   + How to represent (unbound slots vs. nil)
+** DONE Get rid of =with-gensyms=
+** DONE Start/Type code terminology
+   Seems to be like this:
+   + start code :: part of the wire format; ORed field number and wire
+                   type
+   + wire type :: a small integer indicating the type of the next chunk
+                  of data
 
+* settings							   :noexport:
 # Local Variables:
 # mode: org
 # End:
