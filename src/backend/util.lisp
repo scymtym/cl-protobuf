@@ -47,7 +47,7 @@ PARENT. PARENT should be non-nil for nested enumerations."
 (defun make-lisp-enum-value (name)
   "Return a suitable name for the enumeration value originally named
 NAME."
-  (intern (pb::->lisp-name name) :keyword))
+  (make-keyword (pb::->lisp-name name)))
 
 (defun make-lisp-class-name (name &optional parent)
   "Return a suitable name for a class based on NAME and PARENT. PARENT
@@ -68,11 +68,8 @@ type TYPE. "
 
 (defun make-lisp-accessor-name (class-name slot-name)
   "CLASS-NAME and SLOT-NAME have to be proper symbolic names."
-  (intern (concatenate 'string
-		       (string class-name)
-		       "-"
-		       (string slot-name))
-	  (symbol-package class-name)))
+  (let ((*package* (symbol-package class-name)))
+    (symbolicate class-name "-" slot-name)))
 
 
 ;;; Package-related functions
