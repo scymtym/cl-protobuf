@@ -35,52 +35,54 @@
 
 (in-package :protocol-buffer.backend)
 
-
 
-;;;
+;;; Housekeeping macros
 ;;
 
-(defmacro with-emit-restarts (node-var target-var &body body)
+(defmacro with-emit-restarts (node target &body body)
   "Establish restarts."
   (with-unique-names (result-var read-value-var)
-    `(bind ((,result-var)
-	    ((:flet ,read-value-var ())
-	     (format *query-io* "Replacement value: ")
-	     (force-output *query-io*)
-	     (list (read *query-io*))))
-       (tagbody
-	:retry
-	  (restart-case
-	      (setf ,result-var (multiple-value-list (progn ,@body)))
+    (once-only (node target)
+      `(bind ((,result-var)
+	      ((:flet ,read-value-var ())
+	       (format *query-io* "Replacement value: ")
+	       (force-output *query-io*)
+	       (list (read *query-io*))))
+	 (tagbody
+	  :retry
+	    (restart-case
+		(setf ,result-var (multiple-value-list (progn ,@body)))
 
-	    ;; Retry running the emit method.
-	    (retry ()
-	      :report
-	      (lambda (stream)
-		(format stream
-			"~@<Retry running the emit method for node ~S and target ~S.~@:>"
-			,node-var ,target-var))
-	      (go :retry))
+	      ;; Retry running the emit method.
+	      (retry ()
+		:report
+		(lambda (stream)
+		  (format stream
+			  "~@<Retry running the emit method for node ~
+~S and target ~S.~@:>"
+			  ,node ,target))
+		(go :retry))
 
-	    ;; Skip the emit method.
-	    (skip ()
-	      :report
-	      (lambda (stream)
-		(format stream
-			"~@<Skip the emit method for node ~S and target ~S.~@:>"
-			,node-var ,target-var)))
+	      ;; Skip the emit method.
+	      (skip ()
+		:report
+		(lambda (stream)
+		  (format stream
+			  "~@<Skip the emit method for node ~S and ~
+target ~S.~@:>"
+			  ,node ,target)))
 
-	    ;; Use a replacement value.
-	    (use-value (value)
-	      :report
-	      (lambda (stream)
-		(format stream
-			"~@<Specify a value instead of running the ~
+	      ;; Use a replacement value.
+	      (use-value (value)
+		:report
+		(lambda (stream)
+		  (format stream
+			  "~@<Specify a value instead of running the ~
 emit method for node ~S and target ~S.~@:>"
-			,node-var ,target-var))
-	      :interactive ,read-value-var
-	      (setf ,result-var (list value)))))
-       (values-list ,result-var))))
+			  ,node ,target))
+		:interactive ,read-value-var
+		(setf ,result-var (list value)))))
+	 (values-list ,result-var)))))
 
 (defmacro with-updated-context (node-var target-var &body body)
   "During the execution of BODY, set the current target type to
