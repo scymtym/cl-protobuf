@@ -76,6 +76,10 @@ generated classes will not automatically have associated `pack' and
       (eval `(defmethod message-descriptor ((object ,name1))
 	       ,node))
 
+      ;; Export the class name, if requested.
+      (when (target-export? target)
+	(export name1 (symbol-package name1)))
+
       ;; Return name of generated class.
       name1)))
 
@@ -114,14 +118,21 @@ NODE."
 (defmethod emit ((node   pb::enum-desc)
 		 (target target-class)
 		 &key)
-  "Emit enum definition for NODE."
+  "Emit an enum definition for NODE."
   (with-emit-symbols
     (bind (((:accessors-r/o
 	     (name   pb::enum-desc-name)
 	     (values pb::enum-desc-value)) node)
 	   (name1 (intern* (make-lisp-enum-name name parent)))
 	   (forms (generate-enum name1 (map 'list #'recur values))))
-      (eval `(progn ,@forms)))))
+      (eval `(progn ,@forms))
+
+      ;; Export the name of the enum, if requested.
+      (when (target-export? target)
+	(export name1 (symbol-package name1)))
+
+      ;; Return name of generated enum
+      name1)))
 
 (defmethod emit ((node   pb::enum-value-desc)
 		 (target target-class)

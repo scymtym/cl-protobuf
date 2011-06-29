@@ -36,7 +36,19 @@
 (in-package :protocol-buffer.backend)
 
 (defclass code-generating-target-mixin ()
-  ()
+  ((optimization-settings :initarg  :optimization-settings
+			  :type     list
+			  :accessor target-optimzation-settings
+			  :documentation
+			  "Optimization settings that should be used
+when generating code.")
+   (export?               :initarg  :export?
+			  :type     boolean
+			  :accessor target-export?
+			  :initform t
+			  :documentation
+			  "Controls whether symbols by which generated
+code is designated should be exported."))
   (:documentation
    "This class can be used as a superclass for target classes that
 represent a code generation target."))
