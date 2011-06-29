@@ -42,7 +42,7 @@
 (defmacro define-message (name &body doc-and-specs)
   "Generate definitions for one message type. A message maps to a
 class and potentially associated enums."
-  (bind (((:values specs doc) (%parse-doc-and-specs doc-and-specs)))
+  (let ((specs (%parse-doc-and-specs doc-and-specs)))
     `(let ((descriptor ,(process-message `(:message ,name ,@specs))))
        descriptor)))
 
