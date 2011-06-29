@@ -1,4 +1,4 @@
-;;; protocol.lisp ---
+;;; protocol.lisp --- Protocol of the protocol buffer compiler backend.
 ;;
 ;; Copyright (C) 2010, 2011 Jan Moringen
 ;;
