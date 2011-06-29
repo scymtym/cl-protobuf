@@ -1,4 +1,4 @@
-;;; conditions.lisp --- Conditions used in the backend.
+;;; conditions.lisp --- Conditions used by protocol buffer backends.
 ;;
 ;; Copyright (C) 2011 Jan Moringen
 ;;
