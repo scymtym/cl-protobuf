@@ -1,4 +1,4 @@
-;;; conditions.lisp ---
+;;; conditions.lisp --- Conditions used by protocol buffer frontends.
 ;;
 ;; Copyright (C) 2011 Jan Moringen
 ;;
