@@ -41,6 +41,9 @@
 	     :documentation
 	     "The file into which the emitted things should be
 written."))
+  (:default-initargs
+   :pathname (missing-required-initarg
+	      'file-target-mixin :pathname))
   (:documentation
    "This mixin adds a pathname slot and should can mixed into target
 classes that emit into files."))
