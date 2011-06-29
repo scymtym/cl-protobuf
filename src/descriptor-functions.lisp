@@ -35,7 +35,9 @@
 
 (in-package :protocol-buffer)
 
-;; Add some useful methods on the descriptor classes
+
+;;; Some useful methods for descriptor classes
+;;
 
 (defgeneric descriptor-name (descriptor)
   (:documentation
@@ -108,3 +110,23 @@ is providing a unified interface."))
 	   (number enum-value-desc-number)) object))
     (print-unreadable-object (object stream :type t :identity t)
       (format stream "~S ~D" name number))))
+
+
+;;; Field descriptors
+;;
+
+(defun field-primitive? (field-desc)
+  "Return non-nil if the type of FIELD-DESC is a primitive type."
+  (primitive-type-p (field-desc-type field-desc)))
+
+(defun field-enum? (field-desc)
+  "Return non-nil if the type of FIELD-DESC is an enum type."
+  (not (primitive-type-p (field-desc-type field-desc))))
+
+(defun field-message? (field-desc)
+  "Return non-nil if the type of FIELD-DESC is a message type."
+  (not (primitive-type-p (field-desc-type field-desc))))
+
+(defun field-repeated? (field-desc)
+  "Return non-nil if FIELD-DESC describes a repeated field."
+  (eq (field-desc-label field-desc) :repeated))

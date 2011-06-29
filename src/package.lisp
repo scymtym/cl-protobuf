@@ -111,5 +111,12 @@
   (:export
    :descriptor-name)
 
+  ;; Field descriptor functions
+  (:export
+   :field-primitive?
+   :field-enum?
+   :field-message?
+   :field-repeated?)
+
   (:documentation
    "This package contains generic protocol buffer infrastructure."))
