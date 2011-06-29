@@ -1,4 +1,4 @@
-;;; target-proto.lisp ---
+;;; target-proto.lisp --- Unit tests for the (textual) proto backend.
 ;;
 ;; Copyright (C) 2011 Jan Moringen
 ;;
