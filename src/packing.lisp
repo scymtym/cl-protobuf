@@ -142,9 +142,9 @@ read."
 ;;
 
 (defmacro decode-length-and-incf-start (start-place buffer)
-  "reads the length field,
-increments start-place by length,
-returns (values length length-of-length)"
+  "Decodes the length information stored at START-PLACE in BUFFER and
+increments START-PLACE by that length. Returns two values: the decoded
+length and the length of its encoded representation."
   (with-unique-names (isym len-sym len-len-sym)
     `(let ((,isym ,start-place))
        (with-decoding (,len-sym ,len-len-sym)
@@ -158,13 +158,15 @@ returns (values length length-of-length)"
 		decode-length-delim))
 
 (defun decode-length-delim (buffer start decoder)
-  "decoder is (lambda (buffer start end)"
-  (let ((i start))
+  "Apply DECODER to the length-delimited range at START in BUFFER.
+DECODER has to be a function of three arguments: a buffer, a range
+start and a range end position."
+  (let ((offset start))
     (with-decoding (len len-len)
-	(decode-length-and-incf-start i buffer)
+	(decode-length-and-incf-start offset buffer)
       (declare (type non-negative-integer len))
       (with-decoding (val val-len)
-	  (funcall decoder buffer i (+ i len))
+	  (funcall decoder buffer offset (+ offset len))
         (assert (= val-len len))
         (values val (+ len len-len))))))
 
