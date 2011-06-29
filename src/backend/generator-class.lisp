@@ -132,7 +132,7 @@ packed~] type ~S"
   (let ((repeated? (eq label :repeated))
 	(optional? (eq label :optional)))
     `(,name
-      :initarg  ,(pb::symbol->keyword name)
+      :initarg  ,(make-keyword name)
       :type     ,(proto-type->lisp-type type repeated? optional?)
       ,@(when class-name
 	      `(:accessor ,(%make-lisp-accessor-name class-name name)))

@@ -68,9 +68,6 @@
 	    (t
 	     (write-char (char-upcase char) stream))))))
 
-(defun symbol->keyword (symbol)
-  (intern (symbol-name symbol) :keyword))
-
 (defun proto-type-name->lisp-type-symbol (name
 					  &key
 					  package)
