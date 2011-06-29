@@ -102,6 +102,10 @@
   (:export
    :enum-symbol :enum-code)
 
+  ;; Message protocol
+  (:export
+   :message-descriptor)
+
   ;; Protocol Buffer Protocol :)
   (:export
    :packed-size

@@ -39,6 +39,15 @@
 (in-package :protocol-buffer)
 
 
+;;; Message protocol
+;;
+
+(defgeneric message-descriptor (object)
+  (:documentation
+   "Return the protocol buffer descriptor according to which OBJECT
+was generated."))
+
+
 ;;; Protocol buffer protocol ;)
 ;;
 

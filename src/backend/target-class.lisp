@@ -72,6 +72,10 @@ generated classes will not automatically have associated `pack' and
       (eval `(progn ,@(generate-class
 		       name1 (map 'list #'recur fields))))
 
+      ;; Generate descriptor retrieval method.
+      (eval `(defmethod message-descriptor ((object ,name1))
+	       ,node))
+
       ;; Return name of generated class.
       name1)))
 
