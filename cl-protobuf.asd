@@ -86,6 +86,8 @@ Neil T. Dantam."
 			       :depends-on ("package"
 					    "packing")
 			       :components ((:file       "package")
+					    (:file       "generator-macros"
+					     :depends-on ("package"))
 					    (:file       "generator-class"
 					     :depends-on ("package"))))
 

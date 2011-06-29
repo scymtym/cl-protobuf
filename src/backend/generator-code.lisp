@@ -304,13 +304,12 @@ VALUE-FORM."
 (defun generate-unpack-method (name fields)
   "Generate code for the UNPACK method"
   (with-unique-names (buffer-var object-var start-var end-var
-		      offset-var
-		      number-var read-wire-type-var start-code-length-var)
-    `(defmethod pb:unpack ((,buffer-var t) ;; TODO which type
-			   (,object-var ,name)
-			   &optional
-			   (,start-var 0)
-			   (,end-var   (length ,buffer-var)))
+		      offset-var number-var wire-type-var)
+    `(defmethod unpack ((,buffer-var simple-array)
+			(,object-var ,name)
+			&optional
+			(,start-var 0)
+			(,end-var   (length ,buffer-var)))
        (declare (type binio:octet-vector  ,buffer-var)
                 (type non-negative-fixnum ,start-var ,end-var))
 
@@ -318,33 +317,20 @@ VALUE-FORM."
        ;; decoded field will increment OFFSET-VAR by its length. We
        ;; return the filled object OBJECT-VAR and the size of the
        ;; consumed data.
-       (do ((,offset-var ,start-var))
-           ((>= ,offset-var ,end-var)
-	    (values
-	     ,object-var
-	     (the fixnum (- ,offset-var ,start-var))))
-         (declare (non-negative-fixnum ,offset-var))
-
-         (multiple-value-bind (,number-var ,read-wire-type-var ,start-code-length-var)
-             (pb::read-start-code ,buffer-var ,offset-var)
-           (declare (non-negative-fixnum ,number-var ,read-wire-type-var
-					 ,start-code-length-var))
-
-	   ;; Increase offset to account for consumed start-code.
-           (incf ,offset-var ,start-code-length-var)
-
-           (cond
-	     ,@(map 'list
-		(lambda (field)
-		  (multiple-value-bind (field-number body)
-		      (funcall field read-wire-type-var buffer-var offset-var object-var)
-		    `((= ,number-var ,field-number)
-		      ,@body)))
-		fields)
-             (t
-	      (signal 'unhandled-field-number
-		      :number ,number-var
-		      :class  ',name))))))))
+       (do-fields
+	   ((,buffer-var ,start-var ,end-var ,offset-var ,number-var ,wire-type-var)
+	    (values ,object-var (- ,offset-var ,start-var)))
+	 (cond
+	   ,@(map 'list
+		  (lambda (field)
+		    (bind (((:values number body)
+			    (funcall field wire-type-var buffer-var offset-var object-var)))
+		      `((= ,number-var ,number) ,@body)))
+		  fields)
+	   (t
+	    (signal 'unhandled-field-number
+		    :number ,number-var
+		    :class  ',name)))))))
 
 
 ;;; Utility functions
