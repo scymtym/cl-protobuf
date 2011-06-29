@@ -49,23 +49,21 @@ the descriptor classes defined."
 	  (mapcar #'rest (remove type specs
 				 :key #'first :test-not #'eq)))
 	 ((:flet generate-internal-enum (spec))
-	  (protocol-buffer.backend::generate-enum
+	  (pbb::generate-enum
 	   (symcat (symbol-package name) name (first spec))
 	   (rest spec)))
 	 ((:flet make-field-thunk (spec))
-	  (bind (((name1 type position
+	  (bind (((name1 type _
 		   &rest args
 		   &key
-		   optional required repeated
-		   packed) spec)
+		   optional required repeated packed) spec)
 		 (labels (intersection args '(:optional :required :repeated)))
 		 (label  (or (first labels) :required)))
-	    (declare (ignore position optional required repeated))
+	    (declare (ignore optional required repeated))
 
 	    #'(lambda ()
-		(protocol-buffer.backend::generate-slot
-		 name1 type label packed
-		 :class-name name)))))
+		(pbb::generate-slot
+		 name1 type label packed :class-name name)))))
     (declare (ignore marker))
 
     (handler-bind
@@ -74,7 +72,8 @@ the descriptor classes defined."
        `(progn
 	  ,@(mapcan #'generate-internal-enum (filter :enum))
 	  ,@(pbb::generate-class
-	     name (mapcar #'make-field-thunk (filter :field))))))))
+	     name (mapcar #'make-field-thunk (filter :field)))
+	  (export ',name (find-package :protocol-buffer)))))))
 
 (defvar *reflective-descriptors-pathname*
   (asdf:component-pathname
