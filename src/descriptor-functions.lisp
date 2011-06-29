@@ -84,13 +84,14 @@ is providing a unified interface."))
 
 (defmethod print-object ((object field-desc) stream)
   (bind (((:accessors-r/o
+	   (number        field-desc-number)
 	   (name          field-desc-name)
 	   (type          field-desc-type)
 	   (label         field-desc-label)
 	   (default-value field-desc-default-value)) object))
     (print-unreadable-object (object stream :type t :identity t)
-      (format stream "~S ~A ~A~:[~; [~A]~]"
-	      name type label
+      (format stream "~D ~S ~A ~A~:[~; [~A]~]"
+	      number name type label
 	      (and default-value (not (emptyp default-value))) ;; TODO avoid string stuff
 	      default-value))))
 
