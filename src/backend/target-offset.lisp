@@ -50,24 +50,17 @@ containing protocol buffer message.")
   (with-emit-symbols
     (bind (((:accessors-r/o (name   pb::field-desc-name)
 			    (number pb::field-desc-number)) node)
-	   (name1 (intern* (make-lisp-slot-name name))))
-      (list
-       (eval
-	`(defmethod offset ((buffer   simple-array)
-			    (message  message-desc)
-			    (field    (eql ',name1))
-			    &optional
-			    (start 0)
-			    (end   (length buffer)))
-	   (%offset ,number buffer start end)))
-       (eval
-	`(defmethod offset ((buffer  simple-array)
-			    (message message-desc)
-			    (field   (eql ,node))
-			    &optional
-			    (start 0)
-			    (end   (length buffer)))
-	   (%offset ,number buffer start end)))))))
+	   (name1 (intern* (make-lisp-slot-name name)))
+	   ((:flet generate-offset-method (specializer))
+	    `(defmethod offset ((buffer   simple-array)
+				(message  message-desc)
+				(field    ,specializer)
+				&optional
+				(start 0)
+				(end   (length buffer)))
+	       (%offset ,number buffer start end))))
+      (list (eval (generate-offset-method `(eql ',name1)))
+	    (eval (generate-offset-method `(eql ,node)))))))
 
 
 ;;; Utility functions
