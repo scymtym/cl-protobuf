@@ -76,6 +76,13 @@ into OBJECT. When specified only use the portion from START to END of
 BUFFER. Two values are returned: the modified OBJECT and the number of
 consumed octets."))
 
+(defgeneric offset (buffer message field &optional start end)
+  (:documentation
+   "Find and return the offset in BUFFER at which the first instance
+of the FIELD of the protocol buffer message MESSAGE occurs.
+When supplied, START and END restrict the search to a range within
+BUFFER."))
+
 
 ;;; Default behavior
 ;;

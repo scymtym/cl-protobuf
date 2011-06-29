@@ -137,6 +137,9 @@ Neil T. Dantam."
 					     :depends-on ("protocol"
 							  "generator-code"
 							  "code-generating-target-mixin"))
+					    (:file       "target-offset"
+					     :depends-on ("protocol"
+							  "code-generating-target-mixin"))
 					    (:file       "target-proto"
 					     :depends-on ("protocol"
 							  "stream-target-mixin"))

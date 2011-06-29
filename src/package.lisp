@@ -109,7 +109,9 @@
   ;; Protocol Buffer Protocol :)
   (:export
    :packed-size
-   :pack :unpack)
+   :pack :unpack
+
+   :offset)
 
   ;; Protocol buffer descriptors
   (:export

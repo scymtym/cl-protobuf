@@ -1,0 +1,94 @@
+;;; target-offset.lisp --- Generate methods for partial unpacking/inspection.
+;;
+;; Copyright (C) 2011 Jan Moringen
+;;
+;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+;;
+;; This Program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; This Program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program. If not, see <http://www.gnu.org/licenses>.
+
+(in-package :protocol-buffer.backend)
+
+
+;;; Offset
+;;
+
+(defmethod documentation ((thing (eql :offset)) (type (eql 'target)))
+  "Emit an `offset' method which determines the offset of a protocol
+buffer message field within the packed representation of the
+containing protocol buffer message.")
+
+(defclass target-offset (code-generating-target-mixin)
+  ()
+  (:documentation
+   "Target class for offset target."))
+
+(defmethod emit ((node   message-desc)
+		 (target target-offset)
+		 &key)
+  "Generate code for the `offset' method."
+  (with-emit-symbols
+    (bind (((:accessors-r/o (nested pb::message-desc-nested-type)
+			    (fields pb::message-desc-field)) node))
+      (map 'nil #'recur nested)
+      (reduce #'nconc (map 'list #'recur fields)))))
+
+(defmethod emit ((node   field-desc)
+		 (target target-offset)
+		 &key)
+  "Generate code to find the offset of a single field."
+  (with-emit-symbols
+    (bind (((:accessors-r/o (name   pb::field-desc-name)
+			    (number pb::field-desc-number)) node)
+	   (name1 (intern* (make-lisp-slot-name name))))
+      (list
+       (eval
+	`(defmethod offset ((buffer   simple-array)
+			    (message  message-desc)
+			    (field    (eql ',name1))
+			    &optional
+			    (start 0)
+			    (end   (length buffer)))
+	   (%offset ,number buffer start end)))
+       (eval
+	`(defmethod offset ((buffer  simple-array)
+			    (message message-desc)
+			    (field   (eql ,node))
+			    &optional
+			    (start 0)
+			    (end   (length buffer)))
+	   (%offset ,number buffer start end)))))))
+
+
+;;; Utility functions
+;;
+
+(declaim (ftype (function (non-negative-fixnum
+			   binio:octet-vector
+			   non-negative-fixnum
+			   non-negative-fixnum)
+			  (or null non-negative-fixnum))
+		%offset))
+
+(defun %offset (field-number buffer start end)
+  "Loop through encoded fields in the range START to END in BUFFER
+until a field with number FIELD-NUMBER is encountered. Return the
+offset of that field."
+  ;; Loop through BUFFER until we hit the field or the end of the
+  ;; buffer.
+  (do-fields ((buffer start end offset number wire-type))
+    ;; If we are at the desired field, return the offset.
+    (when (= number field-number)
+      (return offset))
+    ;; If we are at some other field, skip it.
+    (incf offset (pb::packed-field-size wire-type buffer offset))))
