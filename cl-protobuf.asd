@@ -160,7 +160,7 @@ Neil T. Dantam."
 					    "backend"))
 
 			      ;; ASDF support
-			      (:file       "asdf"
+			      (:file       "asdf-protoc"
 			       :depends-on ("frontend"
 					    "backend")))))
   :in-order-to ((test-op (test-op :cl-protobuf-test))))
