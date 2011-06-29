@@ -288,3 +288,24 @@ start and a range end position."
 			   (declare (type octet-vector        buffer)
 				    (type non-negative-fixnum start end))
 			   (unpack buffer object start end))))
+
+
+;;; Size of packed field values
+;;
+
+(defun packed-field-size (wire-type buffer start)
+  "Return the size of the field at START in BUFFER which should be
+considered to be of the type designated by WIRE-TYPE."
+  (ecase (wire-type-meaning wire-type)
+    (:varint
+     (nth-value 1 (binio:decode-uvarint buffer start)))
+    (:fixed32
+     4)
+    (:fixed64
+     8)
+    (:size-delimited
+     (nth-value 1 (decode-length-delim
+		   buffer start
+		   (lambda (buffer start end)
+		     (declare (ignore buffer))
+		     (values nil (- end start))))))))
