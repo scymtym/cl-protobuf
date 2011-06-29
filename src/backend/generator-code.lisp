@@ -240,7 +240,7 @@ number NUMBER."
         (assert instance () "Need instance to unpack embedded message ~A" proto-type)
         `(pb::unpack-embedded ,buffer-var ,instance ,offset-form))))
 
-(defun generate-unpack-and-incf (proto-type buffer-form offset-form  &optional instance)
+(defun generate-unpack-and-incf (proto-type buffer-form offset-form &optional instance)
   "Unpack a scalar value and increment START-FORM."
   (with-unique-names (value length)
     `(pb::with-decoding (,value ,length)
@@ -250,28 +250,28 @@ number NUMBER."
        (incf ,offset-form ,length)
        ,value)))
 
-(defun generate-scalar-slot-unpacker (proto-type buffer-form offset-form value-form)
-  "Generate code to decode a scalar value into VALUE-FORM."
+(defun generate-unpack/scalar (proto-type buffer-form offset-form destination-form)
+  "Generate code to decode a scalar value into DESTINATION-FORM."
   `(,@(unless (primitive-type-p proto-type)
-        `((unless ,value-form ;(and ,slot-boundp ,value-form)
-	    (setf ,value-form (make-instance ',(proto-type->lisp-type proto-type))))))
-    (setf ,value-form ,(generate-unpack-and-incf
-			proto-type buffer-form offset-form value-form))))
+        `((unless ,destination-form ;(and ,slot-boundp ,destination-form)
+	    (setf ,destination-form
+		  (make-instance ',(proto-type->lisp-type proto-type))))))
+    (setf ,destination-form
+	  ,(generate-unpack-and-incf
+	    proto-type buffer-form offset-form destination-form))))
 
-(defun generate-repeated-slot-unpacker (proto-type buffer-form offset-form value-form)
-  "Generate code to decode a repeated value into VALUE-FORM."
-  ;; FIXME: SBCL conses here because it's not a simple array
-  ;; would be nice to avoid that
+(defun generate-unpack/repeated (proto-type buffer-form offset-form destination-form)
+  "Generate code to decode a repeated value into DESTINATION-FORM."
   `((vector-push-extend
      ,(generate-unpack-and-incf
        proto-type buffer-form offset-form
        (unless (primitive-type-p proto-type)
 	 `(make-instance ',(scalar-proto-type->lisp-type proto-type))))
-     ,value-form)))
+     ,destination-form)))
 
-(defun generate-repeated-packed-slot-unpacker (proto-type buffer-form offset-form value-form)
+(defun generate-unpack/repeated-packed (proto-type buffer-form offset-form destination-form)
   "Generate code to decode a repeated and packed value into
-VALUE-FORM."
+DESTINATION-FORM."
   `((pb::with-decoding (value length)
 	(pb::decode-length-delim
 	 ,buffer-form ,offset-form
@@ -286,20 +286,31 @@ VALUE-FORM."
 				     (* 8 (fixed-size proto-type)))
 	      :start          start
 	      :end            end)))
-      (setf ,value-form value)
+      (setf ,destination-form value)
       (incf ,offset-form length))))
+
+(defun generate-unpack (proto-type buffer-form offset-form destination-form
+			&key
+			repeated?
+			packed?)
+  "Generate code to unpack a value of the type designated by
+PROTO-TYPE from BUFFER-FROM at offset OFFSET-FORM and store it at
+DESTINATION-FORM."
+  (funcall (cond
+	     ((not repeated?) #'generate-unpack/scalar)
+	     ((not packed?)   #'generate-unpack/repeated)
+	     (t               #'generate-unpack/repeated-packed))
+	   proto-type buffer-form offset-form destination-form))
 
 (defun generate-slot-unpacker (proto-type name buffer-form offset-form object-form
 			       &key
 			       repeated?
 			       packed?)
   "Generate code to unpack a single slot"
-  (let ((slot-value `(slot-value ,object-form ',name)))
-    (funcall (cond
-	       ((not repeated?) #'generate-scalar-slot-unpacker)
-	       ((not packed?)   #'generate-repeated-slot-unpacker)
-	       (t               #'generate-repeated-packed-slot-unpacker))
-	     proto-type buffer-form offset-form slot-value)))
+  (generate-unpack
+   proto-type buffer-form offset-form `(slot-value ,object-form ',name)
+   :repeated? repeated?
+   :packed?   packed?))
 
 (defun generate-unpack-method (name fields)
   "Generate code for the UNPACK method"
