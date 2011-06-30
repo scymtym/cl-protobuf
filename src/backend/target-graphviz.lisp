@@ -155,7 +155,7 @@ printed around the output."
 	      (string->graphviz-label name) name)
       (map 'nil (rcurry #'emit (make-instance 'target-graphviz-record-line
 					      :stream stream))
-	   fields)
+	   field)
       (format stream "</TABLE>>]~%"))
     (call-next-method)))
 
