@@ -53,93 +53,71 @@ generated classes will not automatically have associated `pack' and
 ;;; Emitter methods
 ;;
 
-(defmethod emit ((node   pb::message-desc)
+(defmethod emit ((node   message-desc)
 		 (target target-class)
 		 &key)
   "Define a Lisp class for NODE. "
   (with-emit-symbols
-    (bind (((:accessors-r/o
-	     (name   pb::message-desc-name)
-	     (nested pb::message-desc-nested-type)
-	     (enums  pb::message-desc-enum-type)
-	     (fields pb::message-desc-field)) node) ;; field is actually a sequence of fields
-	   (name1 (intern* (make-lisp-class-name name parent))))
-      ;; Evaluate nested definitions immediately so types are
-      ;; available.
-      (map nil #'recur enums)
-      (map nil #'recur nested)
-      ;;
-      (eval `(progn ,@(generate-class
-		       name1 (map 'list #'recur fields))))
+    (with-descriptor-fields (node message-desc)
+      (bind ((name1 (intern* (make-lisp-class-name name parent))))
+	;; Evaluate nested definitions immediately so types are
+	;; available.
+	(map nil #'recur enum-type)
+	(map nil #'recur nested-type)
+	;;
+	(eval `(progn ,@(generate-class
+			 name1 (map 'list #'recur field))))
 
-      ;; Generate descriptor retrieval method.
-      (eval `(defmethod message-descriptor ((object ,name1))
-	       ,node))
+	;; Generate descriptor retrieval method.
+	(eval `(defmethod message-descriptor ((object ,name1))
+		 ,node))
 
-      ;; Export the class name, if requested.
-      (when (target-export? target)
-	(export name1 (symbol-package name1)))
+	;; Export the class name, if requested.
+	(when (target-export? target)
+	  (export name1 (symbol-package name1)))
 
-      ;; Return name of generated class.
-      name1)))
+	;; Return name of generated class.
+	name1))))
 
-(defmethod emit ((node   pb::field-desc)
+(defmethod emit ((node   field-desc)
 		 (target target-class)
 		 &key)
   "Emit a slot specification for NODE."
   (with-emit-symbols
-    (bind (((:accessors-r/o
-	     (name          pb::field-desc-name)
-	     (type          pb::field-desc-type)
-	     (type-name     pb::field-desc-type-name)
-	     (label         pb::field-desc-label)
-	     (default-value pb::field-desc-default-value)
-	     (options       pb::field-desc-options)) node)
-	   (name1      (intern* (make-lisp-slot-name name)))
-	   (type1      (make-lisp-slot-type type type-name package))
-	   (packed?    (when options (recur options)))
-	   (class-name (intern* (make-lisp-class-name
-				 (pb::message-desc-name parent)
-				 grandparent)))) ;; TODO make a function
-      #'(lambda ()
-	  (apply #'generate-slot
-		 name1 type1 label packed?
-		 :class-name class-name
-		 (unless (emptyp default-value)
-		   (list :default default-value)))))))
+    (with-descriptor-fields (node field-desc)
+      (bind ((name1      (intern* (make-lisp-slot-name name)))
+	     (type1      (make-lisp-slot-type type type-name package))
+	     (packed?    (when options
+			   (pb::field-options-packed options)))
+	     (class-name (intern* (make-lisp-class-name
+				   (pb::message-desc-name parent)
+				   grandparent)))) ;; TODO make a function
+	#'(lambda ()
+	    (apply #'generate-slot
+		   name1 type1 label packed?
+		   :class-name class-name
+		   (unless (emptyp default-value)
+		     (list :default default-value))))))))
 
-(defmethod emit ((node   pb::field-options)
-		 (target target-class)
-		 &key)
-  "Emit a Boolean value indicating whether the packed option is set in
-NODE."
-  (pb::field-options-packed node))
-
-(defmethod emit ((node   pb::enum-desc)
+(defmethod emit ((node   enum-desc)
 		 (target target-class)
 		 &key)
   "Emit an enum definition for NODE."
   (with-emit-symbols
-    (bind (((:accessors-r/o
-	     (name   pb::enum-desc-name)
-	     (values pb::enum-desc-value)) node)
-	   (name1 (intern* (make-lisp-enum-name name parent)))
-	   (forms (generate-enum name1 (map 'list #'recur values))))
-      (eval `(progn ,@forms))
+    (with-descriptor-fields (node enum-desc)
+      (bind ((name1 (intern* (make-lisp-enum-name name parent))))
+	(eval `(progn ,@(generate-enum name1 (map 'list #'recur value))))
 
-      ;; Export the name of the enum, if requested.
-      (when (target-export? target)
-	(export name1 (symbol-package name1)))
+	;; Export the name of the enum, if requested.
+	(when (target-export? target)
+	  (export name1 (symbol-package name1)))
 
-      ;; Return name of generated enum
-      name1)))
+	;; Return name of generated enum
+	name1))))
 
-(defmethod emit ((node   pb::enum-value-desc)
+(defmethod emit ((node   enum-value-desc)
 		 (target target-class)
 		 &key)
   "Emit name-value-pair for NODE."
-  (bind (((:accessors-r/o
-	   (name   pb::enum-value-desc-name)
-	   (number pb::enum-value-desc-number)) node)
-	 (name1 (make-lisp-enum-value name)))
-    `(,name1 ,number)))
+  (with-descriptor-fields (node enum-value-desc)
+    `(,(make-lisp-enum-value name) ,number)))
