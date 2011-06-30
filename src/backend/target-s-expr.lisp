@@ -62,83 +62,66 @@ representation.")
 		 &key)
   node)
 
-(defmethod emit ((node   pb::file-set-desc)
+(defmethod emit ((node   file-set-desc)
 		 (target target-s-expr)
 		 &key)
   (with-emit-symbols
-    (bind (((:accessors-r/o
-	     (file pb::file-set-desc-file)) node))
+    (with-descriptor-fields (node file-set-desc)
       (apply #'nconc (map 'list #'recur file)))))
 
-(defmethod emit ((node   pb::file-desc)
+(defmethod emit ((node   file-desc)
 		 (target target-s-expr)
 		 &key)
   (with-emit-symbols
-    (bind (((:accessors-r/o
-	     (enums    pb::file-desc-enum-type)
-	     (messages pb::file-desc-message-type)) node))
-      (nconc (map 'list #'recur enums)
-	     (map 'list #'recur messages)))))
+    (with-descriptor-fields (node file-desc)
+      (nconc (map 'list #'recur enum-type)
+	     (map 'list #'recur message-type)))))
 
-(defmethod emit ((node   pb::message-desc)
+(defmethod emit ((node   message-desc)
 		 (target target-s-expr)
 		 &key)
   (with-emit-symbols
-    (bind (((:accessors-r/o
-	     (name   pb::message-desc-name)
-	     (nested pb::message-desc-nested-type)
-	     (enums  pb::message-desc-enum-type)
-	     (fields pb::message-desc-field)) node)
-	   (name1 (intern* (make-lisp-class-name name))))
-      `(:message ,name1
-		 ,@(map 'list #'recur enums)
-		 ,@(map 'list #'recur nested)
-		 ,@(map 'list #'recur fields)))))
+    (with-descriptor-fields (node message-desc)
+      (bind ((name1 (intern* (make-lisp-class-name name))))
+	`(:message ,name1
+		   ,@(map 'list #'recur enum-type)
+		   ,@(map 'list #'recur nested-type)
+		   ,@(map 'list #'recur field))))))
 
-(defmethod emit ((node   pb::field-desc)
+(defmethod emit ((node   field-desc)
 		 (target target-s-expr)
 		 &key)
   (with-emit-symbols
-    (bind (((:accessors-r/o
-	     (name      pb::field-desc-name)
-	     (number    pb::field-desc-number)
-	     (type      pb::field-desc-type)
-	     (type-name pb::field-desc-type-name)
-	     (label     pb::field-desc-label)
-	     (options   pb::field-desc-options)) node)
-	   (name1     (intern* (make-lisp-slot-name name)))
-	   (type1     (if (member type '(:message :enum))
-			  (pb::proto-type-name->lisp-type-symbol
-			   type-name :package package)
-			  type))
-	   (repeated? (eq label :repeated))
-	   (packed?   (when options
-			(pb::field-options-packed options))))
-      (when (and packed? (not repeated?))
-	(error "Can't have packed, nonrepeated field"))
+    (with-descriptor-fields (node field-desc)
+      (bind ((name1     (intern* (make-lisp-slot-name name)))
+	     (type1     (if (member type '(:message :enum))
+			    (pb::proto-type-name->lisp-type-symbol
+			     type-name :package package)
+			    type))
+	     (repeated? (eq label :repeated))
+	     (packed?   (when options
+			  (pb::field-options-packed options))))
+	(when (and packed? (not repeated?))
+	  (error "Can't have packed, nonrepeated field"))
 
-      `(:field ,name1
-	       ,type1
-	       ,number
-	       ,@(when label   `(,label t))
-	       ,@(when packed? '(:packed t))))))
+	`(:field ,name1
+		 ,type1
+		 ,number
+		 ,@(when label   `(,label t))
+		 ,@(when packed? '(:packed t)))))))
 
-(defmethod emit ((node   pb::enum-desc)
+(defmethod emit ((node   enum-desc)
 		 (target target-s-expr)
 		 &key)
   (with-emit-symbols
-    (bind (((:accessors-r/o
-	     (name   pb::enum-desc-name)
-	     (values pb::enum-desc-value)) node)
-	   (name1 (intern* (make-lisp-enum-name name))))
-      `(:enum ,name1
-	      ,@(map 'list #'recur values)))))
+    (with-descriptor-fields (node enum-desc)
+      (bind ((name1 (intern* (make-lisp-enum-name name))))
+	`(:enum ,name1
+		,@(map 'list #'recur value))))))
 
-(defmethod emit ((node   pb::enum-value-desc)
+(defmethod emit ((node   enum-value-desc)
 		 (target target-s-expr)
 		 &key)
-  (bind (((:accessors-r/o
-	   (name   pb::enum-value-desc-name)
-	   (number pb::enum-value-desc-number)) node)
-	 (name1 (make-lisp-enum-value name)))
-    `(,name1 ,number)))
+  (with-descriptor-fields (node enum-value-desc)
+    (bind ((name1 (make-lisp-enum-value name)))
+      `(,name1 ,number))))
