@@ -79,22 +79,17 @@ printed around the output."
 ;;; Emitter methods
 ;;
 
-(defmethod emit :before ((node   pb::file-set-desc)
+(defmethod emit :before ((node   file-set-desc)
 			 (target target-proto)
 			 &key)
   (with-stream-emit-symbols stream
     (format stream "// File Descriptor Set~%")))
 
-(defmethod emit ((node   pb::file-desc)
+(defmethod emit ((node   file-desc)
 		 (target target-proto)
 		 &key)
   (with-stream-emit-symbols stream
-    (bind (((:accessors-r/o
-	     (name     pb::file-desc-name)
-	     (package  pb::file-desc-package)
-	     (options  pb::file-desc-options)
-	     (enums    pb::file-desc-enum-type)
-	     (messages pb::file-desc-message-type)) node))
+    (with-descriptor-fields (node file-desc)
       (format stream "// BEGIN File Descriptor Proto~%")
       (format stream "// Name: ~A~%" name)
 
@@ -110,7 +105,7 @@ printed around the output."
       ;; TODO services
       (format stream "// END File Descriptor Proto~%"))))
 
-(defmethod emit ((node   pb::file-options)
+(defmethod emit ((node   file-options)
 		 (target target-proto)
 		 &key)
   (with-stream-emit-symbols stream
@@ -121,25 +116,17 @@ printed around the output."
 	    (when (and value (string/= value "")) ;; TODO avoid string stuff
 	      (format stream "option ~A = ~S;~%" label value))))))
 
-(defmethod emit ((node   pb::message-desc)
+(defmethod emit ((node   message-desc)
 		 (target target-proto)
 		 &key)
   (with-proto-logical-block ("message" (pb::message-desc-name node))
     (call-next-method)))
 
-(defmethod emit ((node   pb::field-desc)
+(defmethod emit ((node   field-desc)
 		 (target target-proto)
 		 &key)
   (with-stream-emit-symbols stream
-    (bind (((:accessors-r/o
-	     (name      pb::field-desc-name)
-	     (number    pb::field-desc-number)
-	     (label     pb::field-desc-label)
-	     (type      pb::field-desc-type)
-	     (type-name pb::field-desc-type-name)
-	     (default   pb::field-desc-default-value)
-	     (options   pb::field-desc-options)) node))
-
+    (with-descriptor-fields (node field-desc)
       (format stream "~(~A~) ~A ~A = ~A"
 	      label
 	      (if (member type '(:message :enum))
@@ -152,25 +139,22 @@ printed around the output."
 	(recur options))
       (format stream ";~%"))))
 
-(defmethod emit ((node   pb::field-options)
+(defmethod emit ((node   field-options)
 		 (target target-proto)
 		 &key)
   (with-stream-emit-symbols stream
-    (bind (((:accessors-r/o
-	     (packed pb::field-options-packed)) node))
+    (with-descriptor-fields (node field-options)
       (format stream "~:[~; [packed = true]~]" packed))))
 
-(defmethod emit ((node   pb::enum-desc)
+(defmethod emit ((node   enum-desc)
 		 (target target-proto)
 		 &key)
   (with-proto-logical-block ("enum" (pb::enum-desc-name node))
     (call-next-method)))
 
-(defmethod emit ((node   pb::enum-value-desc)
+(defmethod emit ((node   enum-value-desc)
 		 (target target-proto)
 		 &key)
   (with-stream-emit-symbols stream
-    (bind (((:accessors-r/o
-	     (name   pb::enum-value-desc-name)
-	     (number pb::enum-value-desc-number)) node))
+    (with-descriptor-fields (node enum-value-desc)
       (format stream "~16A = ~2D;~%" name number))))
