@@ -155,13 +155,13 @@ state of a particular emission process. This state consists of:
 		 &key)
   (values))
 
-(defmethod emit ((node pb::file-set-desc) (target standard-object)
+(defmethod emit ((node file-set-desc) (target standard-object)
 		 &key)
   "Multi-file container; default behavior is recursion over files."
   (with-emit-symbols
     (map 'list #'recur (pb::file-set-desc-file node))))
 
-(defmethod emit ((node pb::file-desc) (target standard-object)
+(defmethod emit ((node file-desc) (target standard-object)
 		 &key)
   "File; default behavior is recursion over enums, messages, services,
 extensions and options."
@@ -172,7 +172,7 @@ extensions and options."
     (map nil #'recur (pb::file-desc-extension    node))
     (map nil #'recur (pb::file-desc-options      node))))
 
-(defmethod emit ((node pb::message-desc) (target standard-object)
+(defmethod emit ((node message-desc) (target standard-object)
 		 &key)
   "Message; default behavior is recursion over contained elements."
   (with-emit-symbols
@@ -181,16 +181,15 @@ extensions and options."
     (map nil #'recur (pb::message-desc-field       node))
     (map nil #'recur (pb::message-desc-extension   node))))
 
-(defmethod emit ((node pb::field-desc) (target standard-object)
+(defmethod emit ((node field-desc) (target standard-object)
 		 &key)
   "Field; default behavior is recursion into options it any."
   (with-emit-symbols
-    (bind (((:accessors-r/o
-	     (options pb::field-desc-options)) node))
+    (bind (((:accessors-r/o (options pb::field-desc-options)) node))
       (when options
 	(recur options)))))
 
-(defmethod emit ((node pb::enum-desc) (target standard-object)
+(defmethod emit ((node enum-desc) (target standard-object)
 		 &key)
   "Enum; default behavior is recursion over enum values."
   (with-emit-symbols
