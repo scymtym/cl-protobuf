@@ -65,13 +65,11 @@ buffer descriptions into multiple files in a common directory."))
 ;;; Emitter methods
 ;;
 
-(defmethod emit ((node   pb::file-desc)
+(defmethod emit ((node   file-desc)
 		 (target target-protofile)
 		 &key)
-  (bind (((:accessors-r/o
-	   (file pb::file-desc-name)) node))
-    (with-output-to-file (stream (merge-pathnames
-				  file
-				  (target-directory target))
-				 :if-exists :supersede)
-      (emit node `(:proto :stream ,stream)))))
+  (with-output-to-file (stream (merge-pathnames
+				(pb::file-desc-name node)
+				(target-directory target))
+			       :if-exists :supersede)
+    (emit node `(:proto :stream ,stream))))
