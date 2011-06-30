@@ -56,6 +56,7 @@ Neil T. Dantam."
 		:metabang-bind
 		:iterate
 
+		:closer-mop
 		:cffi)
   :components  ((:module     "src"
 		 :components ((:module     "binio"

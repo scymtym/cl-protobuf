@@ -118,10 +118,22 @@ TARGET-VAR and push NODE-VAR onto the context stack."
 		     (parent             (second (context-stack *context*)))
 		     (grandparent        (third (context-stack *context*)))
 		     (ancestors          (rest (context-stack *context*)))
-		     (parent-is-message? (typep parent 'pb::message-desc)))
+		     (parent-is-message? (typep parent 'message-desc)))
      (flet ((recur (node)
 	      (emit node (context-target *context*)))
 	    (intern* (name) ;; TODO rename
 	      (intern name package)))
        (declare (ignorable #'recur #'intern*))
+       ,@body)))
+
+(defmacro with-descriptor-fields ((instance class) &body body)
+  "Execute BODY with variables bindings for the slots of INSTANCE
+which has to be an instance of CLASS."
+  (bind ((names   (map 'list (compose #'symbolicate
+				      #'closer-mop:slot-definition-name)
+		       (closer-mop:class-slots (find-class class))))
+	 (readers (let ((*package* (find-package :pb)))
+		    (map 'list (curry #'symbolicate class "-") names))))
+    `(bind (((:accessors-r/o ,@(map 'list #'list names readers)) ,instance))
+       (declare (ignorable ,@names))
        ,@body)))

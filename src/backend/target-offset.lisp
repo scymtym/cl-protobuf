@@ -38,29 +38,27 @@ containing protocol buffer message.")
 		 &key)
   "Generate code for the `offset' method."
   (with-emit-symbols
-    (bind (((:accessors-r/o (nested pb::message-desc-nested-type)
-			    (fields pb::message-desc-field)) node))
-      (map 'nil #'recur nested)
-      (reduce #'nconc (map 'list #'recur fields)))))
+    (with-descriptor-fields (node message-desc)
+      (map 'nil #'recur nested-type)
+      (reduce #'nconc (map 'list #'recur field)))))
 
 (defmethod emit ((node   field-desc)
 		 (target target-offset)
 		 &key)
   "Generate code to find the offset of a single field."
   (with-emit-symbols
-    (bind (((:accessors-r/o (name   pb::field-desc-name)
-			    (number pb::field-desc-number)) node)
-	   (name1 (intern* (make-lisp-slot-name name)))
-	   ((:flet generate-offset-method (specializer))
-	    `(defmethod offset ((buffer   simple-array)
-				(message  message-desc)
-				(field    ,specializer)
-				&optional
-				(start 0)
-				(end   (length buffer)))
-	       (%offset ,number buffer start end))))
-      (list (eval (generate-offset-method `(eql ',name1)))
-	    (eval (generate-offset-method `(eql ,node)))))))
+    (with-descriptor-fields (node field-desc)
+      (bind ((name1 (intern* (make-lisp-slot-name name)))
+	     ((:flet generate-offset-method (specializer))
+	      `(defmethod offset ((buffer   simple-array)
+				  (message  message-desc)
+				  (field    ,specializer)
+				  &optional
+				  (start 0)
+				  (end   (length buffer)))
+		 (%offset ,number buffer start end))))
+	(list (eval (generate-offset-method `(eql ',name1)))
+	      (eval (generate-offset-method `(eql ,node))))))))
 
 
 ;;; Extractor
@@ -81,46 +79,41 @@ message.")
 		 &key)
   "Generate code for the `extract' method."
   (with-emit-symbols
-    (bind (((:accessors-r/o (nested pb::message-desc-nested-type)
-			    (fields pb::message-desc-field)) node))
-      (map 'nil #'recur nested)
-      (reduce #'nconc (map 'list #'recur fields)))))
+    (with-descriptor-fields (node message-desc)
+      (map 'nil #'recur nested-type)
+      (reduce #'nconc (map 'list #'recur field)))))
 
 (defmethod emit ((node   field-desc)
 		 (target target-extractor)
 		 &key)
   "Generate code to extract the value of a single field."
   (with-emit-symbols
-    (bind (((:accessors-r/o
-	     (name      pb::field-desc-name)
-	     (type      pb::field-desc-type)
-	     (type-name pb::field-desc-type-name)
-	     (number    pb::field-desc-number)) node)
-	   (name1  (intern* (make-lisp-slot-name name)))
-	   (type1  (make-lisp-slot-type type type-name package))
-	   ((:flet generate-extract-method (specializer))
-	    `(defmethod extract ((buffer  simple-array)
-				 (message message-desc)
-				 (field   ,specializer)
-				 &optional
-				 (start 0)
-				 (end   (length buffer)))
-	       (declare (type binio:octet-vector buffer)
-			(type non-negative-fixnum start end))
+    (with-descriptor-fields (node field-desc)
+      (bind ((name1 (intern* (make-lisp-slot-name name)))
+	     (type1 (make-lisp-slot-type type type-name package))
+	     ((:flet generate-extract-method (specializer))
+	      `(defmethod extract ((buffer  simple-array)
+				   (message message-desc)
+				   (field   ,specializer)
+				   &optional
+				   (start 0)
+				   (end   (length buffer)))
+		 (declare (type binio:octet-vector buffer)
+			  (type non-negative-fixnum start end))
 
-	       ;; Loop through BUFFER until we hit the field or the
-	       ;; end of the buffer.
-	       (do-fields ((buffer start end offset number wire-type))
-		 ;; If we are at the desired field, extract and
-		 ;; return the value.
-		 (when (= number ,number)
-		   (let (result)
-		     ,@(generate-unpack type1 'buffer 'offset 'result)
-		     (return result)))
-		 ;; If we are at some other field, skip it.
-		 (incf offset (pb::packed-field-size wire-type buffer offset))))))
-      (list (eval (generate-extract-method `(eql ,node)))
-	    (eval (generate-extract-method `(eql ',name1)))))))
+		 ;; Loop through BUFFER until we hit the field or the
+		 ;; end of the buffer.
+		 (do-fields ((buffer start end offset number wire-type))
+		   ;; If we are at the desired field, extract and
+		   ;; return the value.
+		   (when (= number ,number)
+		     (let (result)
+		       ,@(generate-unpack type1 'buffer 'offset 'result)
+		       (return result)))
+		   ;; If we are at some other field, skip it.
+		   (incf offset (pb::packed-field-size wire-type buffer offset))))))
+	(list (eval (generate-extract-method `(eql ,node)))
+	      (eval (generate-extract-method `(eql ',name1))))))))
 
 
 ;;; Utility functions
