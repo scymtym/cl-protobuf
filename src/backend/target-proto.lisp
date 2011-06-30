@@ -96,12 +96,12 @@ printed around the output."
       (format stream "package ~A;~%" package)
       (unless (emptyp options)
 	(map nil #'recur options))
-      (unless (emptyp enums)
+      (unless (emptyp enum-type)
 	(format stream "// Enums:~%")
-	(map nil #'recur enums))
-      (unless (emptyp messages)
+	(map nil #'recur enum-type))
+      (unless (emptyp message-type)
 	(format stream "// Messages:~%")
-	(map nil #'recur messages))
+	(map nil #'recur message-type))
       ;; TODO services
       (format stream "// END File Descriptor Proto~%"))))
 
@@ -133,8 +133,8 @@ printed around the output."
 		  type-name
 		  (string-downcase type))
 	      name number)
-      (when (and default (string/= default "")) ;; TODO avoid string stuff
-	(format stream " [default = ~A]" default))
+      (when (and default-value (string/= default-value "")) ;; TODO avoid string stuff
+	(format stream " [default = ~A]" default-value))
       (when options
 	(recur options))
       (format stream ";~%"))))
