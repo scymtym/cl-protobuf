@@ -108,7 +108,7 @@ printed around the output."
 ;;; Emitter methods
 ;;
 
-(defmethod emit ((node   pb::file-set-desc)
+(defmethod emit ((node   file-set-desc)
 		 (target target-graphviz-dot-file)
 		 &key)
   (bind (((:accessors-r/o (pathname target-pathname)) target))
@@ -117,7 +117,7 @@ printed around the output."
       (emit node `(:graphviz :stream ,stream)))
     pathname))
 
-(defmethod emit ((node   pb::file-set-desc)
+(defmethod emit ((node   file-set-desc)
 		 (target target-graphviz-image-file)
 		 &key)
   (bind (((:accessors-r/o (pathname target-pathname)
@@ -140,19 +140,17 @@ printed around the output."
 	     exit-code))
     pathname))
 
-(defmethod emit ((node   pb::file-set-desc)
+(defmethod emit ((node   file-set-desc)
 		 (target target-graphviz)
 		 &key)
   (with-graphviz-logical-block ("digraph" "foo")
     (call-next-method)))
 
-(defmethod emit ((node   pb::message-desc)
+(defmethod emit ((node   message-desc)
 		 (target target-graphviz)
 		 &key)
   (with-stream-emit-symbols stream
-    (bind (((:accessors-r/o
-	     (name   pb::message-desc-name)
-	     (fields pb::message-desc-field)) node))
+    (with-descriptor-fields (node message-desc)
       (format stream "~A [shape=record,label=<<TABLE BORDER=\"0\"><TR><TD COLSPAN=\"3\">~A</TD></TR>"
 	      (string->graphviz-label name) name)
       (map 'nil (rcurry #'emit (make-instance 'target-graphviz-record-line
@@ -161,14 +159,11 @@ printed around the output."
       (format stream "</TABLE>>]~%"))
     (call-next-method)))
 
-(defmethod emit ((node   pb::field-desc)
+(defmethod emit ((node   field-desc)
 		 (target target-graphviz-record-line)
 		 &key)
   (with-stream-emit-symbols stream
-    (bind (((:accessors-r/o
-	     (name   pb::field-desc-name)
-	     (type   pb::field-desc-type)
-	     (number pb::field-desc-number)) node))
+    (with-descriptor-fields (node field-desc)
       (format stream "<TR><TD align=\"left\">~A</TD>~
 <TD align=\"left\">~A</TD>~
 <TD align=\"right\">~D</TD></TR>"
@@ -176,15 +171,12 @@ printed around the output."
 	      (string->graphviz-label name)
 	      number))))
 
-(defmethod emit ((node   pb::field-desc)
+(defmethod emit ((node   field-desc)
 		 (target target-graphviz)
 		 &key)
   "Generate code to unpack a single slot"
   (with-stream-emit-symbols stream
-    (bind (((:accessors-r/o
-	     (name      pb::field-desc-name)
-	     (type      pb::field-desc-type)
-	     (type-name pb::field-desc-type-name)) node))
+    (with-descriptor-fields (node field-desc)
       (unless (or (member type +proto-types+)
 		  (typep (find-class 'type nil) 'built-in-class))
 	(format stream "~A -> ~A [label=~S]~%"
@@ -192,27 +184,24 @@ printed around the output."
 		(string->graphviz-label (string type-name))
 		name)))))
 
-(defmethod emit ((node   pb::enum-desc)
+(defmethod emit ((node   enum-desc)
 		 (target target-graphviz)
 		 &key)
   "Generate a record-shaped node for the enum NODE."
   (with-stream-emit-symbols stream
-    (bind (((:accessors-r/o
-	     (name   pb::enum-desc-name)) node))
+    (with-descriptor-fields (node enum-desc)
       (format stream "~A [shape=record,label=<<TABLE BORDER=\"0\"><TR><TD COLSPAN=\"2\">~A</TD></TR>"
 	      (string->graphviz-label name)
 	      name)
       (call-next-method)
       (format stream "</TABLE>>]~%"))))
 
-(defmethod emit ((node   pb::enum-value-desc)
+(defmethod emit ((node   enum-value-desc)
 		 (target target-graphviz)
 		 &key)
   "Generate a table row for the enum value NODE."
   (with-stream-emit-symbols stream
-    (bind (((:accessors-r/o
-	     (name   pb::enum-value-desc-name)
-	     (number pb::enum-value-desc-number)) node))
+    (with-descriptor-fields (node enum-value-desc)
       (format stream "<TR><TD align=\"left\">~A</TD><TD align=\"right\">~A</TD></TR>"
 	      (string->graphviz-label name)
 	      number))))
