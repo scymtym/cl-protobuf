@@ -69,8 +69,11 @@ generated classes will not automatically have associated `pack' and
 			 name1 (map 'list #'recur field))))
 
 	;; Generate descriptor retrieval method.
-	(eval `(defmethod message-descriptor ((object ,name1))
-		 ,node))
+	(eval `(progn
+		 (defmethod message-descriptor ((object ,name1))
+		   ,node)
+		 (defmethod descriptor-class ((descriptor (eql ,node)))
+		   ,(find-class name1))))
 
 	;; Export the class name, if requested.
 	(when (target-export? target)
