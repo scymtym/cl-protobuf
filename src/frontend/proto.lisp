@@ -56,7 +56,7 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defvar +ignored-chars+    (coerce '(#\Newline #\Space #\Tab #\/) 'string))
   (defvar +number-chars+     "01234567890.")
-  (defvar +identifier-chars+ "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890_")
+  (defvar +identifier-chars+ "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")
   (defvar +punctuation+      "=,;.{}[]")
 
   (defvar +keywords+ '(:optional :required :repeated
@@ -129,7 +129,7 @@
 
   (defun %index-filter (func &rest indices)
     #'(lambda (&rest args)
-	(apply func (remove-if-not (rcurry #'member indices) args
+	(apply func (remove-if-not (rcurry #'member indices :test #'=) args
 				   :key (rcurry #'position args)))))
 
   (defun %cleaning-cons (first rest)
@@ -146,7 +146,7 @@
 	   ((:flet expand-rule (rule))
 	    (let* ((string (string rule))
 		   (base   (subseq string 0 (1- (length string))))
-		   (single (intern (concatenate 'string base "->") :pbf)))
+		   (single (symbolicate base "->")))
 	      `(,rule
 		( ,single ,rule #'%cleaning-cons )
 		( )))))
@@ -220,7 +220,7 @@
 
     (field-option-list->
      ( field-option-> :COMMA field-option-list-> (%index-filter #'cons 0 2) )
-     ( field-option-> ))
+     ( field-option-> #'list ))
 
     (field-option->
      option-body->
