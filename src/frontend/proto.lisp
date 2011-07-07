@@ -59,8 +59,9 @@
   (defvar +identifier-chars+ "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")
   (defvar +punctuation+      "=,;.{}[]")
 
-  (defvar +keywords+ '(:optional :required :repeated
-		       :syntax :import :package :option
+  (defvar +keywords+ '(:to :max
+		       :optional :required :repeated
+		       :syntax :import :package :option :extensions
 		       :message :enum :service :default))
 
   (defun %children-of-type (type list)
@@ -194,8 +195,8 @@
     message-body-element*
 
     (message-body-element->
-     field-> #||# enum-> #||# message->
-     #|;extend-> ;extensions-> ;group->|#
+     field-> #||# enum-> #||# message-> #||# extensions->
+     #|extend-> group->|#
      option->
      ( :SEMICOLON (constantly (values)) ))
 
@@ -225,6 +226,18 @@
     (field-option->
      option-body->
      ( :default :EQUALS_SIGN constant-> (%index-filter #'make-option 0 2) ))
+
+    (extensions->
+     ( :extensions extension-range-list-> :SEMICOLON (constantly nil) ))
+
+    (extension-range-list->
+     (  extension-range-> :COMMA extension-range-list-> )
+     extension-range->)
+
+    (extension-range->
+     :%number
+     ( :%number :to :%number )
+     ( :%number :to :max ))
 
     (enum->
      ( :enum :ident :LEFT_CURLY_BRACKET enum-body-element* :RIGHT_CURLY_BRACKET
