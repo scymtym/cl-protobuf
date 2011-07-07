@@ -48,22 +48,27 @@
 ;;
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defparameter +proto-types+ '(:bool
-				:fixed32  :sfixed32
-				:fixed64  :sfixed64
-				:float    :double
-				:int32    :uint32   :sint32
-				:int64    :uint64   :sint64
-				:string   :bytes)))
+  (defconstant +proto-types+
+    (if (boundp '+proto-types+)
+	(symbol-value '+proto-types+)
+	'(:bool
+	  :fixed32  :sfixed32
+	  :fixed64  :sfixed64
+	  :float    :double
+	  :int32    :uint32   :sint32
+	  :int64    :uint64   :sint64
+	  :string   :bytes))))
 
 (deftype proto-type ()
   `(or symbol (member ,@+proto-types+)))
+
+(declaim (inline enum-type-p primitive-type-p))
 
 (defun enum-type-p (sym)
   (get sym 'enum))
 
 (defun primitive-type-p (type)
-  (or (find type +proto-types+ :test #'eq)
+  (or (member type +proto-types+ :test #'eq)
       (enum-type-p type)))
 
 (defun fixed64-p (type)
