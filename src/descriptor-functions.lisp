@@ -47,6 +47,7 @@ is providing a unified interface."))
 (macrolet
     ((generate-descriptor-name (class accessor)
        `(defmethod descriptor-name ((descriptor ,class))
+	  "Return the name of DESCRIPTOR."
 	  (,accessor descriptor))))
   (generate-descriptor-name file-desc       file-desc-name)
   (generate-descriptor-name enum-desc       enum-desc-name)
