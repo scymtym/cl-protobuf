@@ -160,6 +160,11 @@ nil if there is no such class."))
   "Return non-nil if FIELD-DESC describes an optional field."
   (eq (field-desc-label field-desc) :optional))
 
+(defgeneric field-type-descriptor (descriptor)
+  (:documentation
+   "Return the descriptor instance that describes the type of
+DESCRIPTOR. DESCRIPTOR has to be a field descriptor."))
+
 
 ;;; Finding descriptors
 ;;

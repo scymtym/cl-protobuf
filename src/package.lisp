@@ -127,7 +127,9 @@
    :field-enum?
    :field-message?
    :field-repeated?
-   :field-optional?)
+   :field-optional?
+
+   :field-type-descriptor)
 
   ;; Finding descriptors by name
   (:export
