@@ -75,6 +75,7 @@ nil if there is no such class."))
     ((generic-function (eql (fdefinition 'descriptor-class)))
      &rest args)
   "Return nil, if there is no class for the descriptor."
+  (declare (ignore args))
   nil)
 
 
