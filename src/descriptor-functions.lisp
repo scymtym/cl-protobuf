@@ -54,6 +54,18 @@ is providing a unified interface."))
   (generate-descriptor-name field-desc      field-desc-name)
   (generate-descriptor-name enum-value-desc enum-value-desc-name))
 
+(defgeneric descriptor-qualified-name (descriptor)
+  (:documentation
+   "Return the qualified name of DESCRIPTOR. This is most useful for
+message descriptor for which the qualified name is of the form
+\".PACKAGE.MESSAGE\"."))
+
+(defgeneric descriptor-parent (descriptor)
+  (:documentation
+   "Return the parent descriptor of DESCRIPTOR. For example, the
+parent descriptor of a field descriptor is the containing message
+descriptor."))
+
 (defgeneric descriptor-class (descriptor)
   (:documentation
    "Return the class that has been generated based on DESCRIPTOR or
