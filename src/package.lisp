@@ -116,7 +116,8 @@
 
   ;; Protocol buffer descriptors
   (:export
-   :descriptor-name)
+   :descriptor-name
+   :descriptor-class)
 
   ;; Field descriptor functions
   (:export

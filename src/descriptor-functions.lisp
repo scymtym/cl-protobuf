@@ -54,6 +54,17 @@ is providing a unified interface."))
   (generate-descriptor-name field-desc      field-desc-name)
   (generate-descriptor-name enum-value-desc enum-value-desc-name))
 
+(defgeneric descriptor-class (descriptor)
+  (:documentation
+   "Return the class that has been generated based on DESCRIPTOR or
+nil if there is no such class."))
+
+(defmethod no-applicable-method
+    ((generic-function (eql (fdefinition 'descriptor-class)))
+     &rest args)
+  "Return nil, if there is no class for the descriptor."
+  nil)
+
 
 ;;; `print-object' methods
 ;;
