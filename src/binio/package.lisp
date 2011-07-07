@@ -1,4 +1,4 @@
-;;; package.lisp ---
+;;; package.lisp --- Package definition for binio.
 ;;
 ;; Copyright (C) 2009 Georgia Tech Research Corporation
 ;; Copyright (C) 2010, 2011 Jan Moringen
@@ -55,10 +55,16 @@
    :encode-float-le  :decode-float-le
    :encode-float-be  :decode-float-be
 
+   :encode-uint16-le :decode-uint16-le
+   :encode-uint16-be :decode-uint16-be
+   :encode-sint16-le :decode-sint16-le
+   :encode-sint16-be :decode-sint16-be
+
    :encode-uint32-le :decode-uint32-le
    :encode-uint32-be :decode-uint32-be
    :encode-sint32-le :decode-sint32-le
    :encode-sint32-be :decode-sint32-be
+
    :encode-uint64-le :decode-uint64-le
    :encode-uint64-be :decode-uint64-be
    :encode-sint64-le :decode-sint64-le
