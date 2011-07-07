@@ -42,7 +42,7 @@
 			 object)
   (:documentation
    "Load protocol buffer descriptors from binary representation stored
-in SOURCE. Return a `pb::file-set-desc' instance that contains the
+in SOURCE. Return a `pb:file-set-desc' instance that contains the
 complete description in its child nodes.
 When non-nil, START specifies an offset into the data of SOURCE at
 which the loading should start.
@@ -50,7 +50,7 @@ When non-nil, END specifies an offset into the data of SOURCE at which
 the loading should stop.
 When OBJECT is non-nil, the protocol buffer descriptors which are
 loaded from SOURCE are stored in OBJECT. Usually, OBJECT should be an
-instance of `pb::file-set-desc'.
+instance of `pb:file-set-desc'.
 
 Note: This function is not intended for deserializing data stored
 in protocol buffer format, but for deserializing protocol buffer
@@ -60,9 +60,9 @@ descriptors which are stored as binary protocol buffers."))
 			&key
 			(start 0)
 			end
-			(object (make-instance 'pb::file-set-desc)))
+			(object (make-instance 'pb:file-set-desc)))
   "Load OBJECT from stream SOURCE."
-  (apply #'pb::unpack source object start (when end (list end))))
+  (apply #'pb:unpack source object start (when end (list end))))
 
 (defmethod load/binary ((source list)
 			&key &allow-other-keys)
