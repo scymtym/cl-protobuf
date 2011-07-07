@@ -42,10 +42,6 @@
 ;; service    ::= "service" ident "{" ( option | rpc | ";" )* "}"
 ;; rpc        ::= "rpc" ident "(" userType ")" "returns" "(" userType ")" ";"
 ;; group      ::= modifier "group" camelIdent "=" intLit messageBody
-;; extensions ::= extRange ( "," extRange )* ";"
-;; extRange   ::= intLit ( "to" ( intLit | "max" ) )?
-;; tag number must be 2^29-1 or lower. Also, they must be positive
-;; (non-zero), and the range 19000 through 19999 is reserved.
 
 (in-package :protocol-buffer.frontend)
 
@@ -165,7 +161,8 @@
       proto*
 
     (proto->
-     syntax-> #||# import-> #||# package-> #||# option-> #| ;extend-> |# message-> #||# enum->
+     syntax-> import-> package-> option-> message->  enum->
+     ;extend->
      ( :SEMICOLON (constantly (values)) ))
 
     (syntax->
@@ -195,8 +192,8 @@
     message-body-element*
 
     (message-body-element->
-     field-> #||# enum-> #||# message-> #||# extensions->
-     #|extend-> group->|#
+     field-> enum-> message-> extensions->
+     ; extend-> group->
      option->
      ( :SEMICOLON (constantly (values)) ))
 
@@ -205,10 +202,10 @@
        (%index-filter #'make-field 0 1 2 4 5) ))
 
     (modifier->
-     :required #||# :optional #||# :repeated)
+     :required :optional :repeated)
 
     (type->
-     :type #||# user-type->)
+     :type user-type->)
 
     (user-type->
      dotted-ident->
@@ -252,7 +249,7 @@
      ( :SEMICOLON (constantly (values)) ))
 
     (constant->
-     :ident #||# :%string #||# :%number #||# :%bool)
+     :ident :%string :%number :%bool)
 
     (dotted-ident->
      :ident
