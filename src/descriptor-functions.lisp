@@ -130,3 +130,30 @@ is providing a unified interface."))
 (defun field-repeated? (field-desc)
   "Return non-nil if FIELD-DESC describes a repeated field."
   (eq (field-desc-label field-desc) :repeated))
+
+
+;;; Finding descriptors
+;;
+
+(defgeneric find-descriptor (qualified-name
+			     &key
+			     error?)
+  (:documentation
+   "Find and return the protocol buffer descriptor whose qualified
+name is QUALIFIED-NAME. When ERROR? is non-nil, signal an error if no
+such descriptor can be found, otherwise return nil."))
+
+(defmethod no-applicable-method
+    ((generic-function (eql (fdefinition 'find-descriptor)))
+     &rest args)
+  "The specified name did not designate a protocol buffer
+descriptor. Signal an error or return nil."
+  (bind (((qualified-name &key error?) args))
+    (when error?
+      (error "No such descriptor: ~A" qualified-name))))
+
+(defmethod find-descriptor ((qualified-name string)
+			    &key
+			    (error? t))
+  "Convert QUALIFIED-NAME into keyword."
+  (find-descriptor (make-keyword qualified-name) :error? error?))

@@ -125,5 +125,9 @@
    :field-message?
    :field-repeated?)
 
+  ;; Finding descriptors by name
+  (:export
+   :find-descriptor)
+
   (:documentation
    "This package contains generic protocol buffer infrastructure."))
