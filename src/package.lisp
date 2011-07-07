@@ -110,6 +110,7 @@
   (:export
    :packed-size
    :pack :unpack
+   :pack*
 
    :offset
    :extract)

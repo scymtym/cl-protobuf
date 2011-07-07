@@ -63,11 +63,10 @@ BUFFER at start offset START. If BUFFER is not supplied, a new octet
 vector of appropriate size is allocated. Two values are returned: the
 number of emitted octets and the buffer."))
 
-(defun pack1 (object)
-  (multiple-value-bind (size buffer)
-      (pack object)
-    (declare (ignore size))
-    buffer))
+(defun pack* (object)
+  "Convenience function that packs OBJECT into a suitable buffer and
+returns the buffer."
+  (nth-value 1 (pack object)))
 
 (defgeneric unpack (buffer object &optional start end)
   (:documentation

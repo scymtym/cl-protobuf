@@ -82,5 +82,5 @@
 					 (emit descriptor :deserializer)))))
 	  (iter (for class in classes)
 		(let* ((instance  (make-instance class))
-		       (roundtrip (pb:unpack (pb::pack1 instance) class)))
+		       (roundtrip (pb:unpack (pb:pack* instance) class)))
 		  (ensure (typep roundtrip class)))))))
