@@ -42,8 +42,8 @@
 ;;
 
 (defmethod documentation ((thing (eql :packed-size)) (type (eql 'target)))
-  "Emit serializer methods based on the protocol buffer representation
-obtained by parsing the binary output of protoc.")
+  "Emit methods on `packed-size' that compute the required storage
+space for packing protocol buffer messages.")
 
 (defclass target-packed-size (code-generating-target-mixin)
   ()
@@ -82,8 +82,8 @@ obtained by parsing the binary output of protoc.")
 ;;
 
 (defmethod documentation ((thing (eql :serializer)) (type (eql 'target)))
-  "Emit serializer methods based on the protocol buffer representation
-obtained by parsing the binary output of protoc.")
+  "Emit methods on `pack' that serialize protocol buffer messages into
+octet-vector buffers.")
 
 (defclass target-serializer (code-generating-target-mixin)
   ()
@@ -122,8 +122,9 @@ obtained by parsing the binary output of protoc.")
 ;;
 
 (defmethod documentation ((thing (eql :deserializer)) (type (eql 'target)))
-  "Emit serializer methods based on the protocol buffer representation
-obtained by parsing the binary output of protoc.")
+  "Emit methods on `unpack' that deserialize packed protocol buffer
+messages into instances of generated protocol buffer message
+classes.")
 
 (defclass target-deserializer (code-generating-target-mixin)
   ()
