@@ -1,4 +1,4 @@
-;;; binio.lisp --- Binary encoding
+;;; binio.lisp --- Binary encoding and decoding of Lisp types.
 ;;
 ;; Copyright (C) 2009 Georgia Tech Research Corporation
 ;; Copyright (C) 2011 Jan Moringen
@@ -54,7 +54,8 @@
 (deftype octet-vector (&optional count)
   `(simple-array octet (,count)))
 
-(declaim (ftype (function (fixnum) octet-vector) make-octet-vector)
+(declaim (ftype (function (non-negative-fixnum) octet-vector)
+		make-octet-vector)
 	 (inline make-octet-vector))
 
 (defun make-octet-vector (count)
@@ -73,7 +74,7 @@
 ;;; Bool en- and decoder
 ;;
 
-(declaim (ftype (function (t &optional octet-vector fixnum)
+(declaim (ftype (function (t &optional octet-vector non-negative-fixnum)
 			  (values bit octet-vector))
 		encode-bool)
 	 (inline encode-bool))
@@ -85,7 +86,7 @@
   (setf (aref buffer start) (if val 1 0))
   (values 1 buffer))
 
-(declaim (ftype (function (octet-vector &optional fixnum)
+(declaim (ftype (function (octet-vector &optional non-negative-fixnum)
 			  (values (member nil t) (eql 1)))
 		decode-bool)
 	 (inline decode-bool))
@@ -108,13 +109,13 @@
 (eval-when (:compile-toplevel :load-toplevel)
   (unless (fboundp 'needs-byteswap)
     (defun needs-byteswap (endian)
-      (assert (or (eq :little endian)
-		  (eq :big endian)))
+      (check-type endian (member :little :big) "either :LITTLE or :BIG")
+
       (let ((native-endian (ecase (cffi:with-foreign-object (x :uint16)
 				    (setf (cffi:mem-aref x :uint8 0) 1)
 				    (setf (cffi:mem-aref x :uint8 1) 0)
 				    (cffi:mem-ref x :uint16))
-			     (1 :little)
+			     (1   :little)
 			     (256 :big))))
 	(not (eq endian native-endian))))))
 
@@ -124,8 +125,7 @@
 (defmacro def-decoder-sbcl (c-type)
   (let ((foreign-size (cffi:foreign-type-size c-type)))
     `(progn
-       (assert (>= (length buffer)
-		   (+ start ,foreign-size))
+       (assert (>= (length buffer) (+ start ,foreign-size))
 	       () "Buffer too small for requested data type: ~A" ,c-type)
        (values
 	(cffi:mem-ref (cffi:inc-pointer (sb-sys:vector-sap buffer) start)
@@ -154,7 +154,7 @@
 	 (sbcl-fastpath? (and (not swap?)
 			      (string= "SBCL" (lisp-implementation-type)))))
     `(progn
-       (declaim (ftype (function (octet-vector &optional fixnum)
+       (declaim (ftype (function (octet-vector &optional non-negative-fixnum)
 				 (values ,lisp-type (eql ,foreign-size)))
 		       ,name)
 		(inline ,name))
@@ -281,8 +281,8 @@
 (declaim (ftype (function (non-negative-integer
 			   &optional
 			   octet-vector
-			   fixnum)
-			  (values non-negative-integer octet-vector))
+			   non-negative-fixnum)
+			  (values non-negative-fixnum octet-vector))
 		encode-uvarint))
 
 (defun encode-uvarint (value
@@ -310,8 +310,8 @@
 
 (declaim (ftype (function (octet-vector
 			   &optional
-			   fixnum)
-			  (values non-negative-integer non-negative-integer))
+			   non-negative-fixnum)
+			  (values non-negative-integer non-negative-fixnum))
 		decode-uvarint))
 
 (defun decode-uvarint (buffer &optional (start 0))
@@ -328,8 +328,7 @@
 
 ;;; Signed varint type
 ;;
-
-;; arbitrary precision zig-zagging
+;; Uses arbitrary precision zig-zagging.
 
 (declaim (ftype (function (integer) integer) varint-zigzag)
 	 (inline varint-zigzag))
@@ -347,7 +346,7 @@
     (* (ash (+ value lowbit) -1)
        (- 1 (* 2 lowbit)))))
 
-(declaim (ftype (function (non-negative-integer) non-negative-integer)
+(declaim (ftype (function (integer) non-negative-integer)
 		svariant-size)
 	 (inline svarint-size))
 
@@ -357,8 +356,8 @@
 (declaim (ftype (function (integer
 			   &optional
 			   octet-vector
-			   fixnum)
-			  (values non-negative-integer octet-vector))
+			   non-negative-fixnum)
+			  (values non-negative-fixnum octet-vector))
 		encode-svarint))
 
 (defun encode-svarint (value
@@ -369,8 +368,8 @@
 
 (declaim (ftype (function (octet-vector
 			   &optional
-			   non-negative-integer)
-			  (values integer non-negative-integer))
+			   non-negative-fixnum)
+			  (values integer non-negative-fixnum))
 		decode-svarint))
 
 (defun decode-svarint (buffer &optional (start 0))
@@ -393,17 +392,17 @@
 
 (declaim (ftype (function (octet-vector
 			   &optional
-			   non-negative-integer
-			   non-negative-integer) ;; end
-			  (values string non-negative-integer))
+			   non-negative-fixnum
+			   non-negative-fixnum)
+			  (values string non-negative-fixnum))
 		decode-utf8))
 
 (declaim (ftype (function (octet-vector string
 			   &key
-			   (:buffer-start non-negative-integer)
-			   (:buffer-end   non-negative-integer)
-			   (:string-start non-negative-integer))
-			  (values string non-negative-integer))
+			   (:buffer-start non-negative-fixnum)
+			   (:buffer-end   non-negative-fixnum)
+			   (:string-start non-negative-fixnum))
+			  (values string non-negative-fixnum))
 		decode-utf8-into))
 
 #-sbcl
@@ -455,12 +454,11 @@
 		    &optional
 		    (start 0)
 		    (end   (length buffer)))
-  (values
-   (the string (sb-ext:octets-to-string buffer
-					:start           start
-					:end             end
-					:external-format :utf8))
-   (- end start)))
+  (values (sb-ext:octets-to-string buffer
+				   :start           start
+				   :end             end
+				   :external-format :utf8)
+	  (- end start)))
 
 (defun decode-utf8-into (buffer string
 			 &key
@@ -473,7 +471,7 @@
 
 (defun utf8-size (string)
   "Return the number of bytes required to encode the UTF-8 string
-  STRING.
+STRING.
 Note: This is rather expensive since STRING has to actually be encoded
 to determine the number of required bytes."
   (nth-value 0 (encode-utf8 string)))
