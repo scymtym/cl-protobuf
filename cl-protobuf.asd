@@ -134,6 +134,9 @@ Neil T. Dantam."
 					    (:file       "target-class"
 					     :depends-on ("protocol"
 							  "code-generating-target-mixin"))
+					    (:file       "target-relations"
+					     :depends-on ("protocol"
+							  "code-generating-target-mixin"))
 					    (:file       "target-serializer"
 					     :depends-on ("protocol"
 							  "generator-code"
