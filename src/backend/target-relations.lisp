@@ -73,7 +73,7 @@ between protocol buffer descriptors."))
   (with-emit-symbols
     (with-descriptor-fields (node message-desc)
       (bind ((qualified-name (make-qualified-name
-			      (pb::descriptor-qualified-name parent) name)))
+			      (descriptor-qualified-name parent) name)))
 
 	;; Generate relation methods for NODE.
 	(eval
@@ -82,8 +82,6 @@ between protocol buffer descriptors."))
 	      ,qualified-name)
 	    (defmethod descriptor-parent ((descriptor (eql ,node)))
 	      ,parent)
-	    (defmethod descriptor-package ((descriptor (eql ,node)))
-	      ,(find (complement (of-type 'message-desc)) ancestors))
 	    (defmethod find-descriptor ((name (eql ,(make-keyword qualified-name)))
 					&key error?)
 	      (declare (ignore error?))
@@ -99,7 +97,7 @@ between protocol buffer descriptors."))
 (defun ensure-package (name)
   "Return the `file-set-desc' instance for the package named NAME,
 creating an empty `file-set-desc' instance, if necessary."
-  (or (pb::find-package1 name :error? nil)
+  (or (find-package1 name :error? nil)
       (let ((package (make-instance 'file-set-desc)))
 	(eval `(defmethod find-package1 ((name (eql ,(make-keyword name)))
 					 &key
