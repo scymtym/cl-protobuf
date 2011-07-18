@@ -191,3 +191,26 @@ descriptor. Signal an error or return nil."
 			    (error? t))
   "Convert QUALIFIED-NAME into keyword."
   (find-descriptor (make-keyword qualified-name) :error? error?))
+
+(defgeneric find-package1 (name
+			   &key
+			   error?)
+  (:documentation
+   "Find and return file set descriptor containing file descriptors
+whose package name is NAME. When ERROR? is non-nil, signal an error if
+no such descriptor can be found, otherwise return nil."))
+
+(defmethod no-applicable-method
+    ((generic-function (eql (fdefinition 'find-package1)))
+     &rest args)
+  "The specified name did not designate a protocol buffer
+package. Signal an error or return nil."
+  (bind (((name &key error?) args))
+    (when error?
+      (error "No such package: ~A" name))))
+
+(defmethod find-package1 ((name string)
+			  &key
+			  (error? t))
+  "Converter NAME into keyword."
+  (find-package1 (make-keyword name) :error? error?))

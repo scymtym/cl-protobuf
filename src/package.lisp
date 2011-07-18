@@ -134,7 +134,8 @@
 
   ;; Finding descriptors by name
   (:export
-   :find-descriptor)
+   :find-descriptor
+   :find-package1)
 
   (:documentation
    "This package contains generic protocol buffer infrastructure."))
