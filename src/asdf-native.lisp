@@ -75,9 +75,12 @@ directly."
   "Load the compiled protocol buffer descriptor."
   (let ((descriptors (pbf:load/text (component-pathname file))))
     (pbb:emit descriptors :class)
+    (pbb:emit descriptors :relations)
     (pbb:emit descriptors :packed-size)
     (pbb:emit descriptors :serializer)
-    (pbb:emit descriptors :deserializer)))
+    (pbb:emit descriptors :deserializer)
+    (pbb:emit descriptors :extractor)
+    (pbb:emit descriptors :offset)))
 
 
 ;;; Add features
