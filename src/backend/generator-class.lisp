@@ -156,8 +156,5 @@ specified by SPECS."
 
 ;; TODO this is also in util.lisp, but we don't have util.lisp in backend-early
 (defun %make-lisp-accessor-name (class-name slot-name)
-  (intern (concatenate 'string
-		       (string class-name)
-		       "-"
-		       (string slot-name))
-	  (symbol-package class-name)))
+  (let ((*package* (symbol-package class-name)))
+    (symbolicate class-name "-" slot-name)))
