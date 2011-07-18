@@ -128,6 +128,7 @@
    :field-enum?
    :field-message?
    :field-repeated?
+   :field-packed?
    :field-optional?
 
    :field-type-descriptor)

@@ -156,6 +156,10 @@ nil if there is no such class."))
   "Return non-nil if FIELD-DESC describes a repeated field."
   (eq (field-desc-label field-desc) :repeated))
 
+(defun field-packed? (field-desc)
+  "Return non-nil if FIELD-DESC describes a repeated field."
+  (field-options-packed (field-desc-options field-desc)))
+
 (defun field-optional? (field-desc)
   "Return non-nil if FIELD-DESC describes an optional field."
   (eq (field-desc-label field-desc) :optional))
