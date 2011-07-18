@@ -89,7 +89,8 @@ generated classes will not automatically have associated `pack' and
   (with-emit-symbols
     (with-descriptor-fields (node field-desc)
       (bind ((name1      (intern* (make-lisp-slot-name name)))
-	     (type1      (make-lisp-slot-type type type-name package))
+	     (type1      (make-lisp-slot-type
+			  type type-name package parent))
 	     (packed?    (when options
 			   (pb::field-options-packed options)))
 	     (class-name (intern* (make-lisp-class-name

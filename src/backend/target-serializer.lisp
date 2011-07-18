@@ -68,7 +68,8 @@ space for packing protocol buffer messages.")
   (with-emit-symbols
     (with-descriptor-fields (node field-desc)
      (bind ((name1     (intern* (make-lisp-slot-name name)))
-	    (type1     (make-lisp-slot-type type type-name package))
+	    (type1     (make-lisp-slot-type
+			type type-name package parent))
 	    (repeated? (eq label :repeated))
 	    (packed?   (when options
 			 (pb::field-options-packed options))))
@@ -107,7 +108,8 @@ octet-vector buffers.")
   (with-emit-symbols
     (with-descriptor-fields (node field-desc)
       (bind ((name1     (intern* (make-lisp-slot-name name)))
-	     (type1     (make-lisp-slot-type type type-name package))
+	     (type1     (make-lisp-slot-type
+			 type type-name package parent))
 	     (repeated? (eq label :repeated))
 	     (packed?   (when options
 			  (pb::field-options-packed options))))
@@ -148,7 +150,8 @@ classes.")
   (with-emit-symbols
     (with-descriptor-fields (node field-desc)
       (bind ((name1     (intern* (make-lisp-slot-name name)))
-	     (type1     (make-lisp-slot-type type type-name package))
+	     (type1     (make-lisp-slot-type
+			 type type-name package parent))
 	     (repeated? (eq label :repeated))
 	     (packed?   (when options
 			  (pb::field-options-packed options)))
