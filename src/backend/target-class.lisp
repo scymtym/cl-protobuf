@@ -49,9 +49,43 @@ generated classes will not automatically have associated `pack' and
   (:documentation
    "Target class for class code generation."))
 
+(defclass target-class-forward (code-generating-target-mixin)
+  ()
+  (:documentation
+   "Helper target for class target which generates empty classes for
+name resolution."))
+
 
-;;; Emitter methods
+;;; Emitter methods for `target-class-forward'
 ;;
+
+(defmethod emit ((node   message-desc)
+		 (target target-class-forward)
+		 &key)
+  "Define an empty Lisp class for name resolution."
+  (call-next-method)
+
+  (with-emit-symbols
+    (with-descriptor-fields (node message-desc)
+      (bind ((name1 (intern* (make-lisp-class-name name parent))))
+	(eval `(cl:defclass ,name1 () ()))))))
+
+(defmethod emit ((node   enum-desc)
+		 (target target-class-forward)
+		 &key)
+  "Intern a symbol naming the enum for NODE."
+  (with-emit-symbols
+    (intern* (make-lisp-enum-name (descriptor-name node) parent))))
+
+
+;;; Emitter methods for `target-class'
+;;
+
+(defmethod emit :before ((node   file-set-desc)
+			 (target target-class)
+			 &key)
+  "Generate empty classes for name resolution. "
+  (emit node :class-forward))
 
 (defmethod emit ((node   message-desc)
 		 (target target-class)
@@ -65,8 +99,7 @@ generated classes will not automatically have associated `pack' and
 	(map nil #'recur enum-type)
 	(map nil #'recur nested-type)
 	;;
-	(eval `(progn ,@(generate-class
-			 name1 (map 'list #'recur field))))
+	(eval `(progn ,@(generate-class name1 (map 'list #'recur field))))
 
 	;; Generate descriptor retrieval method.
 	(eval `(progn

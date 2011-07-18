@@ -143,10 +143,7 @@ packed~] type ~S"
 (defun generate-class (name fields &optional doc)
   "Generate a class definition for a class named NAME with slots
 specified by SPECS."
-  ;; Generate the class twice: once without any slots and a second
-  ;; time with slots which may refer to the generated class itself.
-  `((cl:defclass ,name () ())
-    (cl:defclass ,name ()
+  `((cl:defclass ,name ()
       ,(map 'list #'funcall fields)
       ,@(when doc `((:documentation ,doc))))))
 
