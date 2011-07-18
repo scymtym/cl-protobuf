@@ -39,6 +39,7 @@
   ((optimization-settings :initarg  :optimization-settings
 			  :type     list
 			  :accessor target-optimzation-settings
+			  :initform nil
 			  :documentation
 			  "Optimization settings that should be used
 when generating code.")
