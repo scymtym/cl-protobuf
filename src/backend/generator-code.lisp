@@ -103,7 +103,7 @@ VALUE-FORM of type PROTO-TYPE when stored in field number NUMBER."
            ((fixed-p proto-type)
 	    `(* (fixed-size proto-type) (length ,value-form)))
 	   ((eq proto-type :bool)
-	    `(* (length ,value-form)))
+	    `(length ,value-form))
            ((uvarint-p proto-type)
             `(pb::packed-uvarint-size ,value-form))
            ((svarint-p proto-type)
