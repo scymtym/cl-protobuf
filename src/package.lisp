@@ -117,6 +117,10 @@
    :offset
    :extract)
 
+  ;; Utility functions
+  (:export
+   :parse-name)
+
   ;; Protocol buffer descriptors
   (:export
    :descriptor-name

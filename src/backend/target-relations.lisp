@@ -120,7 +120,7 @@ relations have been emitted for all descriptors."))
 	;; Find the descriptor describing the type of NODE. Based on
 	;; whether it is a message descriptor or an enum descriptor,
 	;; maybe change type of NODE to :message.
-	(let ((type (pb::resolve-name type-name parent)))
+	(let ((type (resolve-name type-name parent)))
 	  (setf (pb::field-desc-type node) (etypecase type
 					     (message-desc :message)
 					     (enum-desc    :enum)))

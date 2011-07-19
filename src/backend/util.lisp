@@ -80,6 +80,44 @@ type TYPE. "
   (let ((*package* (symbol-package class-name)))
     (symbolicate class-name "-" slot-name)))
 
+(defun resolve-name (name context
+		     &key
+		     (error? t))
+  "Try to resolve NAME in the descriptor CONTEXT or one of its
+parents. If NAME is a qualified name \(i.e. starting with \".\"),
+CONTEXT is not used. If no descriptor can be found for NAME, nil is
+returned or an error is signaled, depending on ERROR?."
+  (bind (((:values components qualified?) (parse-name name))
+	 ((:labels name-or-package (descriptor))
+	  (if (typep descriptor 'file-desc)
+	      (file-desc-package descriptor)
+	      (descriptor-name descriptor)))
+	 ((:labels resolve-in (components context))
+	  (bind (((first &rest rest) components)
+		 (match (find first (descriptor-children context)
+			      :key  #'name-or-package
+			      :test #'string=)))
+	    (cond
+	      ((not match) nil)
+	      ((not rest)  match)
+	      (t           (resolve-in rest match)))))
+	 ((:labels possible-splits (package name))
+	  (bind (((first &rest rest) name))
+	    (cons (cons (format nil "~{~A.~}~A" package first) rest)
+		  (when rest
+		    (possible-splits (append package (list first)) rest)))))
+	 ((:labels resolve (context))
+	  (or (some (rcurry #'resolve-in context)
+		    (possible-splits nil components))
+	      (when (descriptor-parent context)
+		(resolve (descriptor-parent context))))))
+    (or (if qualified?
+	    (find-descriptor name)
+	    (resolve context))
+	(when error?
+	  (error 'name-resolution-failed
+		 :name name)))))
+
 
 ;;; Package-related functions
 ;;
