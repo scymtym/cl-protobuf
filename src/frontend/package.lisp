@@ -41,7 +41,9 @@
    :cl
    :alexandria
    :iterate
-   :bind)
+   :bind
+
+   :protocol-buffer)
 
   ;; Conditions
   (:export

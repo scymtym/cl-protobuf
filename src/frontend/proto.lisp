@@ -77,24 +77,24 @@
 	  (includes (mapcar #'second
 			    (remove-if-not (curry #'starts-with :import)
 					   parser-output))))
-      (apply #'make-instance 'pb::file-desc
+      (apply #'make-instance 'file-desc
 	     :name         name
 	     :dependency   (coerce includes 'vector)
-	     :message-type (%children-of-type 'pb::message-desc parser-output)
-             :enum-type    (%children-of-type 'pb::enum-desc    parser-output)
+	     :message-type (%children-of-type 'message-desc parser-output)
+             :enum-type    (%children-of-type 'enum-desc    parser-output)
 	     (when package
 	       (list :package package)))))
 
   (defun make-message (name children)
-    (make-instance 'pb::message-desc
+    (make-instance 'message-desc
 		   :name        name
-		   :nested-type (%children-of-type 'pb::message-desc children)
-		   :enum-type   (%children-of-type 'pb::enum-desc    children)
-		   :field       (%children-of-type 'pb::field-desc   children)))
+		   :nested-type (%children-of-type 'message-desc children)
+		   :enum-type   (%children-of-type 'enum-desc    children)
+		   :field       (%children-of-type 'field-desc   children)))
 
   (defun make-field (label type name number options)
     (bind (((default other-options) options))
-      (apply #'make-instance 'pb::field-desc
+      (apply #'make-instance 'field-desc
 	     :name      name
 	     :number    number
 	     :type      (if (stringp type) :enum type)
@@ -107,12 +107,12 @@
   (defun make-field-options (children)
     (list
      (%option-value :default children)
-     (make-instance 'pb::field-options
+     (make-instance 'field-options
 		    :packed (string= (%option-value "packed" children)
 				     "true"))))
 
   (defun make-enum (name values)
-    (make-instance 'pb::enum-desc
+    (make-instance 'enum-desc
 		   :name  name
 		   :value (coerce values 'vector)))
 
@@ -120,7 +120,7 @@
     (list 'option name value))
 
   (defun make-enum-value (name number)
-    (make-instance 'pb::enum-value-desc
+    (make-instance 'enum-value-desc
 		   :name   name
 		   :number number))
 
@@ -370,7 +370,7 @@ partially post-processed syntax tree."
 (defgeneric load/text (source)
   (:documentation
    "Parse content of SOURCE as textual protocol buffer description.
-Return a `pb::file-set-desc' instance that contains the complete
+Return a `file-set-desc' instance that contains the complete
 description in its child nodes.
 
 Note: Currently, the grammar accepts only a (quite usable) subset of
@@ -382,7 +382,7 @@ http://code.google.com/apis/protocolbuffers/docs/proto.html."))
 
 (defmethod load/text ((source stream))
   (make-instance
-   'pb::file-set-desc
+   'file-set-desc
    :file (make-array 1
 		     :initial-element (make-file-desc
 				       "<stream>" (parse source))
@@ -401,8 +401,7 @@ http://code.google.com/apis/protocolbuffers/docs/proto.html."))
 
 (defmethod load/text ((source list))
   "This method read descriptions from all files in the list SOURCE and
-collects the resulting `pb::file-desc' instance in one
-`pb::file-set-desc'."
+collects the resulting `file-desc' instance in one `file-set-desc'."
   (bind (((result &rest rest) (map 'list #'load/text source))
 	 ((:flet merge-one (desc))
 	  (vector-push-extend
