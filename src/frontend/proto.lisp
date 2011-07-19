@@ -138,7 +138,10 @@
     (intern (char-name char) :keyword))
 
   (defmacro define-parser (&body rules)
-    (bind (((:flet list-rule? (rule))
+    (bind ((keywords-as-string
+	    (iter (for keyword in (cons :type +keywords+))
+		  (collect `(,keyword #'string))))
+	   ((:flet list-rule? (rule))
 	    (and (symbolp rule) (ends-with #\* (string rule))))
 	   ((:flet expand-rule (rule))
 	    (let* ((string (string rule))
@@ -150,6 +153,10 @@
       (iter (for rule next (find-if #'list-rule? rules))
 	    (while rule)
 	    (setf rules (substitute (expand-rule rule) rule rules)))
+      (iter (for rule next (find :keyword-as-string rules :test #'member))
+	    (while rule)
+	    (setf (cdr (nthcdr (1- (position :keyword-as-string rule)) rule)) ;; seriously?
+		  keywords-as-string))
       `(yacc:define-parser *proto-parser*
 	 (:start-symbol proto*)
 	 (:terminals    (,@(map 'list #'%intern-char +punctuation+)
@@ -158,7 +165,7 @@
 	 ,@rules)))
 
   (define-parser
-      proto*
+    proto*
 
     (proto->
      syntax-> import-> package-> option-> message->  enum->
@@ -198,7 +205,7 @@
      ( :SEMICOLON (constantly (values)) ))
 
     (field->
-     ( modifier-> type-> :ident :EQUALS_SIGN :%number field-options-> :SEMICOLON
+     ( modifier-> type-> ident-even-if-keyword-> :EQUALS_SIGN :%number field-options-> :SEMICOLON
        (%index-filter #'make-field 0 1 2 4 5) ))
 
     (modifier->
@@ -237,19 +244,23 @@
      ( :%number :to :max ))
 
     (enum->
-     ( :enum :ident :LEFT_CURLY_BRACKET enum-body-element* :RIGHT_CURLY_BRACKET
+     ( :enum ident-even-if-keyword-> :LEFT_CURLY_BRACKET enum-body-element* :RIGHT_CURLY_BRACKET
        (%index-filter #'make-enum 1 3) ))
 
     enum-body-element*
 
     (enum-body-element->
      option->
-     ( :ident :EQUALS_SIGN :%number :SEMICOLON
+     ( ident-even-if-keyword-> :EQUALS_SIGN :%number :SEMICOLON
        (%index-filter #'make-enum-value 0 2) )
      ( :SEMICOLON (constantly (values)) ))
 
     (constant->
-     :ident :%string :%number :%bool)
+     :ident :%string :%number :%bool
+     :keyword-as-string) ;; interpreted by the macro
+
+    (ident-even-if-keyword->
+     :ident :keyword-as-string) ;; interpreted by the macro
 
     (dotted-ident->
      :ident
