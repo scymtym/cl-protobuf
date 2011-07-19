@@ -414,6 +414,7 @@ http://code.google.com/apis/protocolbuffers/docs/proto.html."))
 	 (file (aref (pb::file-set-desc-file set) 0)))
     (setf (pb::file-desc-name file)
 	  (concatenate 'string (pathname-name source) ".proto"))
+    (pbb:emit set :relations)
     set))
 
 (defmethod load/text ((source string))

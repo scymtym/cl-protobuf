@@ -116,7 +116,6 @@ to compile ~A to ~A.~@:>"
   (let* ((binary-pathname (first (output-files :compile-op file)))
 	 (descriptors     (pbf:load/binary binary-pathname)))
     (pbb:emit descriptors :class)
-    (pbb:emit descriptors :relations)
     (pbb:emit descriptors :packed-size)
     (pbb:emit descriptors :serializer)
     (pbb:emit descriptors :deserializer)

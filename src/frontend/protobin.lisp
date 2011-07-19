@@ -62,7 +62,9 @@ descriptors which are stored as binary protocol buffers."))
 			end
 			(object (make-instance 'pb:file-set-desc)))
   "Load OBJECT from stream SOURCE."
-  (apply #'pb:unpack source object start (when end (list end))))
+  (prog1
+      (apply #'pb:unpack source object start (when end (list end)))
+    (pbb:emit object :relations)))
 
 (defmethod load/binary ((source list)
 			&key &allow-other-keys)
