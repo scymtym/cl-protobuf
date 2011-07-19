@@ -60,6 +60,13 @@ has not been provided.~@:>"
    "This condition is signaled when an initarg that is required by a
 class is not provided."))
 
+(defun missing-required-initarg (class initarg)
+  "This function can be used to signal an error when INITARG required
+by CLASS has not been provided."
+  (error 'missing-required-initarg
+	 :class class
+	 :initarg initarg))
+
 
 ;;; Conditions related to naming problems
 ;;

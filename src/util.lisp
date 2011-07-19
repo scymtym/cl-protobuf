@@ -116,14 +116,3 @@ specified. Name ~S is not fully qualified.~@:>"
 	       :name       name
 	       :package    package
 	       :candidates tried))))
-
-
-;;;
-;;
-
-(defun missing-required-initarg (class initarg)
-  "This function can be used to signal an error when INITARG required
-by CLASS has not been provided."
-  (error 'missing-required-initarg
-	 :class class
-	 :initarg initarg))
