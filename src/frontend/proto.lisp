@@ -285,9 +285,10 @@ offset, line and column in STREAM. "
 				 (case in-comment?
 				   ((nil) (setf in-comment? t))
 				   ((t)   (setf in-comment? :/))
-				   (:*    (setf in-comment? nil)))))
-		    (#\*       (when (eq in-comment? t)
-				 (setf in-comment? :*)))))
+				   (:**   (setf in-comment? nil)))))
+		    (#\*       (case in-comment?
+				 ((t) (setf in-comment? :*))
+				 (:*  (setf in-comment? :**))))))
 		(setf did-unread? nil)
 		(while (and (not (eq c :eof)) in-comment?))
 		(finally (return c))))
