@@ -185,6 +185,6 @@ Neil T. Dantam."
 for the textual protocol buffer description format."
   :requires    (cl-protobuf
 		yacc)
-  :components  ((:module     "src"
-		 :components ((:module     "frontend"
-			       :components ((:file       "proto")))))))
+  :components  ((:module     "frontend"
+		 :pathname   "src/frontend"
+		 :components ((:file       "proto")))))
