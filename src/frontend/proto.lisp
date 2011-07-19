@@ -278,10 +278,16 @@ offset, line and column in STREAM. "
 		  (incf column)
 		  (case c
 		    (#\Newline (incf line)
-			       (setf column      0
-				     in-comment? nil))
+			       (setf column 0)
+			       (when (eq in-comment? :/)
+				 (setf in-comment? nil)))
 		    (#\/       (when skip-comments?
-				 (setf in-comment? t)))))
+				 (case in-comment?
+				   ((nil) (setf in-comment? t))
+				   ((t)   (setf in-comment? :/))
+				   (:*    (setf in-comment? nil)))))
+		    (#\*       (when (eq in-comment? t)
+				 (setf in-comment? :*)))))
 		(setf did-unread? nil)
 		(while (and (not (eq c :eof)) in-comment?))
 		(finally (return c))))
@@ -322,13 +328,14 @@ offset, line and column in STREAM. "
 	 (read-while +ignored-chars+)
 	 (let ((c (peek-char t stream nil :eof)))
 	   (cond
-	     ((eq c :eof)             nil)
-	     ((find c +punctuation+)  (progn
-					(funcall read)
-					(values (%intern-char c) c)))
-	     ((find c +number-chars+) (read-number))
-	     ((eq c #\")              (read-string))
-	     (t                       (read-identifier-like)))))
+	     ((eq c :eof)                 nil)
+	     ((find c +punctuation+)      (progn
+					    (funcall read)
+					    (values (%intern-char c) c)))
+	     ((find c +number-chars+)     (read-number))
+	     ((eq c #\")                  (read-string))
+	     ((find c +identifier-chars+) (read-identifier-like))
+	     (t                           (error "~@<Invalid character `~A'~@:>" c)))))
      position)))
 
 ;; numeric literals should be
@@ -355,7 +362,7 @@ partially post-processed syntax tree."
   (bind (((:values lexer position1) (make-stream-lexer source)))
     (handler-case
 	(yacc:parse-with-lexer lexer *proto-parser*)
-      (yacc:yacc-runtime-error (condition)
+      ((or yacc:yacc-runtime-error simple-error) (condition)
 	(bind (((:values offset line column) (funcall position1)))
 	  (error 'proto-parse-error
 		 :offset            offset
