@@ -53,6 +53,7 @@
   :description "A protocol buffer compiler. Based on s-protobuf by
 Neil T. Dantam."
   :depends-on  (:alexandria
+		:split-sequence
 		:metabang-bind
 		:iterate
 

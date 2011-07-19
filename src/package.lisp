@@ -37,9 +37,11 @@
 
 (defpackage :protocol-buffer
   (:nicknames :pb)
+
   (:use
    :cl
    :alexandria
+   :split-sequence
    :iterate
    :bind
 
