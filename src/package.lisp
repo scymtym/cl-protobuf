@@ -120,6 +120,7 @@
    :descriptor-name
    :descriptor-qualified-name
    :descriptor-parent
+   :descriptor-children
    :descriptor-class)
 
   ;; Field descriptor functions

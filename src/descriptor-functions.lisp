@@ -61,11 +61,37 @@ is providing a unified interface."))
 message descriptor for which the qualified name is of the form
 \".PACKAGE.MESSAGE\"."))
 
+(defmethod descriptor-qualified-name ((descriptor file-desc))
+  (file-desc-package descriptor))
+
 (defgeneric descriptor-parent (descriptor)
   (:documentation
    "Return the parent descriptor of DESCRIPTOR. For example, the
 parent descriptor of a field descriptor is the containing message
 descriptor."))
+
+(defmethod descriptor-parent ((descriptor file-set-desc))
+  nil)
+
+(defgeneric descriptor-children (descriptor)
+  (:documentation
+   "Return a sequence of children of DESCRIPTOR. For example, the
+children of a message descriptor are computed by concatenating the
+nested enum descriptors and the nested message descriptors."))
+
+(macrolet
+    ((generate-descriptor-children (class &body accessors)
+       `(defmethod descriptor-children ((descriptor ,class))
+	  "Return the children of DESCRIPTOR."
+	  (concatenate 'vector
+		       ,@(iter (for accessor in accessors)
+			       (collect `(,accessor descriptor)))))))
+  (generate-descriptor-children file-set-desc
+     file-set-desc-file)
+  (generate-descriptor-children file-desc
+     file-desc-enum-type file-desc-message-type)
+  (generate-descriptor-children message-desc
+     message-desc-enum-type message-desc-nested-type))
 
 (defgeneric descriptor-class (descriptor)
   (:documentation
