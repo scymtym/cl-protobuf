@@ -125,8 +125,10 @@ VALUE-FORM of type PROTO-TYPE when stored in field number NUMBER."
   "Generate code to find the packed size of a single slot."
   (let ((slot-value    `(slot-value  ,object-var ',name))
 	(slot-boundp   `(slot-boundp ,object-var ',name))
-	(length-delim? (pb::length-delim-p proto-type)))
-    `(if (and ,slot-boundp ,@(when length-delim? `(,slot-value)))
+	(sequence? (or (member proto-type '(:string :bytes))
+		       repeated?)))
+    `(if (and ,slot-boundp ,@(when sequence?
+				   `((not (emptyp ,slot-value)))))
 	 ,(funcall (cond
 		     ((not repeated?) #'generate-scalar-size)
 		     ((not packed?)   #'generate-repeated-size)
@@ -207,8 +209,10 @@ VALUE-FORM."
 number NUMBER."
   (let ((slot-value    `(slot-value  ,object-form ',name))
 	(slot-bound    `(slot-boundp ,object-form ',name))
-	(length-delim? (pb::length-delim-p proto-type)))
-    `(when (and ,slot-bound ,@(when length-delim? `(,slot-value)))
+	(sequence? (or (member proto-type '(:string :bytes))
+		       repeated?)))
+    `(when (and ,slot-bound ,@(when sequence?
+				    `((not (emptyp ,slot-value)))))
        ,@(funcall (cond
 		    ((not repeated?) #'generate-scalar-slot-packer)
 		    ((not packed?)   #'generate-repeated-slot-packer)
