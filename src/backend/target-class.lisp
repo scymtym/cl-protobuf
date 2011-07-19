@@ -93,7 +93,8 @@ name resolution."))
   "Define a Lisp class for NODE. "
   (with-emit-symbols
     (with-descriptor-fields (node message-desc)
-      (bind ((name1 (intern* (make-lisp-class-name name parent))))
+      (bind (((:accessors-r/o (export? target-export?)) target)
+	     (name1 (intern* (make-lisp-class-name name parent))))
 	;; Evaluate nested definitions immediately so types are
 	;; available.
 	(map nil #'recur enum-type)
@@ -109,7 +110,7 @@ name resolution."))
 		   ,(find-class name1))))
 
 	;; Export the class name, if requested.
-	(when (target-export? target)
+	(when export?
 	  (export name1 (symbol-package name1)))
 
 	;; Return name of generated class.
@@ -124,8 +125,7 @@ name resolution."))
       (bind ((name1      (intern* (make-lisp-slot-name name)))
 	     (type1      (make-lisp-slot-type
 			  type type-name package parent))
-	     (packed?    (when options
-			   (pb::field-options-packed options)))
+	     (packed?    (field-packed? node))
 	     (class-name (intern* (make-lisp-class-name
 				   (pb::message-desc-name parent)
 				   grandparent)))) ;; TODO make a function
