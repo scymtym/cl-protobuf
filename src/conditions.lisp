@@ -80,6 +80,7 @@ by CLASS has not been provided."
    (package    :initarg  :package
 	       :type     (or null package)
 	       :reader   name-resolution-failed-package
+	       :initform nil
 	       :documentation
 	       "The package in which the Lisp symbol should have
 been.")
@@ -95,8 +96,8 @@ investigated."))
    :format-arguments nil)
   (:report
    (lambda (condition stream)
-     (format stream "~@<Could not find a symbol for name ~S in package ~
-~S~:[~;~:* (tried ~{~{~S in ~S~}~^, ~})~]~@:>"
+     (format stream "~@<Could not find a symbol for name ~S~@[ in ~
+package ~S~]~@[ (tried ~{~{~S in ~S~}~^, ~})~]~@:>"
 	     (name-resolution-failed-name       condition)
 	     (name-resolution-failed-package    condition)
 	     (name-resolution-failed-candidates condition))
