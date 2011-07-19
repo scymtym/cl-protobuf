@@ -51,7 +51,7 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defvar +ignored-chars+    (coerce '(#\Newline #\Space #\Tab #\/) 'string))
-  (defvar +number-chars+     "01234567890.")
+  (defvar +number-chars+     "e01234567890+-.")
   (defvar +identifier-chars+ "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")
   (defvar +punctuation+      "=,;.{}[]")
 
@@ -332,7 +332,8 @@ offset, line and column in STREAM. "
 	     ((find c +punctuation+)      (progn
 					    (funcall read)
 					    (values (%intern-char c) c)))
-	     ((find c +number-chars+)     (read-number))
+	     ((find c +number-chars+
+		    :start 1)             (read-number))
 	     ((eq c #\")                  (read-string))
 	     ((find c +identifier-chars+) (read-identifier-like))
 	     (t                           (error "~@<Invalid character `~A'~@:>" c)))))
