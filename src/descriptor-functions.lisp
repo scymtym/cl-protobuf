@@ -172,11 +172,11 @@ nil if there is no such class."))
 
 (defun field-enum? (field-desc)
   "Return non-nil if the type of FIELD-DESC is an enum type."
-  (not (primitive-type-p (field-desc-type field-desc))))
+  (eq (field-desc-type field-desc) :enum))
 
 (defun field-message? (field-desc)
   "Return non-nil if the type of FIELD-DESC is a message type."
-  (not (primitive-type-p (field-desc-type field-desc))))
+  (eq (field-desc-type field-desc) :message))
 
 (defun field-repeated? (field-desc)
   "Return non-nil if FIELD-DESC describes a repeated field."

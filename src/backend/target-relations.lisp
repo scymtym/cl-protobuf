@@ -33,9 +33,20 @@ descriptors.")
    "Target class for generating methods which implement relations
 between protocol buffer descriptors."))
 
+(defclass target-relations-fixup (code-generating-target-mixin)
+  ()
+  (:documentation
+   "Target class generating and fixing some things after basic
+relations have been emitted for all descriptors."))
+
 
 ;;; Emitter methods
 ;;
+
+(defmethod emit :after ((node   file-set-desc)
+			(target target-relations)
+			&key)
+  (emit node :relations-fixup))
 
 (defmethod emit ((node   file-desc)
 		 (target target-relations)
@@ -59,7 +70,7 @@ between protocol buffer descriptors."))
 	    (defmethod descriptor-qualified-name ((descriptor (eql ,node)))
 	      ,package)
 	    (defmethod descriptor-parent ((descriptor (eql ,node)))
-	      ,parent)
+	      ,container)
 	    (defmethod find-descriptor ((name (eql ,(make-keyword name)))
 					&key error?)
 	      (declare (ignore error?))
@@ -90,6 +101,30 @@ between protocol buffer descriptors."))
 
 	;; Recurse into children.
 	(call-next-method)))))
+
+
+;;; Emit methods for `target-relations-fixup
+;;
+
+(defmethod emit ((node   field-desc)
+		 (target target-relations-fixup)
+		 &key)
+  (with-emit-symbols
+    (with-descriptor-fields (node field-desc)
+      (when (member type '(:enum :message))
+	;; Find the descriptor describing the type of NODE. Based on
+	;; whether it is a message descriptor or an enum descriptor,
+	;; maybe change type of NODE to :message.
+	(let ((type (pb::resolve-name type-name parent)))
+	  (setf (pb::field-desc-type node) (etypecase type
+					     (message-desc :message)
+					     (enum-desc    :enum)))
+
+	  ;; When the type of NODE, TYPE, is a message, associate TYPE
+	  ;; by means of a method on `field-type-descriptor'.
+	  (when (field-message? node)
+	    (eval `(defmethod field-type-descriptor ((descriptor (eql ,node)))
+		     ,type))))))))
 
 
 ;;; Utility functions
