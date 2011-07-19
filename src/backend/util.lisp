@@ -90,7 +90,7 @@ returned or an error is signaled, depending on ERROR?."
   (bind (((:values components qualified?) (parse-name name))
 	 ((:labels name-or-package (descriptor))
 	  (if (typep descriptor 'file-desc)
-	      (file-desc-package descriptor)
+	      (pb::file-desc-package descriptor)
 	      (descriptor-name descriptor)))
 	 ((:labels resolve-in (components context))
 	  (bind (((first &rest rest) components)
