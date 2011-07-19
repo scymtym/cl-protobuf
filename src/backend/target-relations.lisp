@@ -45,24 +45,25 @@ between protocol buffer descriptors."))
       ;; Add or replace NODE to/in the file set which represents the
       ;; package.
       (let* ((container (ensure-package package))
-	     (index     (position node (pb::file-set-desc-file container)
+	     (index     (position (descriptor-name node)
+				  (pb::file-set-desc-file container)
 				  :key  #'descriptor-name
 				  :test #'string=)))
 	(if index
-	    (setf (aref container index) node)
-	    (vector-push-extend node (pb::file-set-desc-file container))))
+	    (setf (aref (pb::file-set-desc-file container) index) node)
+	    (vector-push-extend node (pb::file-set-desc-file container)))
 
-      ;; Generate relation methods for NODE.
-      (eval
-       `(progn
-	  (defmethod descriptor-qualified-name ((descriptor (eql ,node)))
-	    ,package)
-	  (defmethod descriptor-parent ((descriptor (eql ,node)))
-	    ,parent)
-	  (defmethod find-descriptor ((name (eql ,(make-keyword name)))
-				      &key error?)
-	    (declare (ignore error?))
-	    ,node)))
+	;; Generate relation methods for NODE.
+	(eval
+	 `(progn
+	    (defmethod descriptor-qualified-name ((descriptor (eql ,node)))
+	      ,package)
+	    (defmethod descriptor-parent ((descriptor (eql ,node)))
+	      ,parent)
+	    (defmethod find-descriptor ((name (eql ,(make-keyword name)))
+					&key error?)
+	      (declare (ignore error?))
+	      ,node))))
 
       ;; Recurse into child nodes.
       (call-next-method))))
