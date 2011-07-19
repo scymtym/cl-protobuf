@@ -187,4 +187,8 @@ for the textual protocol buffer description format."
 		yacc)
   :components  ((:module     "frontend"
 		 :pathname   "src/frontend"
-		 :components ((:file       "proto")))))
+		 :components ((:file       "lexer")
+			      (:file       "parser"
+			       :depends-on ("lexer"))
+			      (:file       "proto"
+			       :depends-on ("parser" "lexer"))))))
