@@ -79,28 +79,33 @@ relations have been emitted for all descriptors."))
       ;; Recurse into child nodes.
       (call-next-method))))
 
-(defmethod emit ((node   message-desc)
-		 (target target-relations)
-		 &key)
-  (with-emit-symbols
-    (with-descriptor-fields (node message-desc)
-      (bind ((qualified-name (make-qualified-name
-			      (descriptor-qualified-name parent) name)))
+(macrolet
+    ((define-structure-like-relation-emitter (class)
+       `(defmethod emit ((node   ,class)
+			 (target target-relations)
+			 &key)
+	  (with-emit-symbols
+	    (with-descriptor-fields (node ,class)
+	      (bind ((qualified-name (make-qualified-name
+				      (descriptor-qualified-name parent) name)))
 
-	;; Generate relation methods for NODE.
-	(eval
-	 `(progn
-	    (defmethod descriptor-qualified-name ((descriptor (eql ,node)))
-	      ,qualified-name)
-	    (defmethod descriptor-parent ((descriptor (eql ,node)))
-	      ,parent)
-	    (defmethod find-descriptor ((name (eql ,(make-keyword qualified-name)))
-					&key error?)
-	      (declare (ignore error?))
-	      ,node)))
+		;; Generate relation methods for NODE.
+		(eval
+		 `(progn
+		    (defmethod descriptor-qualified-name ((descriptor (eql ,node)))
+		      ,qualified-name)
+		    (defmethod descriptor-parent ((descriptor (eql ,node)))
+		      ,parent)
+		    (defmethod find-descriptor ((name (eql ,(make-keyword qualified-name)))
+						&key error?)
+		      (declare (ignore error?))
+		      ,node)))
 
-	;; Recurse into children.
-	(call-next-method)))))
+		;; Recurse into children.
+		(call-next-method)))))))
+
+  (define-structure-like-relation-emitter message-desc)
+  (define-structure-like-relation-emitter enum-desc))
 
 
 ;;; Emit methods for `target-relations-fixup
