@@ -101,7 +101,7 @@ VALUE-FORM of type PROTO-TYPE when stored in field number NUMBER."
   (let ((array-size
          (cond
            ((fixed-p proto-type)
-	    `(* (fixed-size proto-type) (length ,value-form)))
+	    `(* ,(fixed-size proto-type) (length ,value-form)))
 	   ((eq proto-type :bool)
 	    `(length ,value-form))
            ((uvarint-p proto-type)
