@@ -38,11 +38,15 @@ and a position function. The read-char function reads a single char
 from STREAM, skipping over comments. The unread-char function behaves
 as usual. The position function returns three values: the current
 offset, line and column in STREAM. "
-  (bind ((offset      0)
-	 (line        1)
-	 (column      0)
-	 (in-comment? nil)
-	 (did-unread? nil)
+  (bind (((offset line column) '(0 1 0))
+	 ;; COMMENT stores a "comment state":
+	 ;; + nil :: Not currently within comment
+	 ;; + t   :: In comment, kind not yet decided
+	 ;; + :/  :: In //-style comment
+	 ;; + :*  :: In /* */-style comment, closing * not yet encountered
+	 ;; + :** :: In /* */-style comment, closing * encountered
+	 (comment              nil)
+	 (did-unread?          nil)
 	 ((:flet read1 (&key (skip-comments? t)))
 	  (iter (for c next (read-char stream nil :eof))
 		(unless did-unread?
@@ -51,18 +55,23 @@ offset, line and column in STREAM. "
 		  (case c
 		    (#\Newline (incf line)
 			       (setf column 0)
-			       (when (eq in-comment? :/)
-				 (setf in-comment? nil)))
+			       (when (eq comment :/)
+				 (setf comment nil)))
 		    (#\/       (when skip-comments?
-				 (case in-comment?
-				   ((nil) (setf in-comment? t))
-				   ((t)   (setf in-comment? :/))
-				   (:**   (setf in-comment? nil)))))
-		    (#\*       (case in-comment?
-				 ((t) (setf in-comment? :*))
-				 (:*  (setf in-comment? :**))))))
+				 (setf comment (case comment
+						 ((nil) t)
+						 ((t)   :/)
+						 (:**   nil)
+						 (t     comment)))))
+		    (#\*       (setf comment (case comment
+					       ((t) :*)
+					       (:*  :**)
+					       (t   comment))))
+		    (t         (setf comment (case comment
+					       (:**  :*)
+					       (t   comment))))))
 		(setf did-unread? nil)
-		(while (and (not (eq c :eof)) in-comment?))
+		(while (and (not (eq c :eof)) comment))
 		(finally (return c))))
 	 ((:flet unread (c))
 	  (setf did-unread? t)
