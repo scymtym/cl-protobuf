@@ -102,23 +102,20 @@ TARGET-VAR and push NODE-VAR onto the context stack."
 
 (defmacro with-emit-symbols (&body body)
   "Execute BODY with the following symbols added to the lexical scope:
-+ package            :: The package that is the current target of the
-                        emission process.
-+ parent             :: The parent of the current node or nil.
-+ grandparent        :: The parent of the parent of the current node
-                        or nil.
-+ ancestors          :: List of all ancestor nodes.
-+ parent-is-message? :: non-nil if parent is non-nil and of a subtype
-                        of `message-desc'.
-+ recur              :: A closure that accepts a node and calls `emit'
-                        with the current target on that node.
-+ intern*            :: Similar to `intern' but use the context package."
-  `(symbol-macrolet ((package            (context-package *context*))
-		     (stack              (context-stack *context*))
-		     (parent             (second (context-stack *context*)))
-		     (grandparent        (third (context-stack *context*)))
-		     (ancestors          (rest (context-stack *context*)))
-		     (parent-is-message? (typep parent 'message-desc)))
++ package     :: The package that is the current target of the emission
+                 process.
++ parent      :: The parent of the current node or nil.
++ grandparent :: The parent of the parent of the current node
+                 or nil.
++ ancestors   :: List of all ancestor nodes.
++ recur       :: A closure that accepts a node and calls `emit' with the
+                 current target on that node.
++ intern*     :: Similar to `intern' but use the context package."
+  `(symbol-macrolet ((package     (context-package *context*))
+		     (stack       (context-stack *context*))
+		     (parent      (second (context-stack *context*)))
+		     (grandparent (third (context-stack *context*)))
+		     (ancestors   (rest (context-stack *context*))))
      (flet ((recur (node)
 	      (emit node (context-target *context*)))
 	    (intern* (name) ;; TODO rename
@@ -129,6 +126,7 @@ TARGET-VAR and push NODE-VAR onto the context stack."
 (defmacro with-descriptor-fields ((instance class) &body body)
   "Execute BODY with variables bindings for the slots of INSTANCE
 which has to be an instance of CLASS."
+  (closer-mop:finalize-inheritance (find-class class))
   (bind ((names   (map 'list (compose #'symbolicate
 				      #'closer-mop:slot-definition-name)
 		       (closer-mop:class-slots (find-class class))))
