@@ -105,8 +105,10 @@ message.")
   "Generate code to extract the value of a single field."
   (with-emit-symbols
     (with-descriptor-fields (node field-desc)
-      (bind ((name1 (intern* (make-lisp-slot-name name)))
-	     (type1 (make-lisp-slot-type type type-name package))
+      (bind ((name1     (intern* (make-lisp-slot-name name)))
+	     (type1     (make-lisp-slot-type type type-name package))
+	     (repeated? (field-repeated? node))
+	     (packed?   (field-packed? node))
 	     ((:flet generate-extract-method (specializer))
 	      `(defmethod extract ((buffer  simple-array)
 				   (message message-desc)
@@ -119,15 +121,20 @@ message.")
 
 		 ;; Loop through BUFFER until we hit the field or the
 		 ;; end of the buffer.
-		 (do-fields ((buffer start end offset number wire-type))
-		   ;; If we are at the desired field, extract and
-		   ;; return the value.
-		   (when (= number ,number)
-		     (let (result)
-		       ,@(generate-unpack type1 'buffer 'offset 'result)
-		       (return result)))
-		   ;; If we are at some other field, skip it.
-		   (incf offset (pb::packed-field-size wire-type buffer offset))))))
+		 (let ((result ,@(when repeated?
+				       `(,(generate-initform type1 repeated? packed?)))))
+		  (do-fields ((buffer start end offset number wire-type))
+		    ;; If we are at the desired field, extract and
+		    ;; return the value.
+		    (if (= number ,number)
+			(progn
+			  ,@(generate-unpack type1 'buffer 'offset 'result
+					     :repeated? repeated?
+					     :packed?   packed?)
+			  ,@(unless repeated? `((return result))))
+			;; If we are at some other field, skip it.
+			(incf offset (pb::packed-field-size wire-type buffer offset))))
+		  result))))
 	(list (eval (generate-extract-method `(eql ,node)))
 	      (eval (generate-extract-method `(eql ',name1))))))))
 
