@@ -35,7 +35,9 @@
 
 (in-package :protocol-buffer.frontend)
 
-(defgeneric load/text (source)
+(defgeneric load/text (source
+		       &key
+		       pathname)
   (:documentation
    "Parse content of SOURCE as textual protocol buffer description.
 Return a `file-set-desc' instance that contains the complete
@@ -48,27 +50,34 @@ Note: This function does not load data in a protocol buffer format,
 but textual protocol buffer descriptors using the grammar described at
 http://code.google.com/apis/protocolbuffers/docs/proto.html."))
 
-(defmethod load/text ((source stream))
-  (make-instance
-   'file-set-desc
-   :file (make-array 1
-		     :initial-element (make-file-desc
-				       "<stream>" (parse source))
-		     :fill-pointer    1)))
-
-(defmethod load/text ((source pathname))
-  (let* ((set  (with-input-from-file (stream source)
-		 (load/text stream)))
-	 (file (aref (pb::file-set-desc-file set) 0)))
-    (setf (pb::file-desc-name file)
-	  (concatenate 'string (pathname-name source) ".proto"))
+(defmethod load/text ((source stream)
+		      &key
+		      (pathname "<stream>"))
+  (let ((set (make-instance
+	      'file-set-desc
+	      :file (make-array 1
+				:initial-element (make-file-desc
+						  pathname (parse source))
+				:fill-pointer    1))))
     (pbb:emit set :relations)
     set))
 
-(defmethod load/text ((source string))
-  (load/text (parse-namestring source)))
+(defmethod load/text ((source string)
+		      &key
+		      (pathname "<string>"))
+  (with-input-from-string (stream source)
+    (load/text stream :pathname pathname)))
 
-(defmethod load/text ((source list))
+(defmethod load/text ((source pathname)
+		      &key
+		      (pathname (format nil "~A.~A"
+					(pathname-name source)
+					(pathname-type source))))
+  (with-input-from-file (stream source)
+    (load/text stream :pathname pathname)))
+
+(defmethod load/text ((source list)
+		      &key &allow-other-keys)
   "This method read descriptions from all files in the list SOURCE and
 collects the resulting `file-desc' instance in one `file-set-desc'."
   (bind (((result &rest rest) (map 'list #'load/text source))
@@ -79,7 +88,8 @@ collects the resulting `file-desc' instance in one `file-set-desc'."
     (map nil #'merge-one rest)
     result))
 
-(defmethod load/text ((source asdf::protocol-buffer-descriptor))
+(defmethod load/text ((source asdf::protocol-buffer-descriptor)
+		      &key &allow-other-keys)
   "Load a textual protocol buffer description from the ASDF component
 SOURCE."
   (load/text (asdf:component-pathname source)))
