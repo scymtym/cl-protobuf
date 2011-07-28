@@ -93,22 +93,16 @@ representation.")
 		 &key)
   (with-emit-symbols
     (with-descriptor-fields (node field-desc)
-      (bind ((name1     (intern* (make-lisp-slot-name name)))
-	     (type1     (if (member type '(:message :enum))
-			    (pb::proto-type-name->lisp-type-symbol
-			     type-name :package package)
-			    type))
-	     (repeated? (eq label :repeated))
-	     (packed?   (when options
-			  (pb::field-options-packed options))))
-	(when (and packed? (not repeated?))
-	  (error "Can't have packed, nonrepeated field"))
-
+      (bind ((name1 (intern* (make-lisp-slot-name name)))
+	     (type1 (if (member type '(:message :enum))
+			(pb::proto-type-name->lisp-type-symbol
+			 type-name :package package)
+			type)))
 	`(:field ,name1
 		 ,type1
 		 ,number
-		 ,@(when label   `(,label t))
-		 ,@(when packed? '(:packed t)))))))
+		 ,@(when label                `(,label t))
+		 ,@(when (field-packed? node) '(:packed t)))))))
 
 (defmethod emit ((node   enum-desc)
 		 (target target-s-expr)
