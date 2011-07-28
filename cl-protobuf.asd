@@ -71,15 +71,14 @@ Neil T. Dantam."
 			       :depends-on ("binio"))
 			      (:file       "conditions"
 			       :depends-on ("package"))
+			      (:file       "protocol"
+			       :depends-on ("package"))
 			      (:file       "util"
 			       :depends-on ("package"))
 			      (:file       "types"
 			       :depends-on ("package"))
-			      (:file       "protocol"
-			       :depends-on ("package"))
 			      (:file       "packing"
-			       :depends-on ("package"
-					    "protocol"))
+			       :depends-on ("package" "protocol"))
 
 			      ;; Parts of the backend that are used
 			      ;; during bootstrapping
@@ -151,9 +150,6 @@ Neil T. Dantam."
 					    (:file       "target-protofile"
 					     :depends-on ("protocol"
 							  "target-proto"))
-					    (:file       "target-s-expr"
-					     :depends-on ("protocol"
-							  "code-generating-target-mixin"))
 					    (:file       "target-graphviz"
 					     :depends-on ("protocol"
 							  "stream-target-mixin"))))
