@@ -80,7 +80,7 @@ relations have been emitted for all descriptors."))
       (call-next-method))))
 
 (macrolet
-    ((define-structure-like-relation-emitter (class)
+    ((define-relation-emitter (class)
        `(defmethod emit ((node   ,class)
 			 (target target-relations)
 			 &key)
@@ -104,8 +104,9 @@ relations have been emitted for all descriptors."))
 		;; Recurse into children.
 		(call-next-method)))))))
 
-  (define-structure-like-relation-emitter message-desc)
-  (define-structure-like-relation-emitter enum-desc))
+  (define-relation-emitter message-desc)
+  (define-relation-emitter enum-desc)
+  (define-relation-emitter field-desc))
 
 
 ;;; Emit methods for `target-relations-fixup
