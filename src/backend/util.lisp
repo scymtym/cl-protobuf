@@ -106,14 +106,22 @@ returned or an error is signaled, depending on ERROR?."
 	    (cons (cons (format nil "~{~A.~}~A" package first) rest)
 		  (when rest
 		    (possible-splits (append package (list first)) rest)))))
-	 ((:labels resolve (context))
-	  (or (some (rcurry #'resolve-in context)
-		    (possible-splits nil components))
-	      (when (descriptor-parent context)
-		(resolve (descriptor-parent context))))))
+	 ((:labels resolve (context &optional up?))
+	  (if (typep context 'file-set-desc)
+	      ;; If CONTEXT is a file set, try to resolve NAME in all
+	      ;; its files, but without "upwards recursion". This
+	      ;; necessary to resolve a name in a package consisting
+	      ;; of multiple files.
+	      (some #'resolve (descriptor-children context))
+	      ;; For other containers, search in the container itself
+	      ;; and then, if UP? is non-nil, in its parents.
+	      (or (some (rcurry #'resolve-in context)
+			(possible-splits nil components))
+		  (when (and up? (descriptor-parent context))
+		    (resolve (descriptor-parent context) up?))))))
     (or (if qualified?
 	    (find-descriptor name)
-	    (resolve context))
+	    (resolve context t))
 	(when error?
 	  (error 'name-resolution-failed
 		 :name name)))))
