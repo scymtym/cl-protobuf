@@ -53,26 +53,3 @@
    (pb::->lisp-name "bla.Foo.CamelCase_and_underscores")
    "BLA-FOO-CAMEL-CASE-AND-UNDERSCORES"
    :test #'string=))
-
-(deftestsuite proto-type-name->lisp-type-symbol-root (util-root)
-  ()
-  (:documentation
-   "Unit tests for the `proto-type-name->lisp-type-symbol' function."))
-
-(addtest (proto-type-name->lisp-type-symbol-root
-          :documentation
-	  "Smoke test for the `proto-type-name->lisp-type-symbol' function")
-  smoke
-
-  (ensure-same
-   (pb::proto-type-name->lisp-type-symbol "StandardClass" :package :cl)
-   'cl:standard-class
-   :test #'eq)
-  (ensure-same
-   (pb::proto-type-name->lisp-type-symbol ".cl.StandardClass")
-   'cl:standard-class
-   :test #'eq)
-  (ensure-same
-   (pb::proto-type-name->lisp-type-symbol ".ProtocolBuffer.Test.UtilRoot")
-   'util-root
-   :test #'eq))
