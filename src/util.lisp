@@ -68,55 +68,6 @@
 	    (t
 	     (write-char (char-upcase char) stream))))))
 
-(defun proto-type-name->lisp-type-symbol (name
-					  &key
-					  package)
-  "Try to find a symbol corresponding to NAME. If name starts with
-`.', it is considered a \"fully-qualified\" name, that is specifying
-the symbol's package along with the symbol. Otherwise, a package has
-to be supplied via the PACKAGE parameter. If name contains multiple
-`.'s, all possible package-name splits are tried until a matching
-symbol is found."
-  (bind ((fully-qualified? (eq (aref name 0) #\.))
-	 (tried)
-	 ((:flet find-symbol* (name package))
-	  (push (list name package) tried)
-	  (let ((symbol (find-symbol name package)))
-	    (when (and symbol
-		       (or (enum-type-p symbol)
-			   (find-class symbol nil)))
-	      symbol)))
-	 ((:labels possible-splits (start))
-	  (let ((index (position #\. name :start start)))
-	    (when index
-	      (cons index (possible-splits (1+ index))))))
-	 ((:flet split (index))
-	  (list (subseq name 1 index) (subseq name (1+ index))))
-	 ((:flet find-name-in-package (package name))
-	  (let ((package1 (find-package
-			   (->lisp-name package :allow-dots? t))))
-	    (when package1
-	      (find-symbol* (->lisp-name name) package1))))
-	 ((:flet do-it ())
-	  (if fully-qualified?
-	      (some (curry #'apply #'find-name-in-package)
-		    (map 'list #'split (possible-splits 1)))
-	      (find-symbol* (->lisp-name name) package))))
-    (unless (or package fully-qualified?)
-      (error 'name-resolution-failed
-	     :name             name
-	     :package          package
-	     :format-control "~@<Can only handle fully ~
-qualified (e.g. starting with `.') names unless a context package is ~
-specified. Name ~S is not fully qualified.~@:>"
-	     :format-arguments `(,name)))
-
-    (or (do-it)
-	(error 'name-resolution-failed
-	       :name       name
-	       :package    package
-	       :candidates tried))))
-
 (defun parse-name (name)
   "Parse NAME and return two values: a list of name components and nil
 or t depending on whether NAME is a qualified name."
