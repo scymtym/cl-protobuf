@@ -1,0 +1,15 @@
+package rosetta.yarp;
+
+// We define value to be a poor man's variant.
+message ValuePb {
+  optional int32    int    = 1;
+  optional int32    vocab  = 2;
+  optional double   double = 3;
+  optional bytes    string = 4;
+  optional bytes    blob   = 5;
+  optional BottlePb bottle = 6;
+}
+
+message BottlePb {
+  repeated ValuePb value = 1;
+}
