@@ -33,9 +33,7 @@
 ;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
-(cl:in-package :cl-user)
-
-(defpackage :protocol-buffer.frontend
+(cl:defpackage :protocol-buffer.frontend
   (:nicknames :pbf)
 
   (:use
@@ -69,8 +67,6 @@
 
   ;; S-expr frontend
   (:export
-   :define-message
-
    :process-message
    :process-field
    :process-enum

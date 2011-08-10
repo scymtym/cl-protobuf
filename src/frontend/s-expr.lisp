@@ -35,25 +35,12 @@
 
 (in-package :protocol-buffer.frontend)
 
-
-;;; Message
-;;
-
-(defmacro define-message (name &body doc-and-specs)
-  "Generate definitions for one message type. A message maps to a
-class and potentially associated enums."
-  (let ((specs (%parse-doc-and-specs doc-and-specs)))
-    `(let ((descriptor ,(process-message `(:message ,name ,@specs))))
-       descriptor)))
-
 (defun process-message (form)
-  (bind (((marker name &rest specs) form)
-	 ((:flet filter (type))
-	  (remove type specs :key #'first :test-not #'eq))
+  (bind (((_ name &rest specs) form)
 	 ((:flet process-children (type initarg func))
-	  (let ((children (mapcar func (filter type))))
-	    `(,initarg (vector ,@children)))))
-    (declare (ignore marker))
+	  `(,initarg (vector ,@(map 'list func (remove type specs
+						       :key      #'first
+						       :test-not #'eq))))))
     `(make-instance
       'pb::message-desc
       :name ',(string name)
@@ -62,12 +49,12 @@ class and potentially associated enums."
       ,@(process-children :enum    :enum-type   #'process-enum))))
 
 (defun process-field (form)
-  (bind (((marker name type position
+  (bind (((_ name type position
 	   &rest args
 	   &key
 	   optional required repeated
 	   packed) form))
-    (declare (ignore marker optional required repeated))
+    (declare (ignore optional required repeated))
     (let ((labels (intersection args '(:optional :required :repeated))))
       `(make-instance 'pb::field-desc
 		      :name    ,(string name)
@@ -86,27 +73,13 @@ class and potentially associated enums."
 					      :packed ,packed)))))
 
 (defun process-enum (form)
-  (bind (((marker name &rest values) form))
-    (declare (ignore marker))
-    `(make-instance
-      'pb::enum-desc
-      :name  ,(string name)
-      :value (vector ,@(map 'list #'process-enum-value values)))))
+  (bind (((_ name &rest values) form))
+    `(make-instance 'pb::enum-desc
+		    :name  ,(string name)
+		    :value (vector ,@(map 'list #'process-enum-value values)))))
 
 (defun process-enum-value (form)
   (bind (((name number) form))
     `(make-instance 'pb::enum-value-desc
 		    :name   ,(string name)
 		    :number ,number)))
-
-
-;;; Utility Functions
-;;
-
-(defun %parse-doc-and-specs (doc-and-specs)
-  (bind ((doc   (when (stringp (first doc-and-specs))
-		  (first doc-and-specs)))
-	 (specs (if (stringp (first doc-and-specs))
-		    (rest doc-and-specs)
-		    doc-and-specs)))
-    (values specs doc)))
