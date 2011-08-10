@@ -35,9 +35,6 @@
 
 (cl:in-package :cl-user)
 
-#.(when (asdf:find-system :asdf-system-connections)
-  (asdf:load-system :asdf-system-connections))
-
 (defpackage :cl-protobuf-system
   (:use
    :cl
@@ -58,7 +55,9 @@ Neil T. Dantam."
 		:iterate
 
 		:closer-mop
-		:cffi)
+		:cffi
+
+		:yacc)
   :components  ((:module     "binio"
 		 :pathname   "src/binio"
 		 :components ((:file       "package")
@@ -153,6 +152,13 @@ Neil T. Dantam."
 		 :components ((:file       "conditions")
 			      (:file       "variables")
 
+			      (:file       "lexer")
+			      (:file       "parser"
+			       :depends-on ("lexer"))
+			      (:file       "proto"
+			       :depends-on ("conditions" "variables"
+					    "parser" "lexer"))
+
 			      (:file       "protobin")))
 
 		;; Late "bootstrapping"
@@ -166,21 +172,3 @@ Neil T. Dantam."
 		 :depends-on ("frontend" "backend")))
 
   :in-order-to ((test-op (test-op :cl-protobuf-test))))
-
-#+asdf-system-connections
-(defsystem-connection :cl-protobuf-and-yacc
-  :author      "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
-  :maintainer  "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
-  :version     "0.1.0"
-  :license     "Modified BSD License; see COPYING file for details."
-  :description "This system connection provides a yacc-based parser
-for the textual protocol buffer description format."
-  :requires    (cl-protobuf
-		yacc)
-  :components  ((:module     "frontend"
-		 :pathname   "src/frontend"
-		 :components ((:file       "lexer")
-			      (:file       "parser"
-			       :depends-on ("lexer"))
-			      (:file       "proto"
-			       :depends-on ("parser" "lexer"))))))

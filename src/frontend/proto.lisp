@@ -114,12 +114,6 @@ collects the resulting `file-desc' instance in one `file-set-desc'."
     (map nil #'merge-one rest)
     result))
 
-(defmethod load/text ((source asdf::protocol-buffer-descriptor)
-		      &key &allow-other-keys)
-  "Load a textual protocol buffer description from the ASDF component
-SOURCE."
-  (load/text (asdf:component-pathname source)))
-
 
 ;;; Default dependency resolution strategy
 ;;
