@@ -49,55 +49,16 @@ http://code.google.com/apis/protocolbuffers/docs/proto.html."))
 
 (defmethod output-files ((operation compile-op)
 			 (file      protocol-buffer-descriptor))
-  "Construct a pathname for the output of the protocol buffer compiler
-based on the name and pathname of FILE."
-  (values
-   ;; We only have a single output file.
-   (list (make-pathname
-	  :name     (component-name file)
-	  :type     "potobin"
-	  :defaults (component-pathname file)))
-   ;; This means: "Translate these pathnames"
-   nil))
-
-(defmethod output-files ((operation (eql :compile-op))
-			 (file      protocol-buffer-descriptor))
-  (output-files (make-instance (find-class (intern (string operation) :asdf)))
-		file))
-;; TODO can we avoid this one?
+  "We do not compile, so there is no output."
+  ;; We do not have any output files. The second nil means: "Translate
+  ;; these pathnames"
+  (values nil nil))
 
 (defmethod perform ((operation compile-op)
 		    (file      protocol-buffer-descriptor))
-  "Call the protocol buffer compiler (protoc) to compile the textual
-representation into a binary representation."
-  (let* ((output-file   (first (output-files operation file)))
-	 (input-path    (component-pathname file))
-	 (input-dirctory (namestring
-			  (make-pathname
-			   :directory (pathname-directory input-path))))
-	 (input-option  (namestring (make-pathname :type "proto"
-						   :defaults input-path))) ;; TODO hack
-	 (output-option (format nil "-o~A" (namestring output-file)))
-	 (args          (list "-I" input-dirctory
-			      input-option output-option)))
-
-    ;; Ensure output directory exists
-    (ensure-directories-exist
-     (make-pathname :directory (pathname-directory output-file)))
-
-    ;; Run the compiler
-    (format *standard-output* "~@<; ~@;Compiling protocol buffer ~
-descriptor ~A like this: ~_~A ~{~A~^ ~}~@:>~%"
-	    file "protoc" args)
-    (let ((result (sb-ext:process-exit-code
-		   (sb-ext:run-program "protoc" args
-				       :search t
-				       :output *trace-output*
-				       :error  *trace-output*))))
-      (unless (zerop result)
-	(error "~@<The protocol buffer compiler failed (exit code ~D) ~
-to compile ~A to ~A.~@:>"
-	       result file output-file)))))
+  "Compiling is a no-op since we load the textual description
+directly."
+  (values))
 
 
 ;;; Load Operation
@@ -105,16 +66,14 @@ to compile ~A to ~A.~@:>"
 
 (defmethod perform :around ((operation load-op)
 			    (file      protocol-buffer-descriptor))
-  (let ((pbb::*emit-print*   *asdf-verbose*)
-	(pbb::*emit-verbose* nil))
+  (let ((pbb:*emit-print*   *asdf-verbose*)
+	(pbb:*emit-verbose* nil))
     (call-next-method)))
 
-;; TODO allow control over what is generated
 (defmethod perform ((operation load-op)
 		    (file      protocol-buffer-descriptor))
   "Load the compiled protocol buffer descriptor."
-  (let* ((binary-pathname (first (output-files :compile-op file)))
-	 (descriptors     (pbf:load/binary binary-pathname)))
+  (let ((descriptors (pbf:load/text (component-pathname file))))
     (pbb:emit descriptors :class)
     (pbb:emit descriptors :packed-size)
     (pbb:emit descriptors :serializer)
@@ -123,8 +82,19 @@ to compile ~A to ~A.~@:>"
     (pbb:emit descriptors :offset)))
 
 
+;;; Load method from component
+;;
+
+(defmethod protocol-buffer.frontend:load/text
+    ((source protocol-buffer-descriptor)
+     &key &allow-other-keys)
+  "Load a textual protocol buffer description from the ASDF component
+SOURCE."
+  (protocol-buffer.frontend:load/text (component-pathname source)))
+
+
 ;;; Add features
 ;;
 
 (pushnew :asdf-protocol-buffer-descriptors *features*)
-(pushnew :asdf-protocol-buffers-use-protoc *features*)
+(pushnew :asdf-protocol-buffers-use-lisp   *features*)

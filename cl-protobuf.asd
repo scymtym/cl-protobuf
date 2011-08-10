@@ -167,8 +167,8 @@ Neil T. Dantam."
 		 :depends-on ("bootstrap" "backend"))
 
 		;; ASDF support
-		(:file       "asdf-protoc"
-		 :pathname   "src/asdf-protoc"
+		(:file       "asdf"
+		 :pathname   "src/asdf"
 		 :depends-on ("frontend" "backend")))
 
   :in-order-to ((test-op (test-op :cl-protobuf-test))))
