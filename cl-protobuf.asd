@@ -158,6 +158,8 @@ Neil T. Dantam."
 			       :depends-on ("frontend-early"
 					    "bootstrap")
 			       :components ((:file       "conditions")
+					    (:file       "variables")
+
 					    (:file       "protobin")))
 
 			      ;; Late "bootstrapping"

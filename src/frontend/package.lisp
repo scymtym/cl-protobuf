@@ -37,6 +37,7 @@
 
 (defpackage :protocol-buffer.frontend
   (:nicknames :pbf)
+
   (:use
    :cl
    :alexandria
@@ -51,7 +52,20 @@
    :proto-parse-error-line
    :proto-parse-error-column
    :proto-parse-error-offset
-   :proto-parse-error-causing-condition)
+   :proto-parse-error-causing-condition
+
+   :import-error
+   :import-error-import
+
+   :cannot-resolve-import
+   :import-error-locations
+
+   :ambiguous-import
+   :import-error-candidates)
+
+  ;; Variables
+  (:export
+   :*proto-load-path*)
 
   ;; S-expr frontend
   (:export
@@ -68,7 +82,9 @@
 
   ;; Textual descriptor format
   (:export
-   :load/text)
+   :load/text
+
+   :load-from-path)
 
   (:documentation
    "The frontend package of the protocol buffer system contains
