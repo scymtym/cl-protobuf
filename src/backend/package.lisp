@@ -11,6 +11,11 @@
 
    :protocol-buffer)
 
+  ;; Variables
+  (:export
+   :*emit-verbose*
+   :*emit-print*)
+
   ;; Conditions
   (:export
    :no-coder
