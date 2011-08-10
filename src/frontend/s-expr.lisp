@@ -57,7 +57,7 @@
     (declare (ignore optional required repeated))
     (let ((labels (intersection args '(:optional :required :repeated))))
       `(make-instance 'pb::field-desc
-		      :name    ,(string name)
+		      :name    ,(string-downcase (string name))
 		      :type    ',(cond
 				  ((keywordp type)
 				   type)
@@ -66,7 +66,8 @@
 				  (t
 				   :message)) ;; TODO do this properly
 		      ,@(unless (keywordp type)
-				`(:type-name ,(string type)))
+				`(:type-name ,(substitute
+					       #\. #\/ (string type))))
 		      :number  ,position
 		      :label   ',(or (first labels) :required)
 		      :options (make-instance 'pb::field-options

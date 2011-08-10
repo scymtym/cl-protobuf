@@ -83,8 +83,8 @@
 (:message field-options
   (:enum  ctype
 	  (:cord         1)
-	  (:string_piece 2))
-  (:field ctype         field-options-ctype     1 :optional t)
+	  (:string-piece 2))
+  (:field ctype         field-options/ctype     1 :optional t)
   (:field packed        :bool                   2 :optional t)
   (:field experimental-map-key :string          9 :optional t)
   (:field uninterpreted-option uninterpreted-option 999 :repeated t)
@@ -103,7 +103,7 @@
   (:enum  optimize-mode
 	  (:speed     1)
 	  (:code-size 2))
-  (:field optimize-for  file-options-optimize-mode 9 :optional t)
+  (:field optimize-for  file-options/optimize-mode 9 :optional t)
   (:field uninterpreted-option uninterpreted-option 999 :repeated t)
   ;; extension??
   )
@@ -155,8 +155,8 @@
 	  (:repeated 3))
   (:field name          :string                 1 :optional t)
   (:field number        :int32                  3 :optional t)
-  (:field label         field-desc-label        4 :optional t)
-  (:field type          field-desc-type         5 :optional t)
+  (:field label         field-desc/label        4 :optional t)
+  (:field type          field-desc/type         5 :optional t)
   (:field type-name     :string                 6 :optional t)
   (:field extendee      :string                 2 :optional t)
   (:field default-value :string                 7 :optional t)

@@ -123,8 +123,7 @@ name resolution."))
   (with-emit-symbols
     (with-descriptor-fields (node field-desc)
       (bind ((name1      (intern* (make-lisp-slot-name name)))
-	     (type1      (make-lisp-slot-type
-			  type type-name package parent))
+	     (type1      (make-lisp-slot-type node))
 	     (packed?    (field-packed? node))
 	     (class-name (intern* (make-lisp-class-name
 				   (pb::message-desc-name parent)

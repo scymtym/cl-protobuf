@@ -58,22 +58,16 @@ should be non-nil for nested messages."
   "Return a suitable name for a slot based on the field name NAME."
   (pb::->lisp-name name))
 
-(defun make-lisp-slot-type (type type-name package &optional parent)
+(defun make-lisp-slot-type (node)
   "Return a symbol that designates a suitable slot type for the field
-type TYPE. "
-  (if (member type '(:message :enum))
-      (let ((name (if (and parent
-			   (find type-name (concatenate
-					    'vector
-					    (pb::message-desc-enum-type parent)
-					    (pb::message-desc-nested-type parent))
-				 :key  #'descriptor-name
-				 :test #'string=))
-		      (%maybe-nested-name type-name parent)
-		      type-name))) ;;; TODO(jmoringe): hack
-	(pb::proto-type-name->lisp-type-symbol
-	 name :package package))
-      type))
+NODE."
+  (if (or (field-message? node) (field-enum? node))
+      (let ((type-desc (field-type-descriptor node)))
+	(intern
+	 (make-lisp-class-name (descriptor-name type-desc)
+			       (descriptor-parent type-desc))
+	 (context-package *context*)))
+      (pb::field-desc-type node)))
 
 (defun make-lisp-accessor-name (class-name slot-name)
   "CLASS-NAME and SLOT-NAME have to be proper symbolic names."
@@ -155,5 +149,5 @@ returned or an error is signaled, depending on ERROR?."
   (if (and parent (typep parent 'pb::message-desc))
       (concatenate
        'string
-       (pb::message-desc-name parent) "-" name)
+       (pb::message-desc-name parent) "/" name)
       name))

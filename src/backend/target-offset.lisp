@@ -106,7 +106,7 @@ message.")
   (with-emit-symbols
     (with-descriptor-fields (node field-desc)
       (bind ((name1     (intern* (make-lisp-slot-name name)))
-	     (type1     (make-lisp-slot-type type type-name package))
+	     (type1     (make-lisp-slot-type node))
 	     (repeated? (field-repeated? node))
 	     (packed?   (field-packed? node))
 	     ((:flet generate-extract-method (specializer))

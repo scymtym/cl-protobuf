@@ -51,7 +51,7 @@ the descriptor classes defined."
 	 ((:flet generate-internal-enum (spec))
 	  (pbb::generate-enum
 	   (let ((*package* (symbol-package name)))
-	     (symbolicate name "-" (first spec)))
+	     (symbolicate name "/" (first spec)))
 	   (rest spec)))
 	 ((:flet make-field-thunk (spec))
 	  (bind (((name1 type _
