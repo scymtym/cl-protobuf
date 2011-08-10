@@ -128,9 +128,8 @@ relations have been emitted for all descriptors."))
 
 	  ;; When the type of NODE, TYPE, is a message, associate TYPE
 	  ;; by means of a method on `field-type-descriptor'.
-	  (when (field-message? node)
-	    (eval `(defmethod field-type-descriptor ((descriptor (eql ,node)))
-		     ,type))))))))
+	  (eval `(defmethod field-type-descriptor ((descriptor (eql ,node)))
+		   ,type)))))))
 
 
 ;;; Utility functions
