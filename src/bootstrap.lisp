@@ -79,7 +79,7 @@ the descriptor classes defined."
   (asdf:component-pathname
    (asdf:find-component
     (asdf:find-system :cl-protobuf)
-    '("src" "descriptor-definitions")))
+    '("descriptor-definitions")))
   "The pathname of the file which contains the s-expr definitions of
 the reflective protocol buffer descriptors.")
 

@@ -59,16 +59,16 @@ Neil T. Dantam."
 
 		:closer-mop
 		:cffi)
-  :components  ((:module     "src"
-		 :components ((:module     "binio"
-			       :components ((:file       "package")
-					    (:file       "binio"
-					     :depends-on ("package"))))
+  :components  ((:module     "binio"
+		 :pathname   "src/binio"
+		 :components ((:file       "package")
+			      (:file       "binio"
+			       :depends-on ("package"))))
 
-			      ;; Generic components like en-/decoding
-			      ;; and utilities
-			      (:file       "package"
-			       :depends-on ("binio"))
+		;; Generic components like en-/decoding and utilities
+		(:module     "src"
+		 :depends-on ("binio")
+		 :components ((:file       "package")
 			      (:file       "conditions"
 			       :depends-on ("package"))
 			      (:file       "protocol"
@@ -78,99 +78,93 @@ Neil T. Dantam."
 			      (:file       "types"
 			       :depends-on ("package"))
 			      (:file       "packing"
-			       :depends-on ("package" "protocol"))
+			       :depends-on ("package" "protocol"))))
 
-			      ;; Parts of the backend that are used
-			      ;; during bootstrapping
-			      (:module     "backend-early"
-			       :pathname   "backend"
-			       :depends-on ("package"
-					    "packing")
-			       :components ((:file       "package")
-					    (:file       "generator-macros"
-					     :depends-on ("package"))
-					    (:file       "generator-class"
-					     :depends-on ("package"))))
+		;; Parts of the backend that are used during
+		;; bootstrapping
+		(:module     "backend-early"
+		 :pathname   "src/backend"
+		 :depends-on ("src")
+		 :components ((:file       "package")
+			      (:file       "generator-macros"
+			       :depends-on ("package"))
+			      (:file       "generator-class"
+			       :depends-on ("package"))))
 
-			      ;; Parts of the frontend that are used
-			      ;; during bootstrapping
-			      (:module     "frontend-early"
-			       :pathname   "frontend"
-			       :depends-on ("package")
-			       :components ((:file       "package")
-					    (:file       "s-expr"
-					     :depends-on ("package"))))
+		;; Parts of the frontend that are used during
+		;; bootstrapping
+		(:module     "frontend-early"
+		 :pathname   "src/frontend"
+		 :depends-on ("src")
+		 :components ((:file       "package")
+			      (:file       "s-expr"
+			       :depends-on ("package"))))
 
-			      ;; Bootstrapping: defines descriptor
-			      ;; classes on some methods on them
-			      (:static-file "descriptor-definitions"
-			       :type       "lisp")
-			      (:file       "bootstrap"
-			       :depends-on ("package" "util" "types"
-					    "backend-early"
-					    "frontend-early"))
-			      (:file       "descriptor-functions"
-			       :depends-on ("bootstrap"))
+		;; Bootstrapping: defines descriptor classes on some
+		;; methods on them
+		(:static-file "descriptor-definitions"
+		 :pathname   "src/descriptor-definitions"
+		 :type       "lisp")
+		(:file       "bootstrap"
+		 :pathname   "src/bootstrap"
+		 :depends-on ("src" "backend-early" "frontend-early"))
+		(:file       "descriptor-functions"
+		 :pathname   "src/descriptor-functions"
+		 :depends-on ("bootstrap"))
 
-			      ;; Backend and frontend
-			      (:module     "backend"
-			       :depends-on ("backend-early"
-					    "bootstrap")
-			       :components ((:file       "conditions")
-					    (:file       "util")
-					    (:file       "macros")
-					    (:file       "protocol"
-					     :depends-on ("util"
-							  "conditions"
-							  "macros"))
-					    (:file       "code-generating-target-mixin"
-					     :depends-on ("util"))
-					    (:file       "file-target-mixin")
-					    (:file       "stream-target-mixin"
-					     :depends-on ("protocol"))
-					    (:file       "generator-code"
-					     :depends-on ("conditions"
-							  "util"))
-					    (:file       "target-class"
-					     :depends-on ("protocol"
-							  "code-generating-target-mixin"))
-					    (:file       "target-relations"
-					     :depends-on ("protocol"
-							  "code-generating-target-mixin"))
-					    (:file       "target-serializer"
-					     :depends-on ("protocol"
-							  "generator-code"
-							  "code-generating-target-mixin"))
-					    (:file       "target-offset"
-					     :depends-on ("protocol"
-							  "code-generating-target-mixin"))
-					    (:file       "target-proto"
-					     :depends-on ("protocol"
-							  "stream-target-mixin"))
-					    (:file       "target-protofile"
-					     :depends-on ("protocol"
-							  "target-proto"))
-					    (:file       "target-graphviz"
-					     :depends-on ("protocol"
-							  "stream-target-mixin"))))
+		;; Backend and frontend
+		(:module     "backend"
+		 :pathname   "src/backend"
+		 :depends-on ("backend-early" "bootstrap")
+		 :components ((:file       "conditions")
+			      (:file       "util")
+			      (:file       "macros")
+			      (:file       "protocol"
+			       :depends-on ("util" "conditions" "macros"))
+			      (:file       "code-generating-target-mixin"
+			        :depends-on ("util"))
+			      (:file       "file-target-mixin")
+			      (:file       "stream-target-mixin"
+			       :depends-on ("protocol"))
+			      (:file       "generator-code"
+			       :depends-on ("conditions" "util"))
+			      (:file       "target-class"
+			       :depends-on ("protocol"
+					    "code-generating-target-mixin"))
+			      (:file       "target-relations"
+			       :depends-on ("protocol"
+					    "code-generating-target-mixin"))
+			      (:file       "target-serializer"
+			       :depends-on ("protocol" "generator-code"
+					    "code-generating-target-mixin"))
+			      (:file       "target-offset"
+			       :depends-on ("protocol"
+					    "code-generating-target-mixin"))
+			      (:file       "target-proto"
+			       :depends-on ("protocol""stream-target-mixin"))
+			      (:file       "target-protofile"
+			       :depends-on ("protocol" "target-proto"))
+			      (:file       "target-graphviz"
+			       :depends-on ("protocol" "stream-target-mixin"))))
 
-			      (:module     "frontend"
-			       :depends-on ("frontend-early"
-					    "bootstrap")
-			       :components ((:file       "conditions")
-					    (:file       "variables")
+		(:module     "frontend"
+		 :pathname   "src/frontend"
+		 :depends-on ("frontend-early" "bootstrap")
+		 :components ((:file       "conditions")
+			      (:file       "variables")
 
-					    (:file       "protobin")))
+			      (:file       "protobin")))
 
-			      ;; Late "bootstrapping"
-			      (:file       "bootstrap-late"
-			       :depends-on ("bootstrap"
-					    "backend"))
+		;; Late "bootstrapping"
+		(:file       "bootstrap-late"
+		 :pathname   "src/bootstrap-late"
+		 :depends-on ("bootstrap" "backend"))
 
-			      ;; ASDF support
-			      (:file       "asdf-protoc"
-			       :depends-on ("frontend"
-					    "backend")))))
+		;; ASDF support
+		(:file       "asdf-protoc"
+		 :pathname   "src/asdf-protoc"
+		 :depends-on ("frontend" "backend")))
+
   :in-order-to ((test-op (test-op :cl-protobuf-test))))
 
 #+asdf-system-connections
