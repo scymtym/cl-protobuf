@@ -35,8 +35,9 @@
 
 (in-package :protocol-buffer)
 
-(let ((pbb::*emit-print*   *load-print*)
-      (pbb::*emit-verbose* *load-verbose*))
+(let ((pbb:*emit-print*   *load-print*)
+      (pbb:*emit-verbose* *load-verbose*))
+  (pbb:emit *reflective-descriptor-file-set* :relations)
   (pbb:emit *reflective-descriptor-file-set* :packed-size)
   (pbb:emit *reflective-descriptor-file-set* :serializer)
   (pbb:emit *reflective-descriptor-file-set* :deserializer))
