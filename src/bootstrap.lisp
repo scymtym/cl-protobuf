@@ -44,13 +44,14 @@ class and potentially associated enums.
 
 This is a throw-away function the single purpose of which is getting
 the descriptor classes defined."
-  (bind (((marker name &rest specs) form)
+  (bind (((_ name &rest specs) form)
 	 ((:flet filter (type))
 	  (mapcar #'rest (remove type specs
 				 :key #'first :test-not #'eq)))
 	 ((:flet generate-internal-enum (spec))
 	  (pbb::generate-enum
-	   (symcat (symbol-package name) name (first spec))
+	   (let ((*package* (symbol-package name)))
+	     (symbolicate name "-" (first spec)))
 	   (rest spec)))
 	 ((:flet make-field-thunk (spec))
 	  (bind (((name1 type _
@@ -60,12 +61,9 @@ the descriptor classes defined."
 		 (labels (intersection args '(:optional :required :repeated)))
 		 (label  (or (first labels) :required)))
 	    (declare (ignore optional required repeated))
-
 	    #'(lambda ()
 		(pbb::generate-slot
 		 name1 type label packed :class-name name)))))
-    (declare (ignore marker))
-
     (handler-bind
 	(#+sbcl (sb-c::redefinition-warning #'muffle-warning))
       (eval
@@ -114,7 +112,7 @@ the reflective protocol buffer descriptors.")
 
 (defvar *reflective-descriptors*
   (iter (for item in-file *reflective-descriptors-pathname*)
-	(collect (eval (pbf::process-message item))))
+	(collect (eval (pbf:process-message item))))
   "A list of reflective protocol buffer descriptor instances. The
 descriptors are reflective in the sense that they describe the
 protocol buffer descriptor class hierarchy in terms of `message-desc',
