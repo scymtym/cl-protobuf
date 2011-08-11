@@ -69,9 +69,8 @@ space for packing protocol buffer messages.")
     (with-descriptor-fields (node field-desc)
      (bind ((name1     (intern* (make-lisp-slot-name name)))
 	    (type1     (make-lisp-slot-type node))
-	    (repeated? (eq label :repeated))
-	    (packed?   (when options
-			 (pb::field-options-packed options))))
+	    (repeated? (field-repeated? node))
+	    (packed?   (field-packed? node)))
        #'(lambda (object-var)
 	   (generate-slot-packed-size name1 type1 number object-var
 				      :repeated?  repeated?
@@ -108,9 +107,8 @@ octet-vector buffers.")
     (with-descriptor-fields (node field-desc)
       (bind ((name1     (intern* (make-lisp-slot-name name)))
 	     (type1     (make-lisp-slot-type node))
-	     (repeated? (eq label :repeated))
-	     (packed?   (when options
-			  (pb::field-options-packed options))))
+	     (repeated? (field-repeated? node))
+	     (packed?   (field-packed? node)))
 	#'(lambda (buffer-var offset-var object-var)
 	    (generate-slot-packer
 	     type1 name1 number buffer-var offset-var object-var
@@ -149,9 +147,8 @@ classes.")
     (with-descriptor-fields (node field-desc)
       (bind ((name1     (intern* (make-lisp-slot-name name)))
 	     (type1     (make-lisp-slot-type node))
-	     (repeated? (eq label :repeated))
-	     (packed?   (when options
-			  (pb::field-options-packed options)))
+	     (repeated? (field-repeated? node))
+	     (packed?   (field-packed? node))
 	     (desired-wire-type (proto-type->wire-type type repeated? packed?)))
 	#'(lambda (read-wire-type-var buffer-form offset-form object-form)
 	    (values
