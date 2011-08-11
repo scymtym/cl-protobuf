@@ -39,11 +39,6 @@
 ;;; Naming-related functions
 ;;
 
-(defun make-lisp-enum-value (name)
-  "Return a suitable name for the enumeration value originally named
-NAME."
-  (make-keyword (pb::->lisp-name name)))
-
 (defun make-lisp-slot-type (node)
   "Return a symbol that designates a suitable slot type for the field
 NODE."

@@ -76,6 +76,12 @@ should be included in generated names."))
 	    (emit container '(:lisp-name :result-type string))))
       (values package (format nil "~@[~A/~]~A" name suffix)))))
 
+(defmethod emit ((node   enum-value-desc)
+		 (target target-lisp-name)
+		 &key)
+  (values (find-package :keyword)
+	  (pb::->lisp-name (descriptor-name node))))
+
 (defmethod emit ((node   message-desc)
 		 (target target-lisp-name)
 		 &key)

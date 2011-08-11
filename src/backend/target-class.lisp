@@ -151,4 +151,4 @@ name resolution."))
 		 &key)
   "Emit name-value-pair for NODE."
   (with-descriptor-fields (node enum-value-desc)
-    `(,(make-lisp-enum-value name) ,number)))
+    `(,(emit node :lisp-name) ,number)))
