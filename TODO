@@ -1,24 +1,39 @@
 * Bugs
-** TODO /* */ Comments do not work
-** TODO Proper name resolution
+** DONE Avoid name clashes caused by nested things
+   maybe like this =outer-message/inner-message=
+   instead of =outer-message-inner-message=
+** DONE Proper name resolution
    + Name resolution function needs a stack of current parent objects
    + There has to be a distinction between
      + Finding the descriptor instance that is designated by some name
      + Finding the Lisp type that is designated by some name
+** DONE /* */ Comments do not work
 * Refactor
-** TODO Use bind consistently
+** TODO =extract= methods have same body
+** TODO Move binio into separate system
+** TODO Move =generator-code.lisp= to backend-early
+   Along with
+   + src/backend/util.lisp
+   + src/backend/conditions.lisp
+   + src/backend/protocol.lisp
+** STARTED Get rid of =symcat=
+** STARTED Use bind consistently
    Since we already use bind, use it throughout
-** TODO Simplify module structure
+** DONE Simplify module structure
    In cl-protobuf.asd
 * Features
-** TODO Call a function to compute names of accessors
 ** TODO Serializers and deserializers are generated without docstrings
+** STARTED Call a function to compute names
+   + of classes
+   + of slots
+   + of accessors
 ** STARTED Coerce sequence data automatically
    Generate =initialize-instance= methods, and maybe =setf= methods,
    that coerce initargs to the correct types where required (currently
    vectors for repeated fields)
 ** STARTED Use proper conditions
    browns protocol buffer stuff seems to have nice error handling
+** DONE Process =import= statements
 * Tasks
 ** TODO How to deal with initforms?
    Google's protocol buffer has some notion of a default object which
