@@ -56,7 +56,7 @@ space for packing protocol buffer messages.")
   "Generate code for the `packed-size' method."
   (with-emit-symbols
     (with-descriptor-fields (node message-desc)
-      (bind ((name1 (intern* (make-lisp-class-name name parent))))
+      (bind ((name1 (emit node :lisp-name)))
 	(map 'nil #'recur nested-type)
 	(eval (generate-packed-size-method
 	       name1 (map 'list #'recur field)))))))
@@ -67,7 +67,7 @@ space for packing protocol buffer messages.")
   "Generate code to compute the packed size of a single slot."
   (with-emit-symbols
     (with-descriptor-fields (node field-desc)
-     (bind ((name1     (intern* (make-lisp-slot-name name)))
+     (bind ((name1     (emit node '(:lisp-name :nested? nil)))
 	    (type1     (make-lisp-slot-type node))
 	    (repeated? (field-repeated? node))
 	    (packed?   (field-packed? node)))
@@ -95,7 +95,7 @@ octet-vector buffers.")
   "Generate code for the `pack' method."
   (with-emit-symbols
     (with-descriptor-fields (node message-desc)
-      (bind ((name1 (intern* (make-lisp-class-name name parent))))
+      (bind ((name1 (emit node :lisp-name)))
 	(map 'nil #'recur nested-type)
 	(eval (generate-pack-method name1 (map 'list #'recur field)))))))
 
@@ -105,7 +105,7 @@ octet-vector buffers.")
   "Generate code to pack a single slot."
   (with-emit-symbols
     (with-descriptor-fields (node field-desc)
-      (bind ((name1     (intern* (make-lisp-slot-name name)))
+      (bind ((name1     (emit node '(:lisp-name :nested? nil)))
 	     (type1     (make-lisp-slot-type node))
 	     (repeated? (field-repeated? node))
 	     (packed?   (field-packed? node)))
@@ -135,7 +135,7 @@ classes.")
   "Generate code for the `unpack' method."
   (with-emit-symbols
     (with-descriptor-fields (node message-desc)
-     (bind ((name1 (intern* (make-lisp-class-name name parent))))
+     (bind ((name1 (emit node :lisp-name)))
        (map 'nil #'recur nested-type)
        (eval (generate-unpack-method name1 (map 'list #'recur field)))))))
 
@@ -145,7 +145,7 @@ classes.")
   "Generate code to unpack a single slot"
   (with-emit-symbols
     (with-descriptor-fields (node field-desc)
-      (bind ((name1     (intern* (make-lisp-slot-name name)))
+      (bind ((name1     (emit node '(:lisp-name :nested? nil)))
 	     (type1     (make-lisp-slot-type node))
 	     (repeated? (field-repeated? node))
 	     (packed?   (field-packed? node))

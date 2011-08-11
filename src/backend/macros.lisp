@@ -109,18 +109,15 @@ TARGET-VAR and push NODE-VAR onto the context stack."
                  or nil.
 + ancestors   :: List of all ancestor nodes.
 + recur       :: A closure that accepts a node and calls `emit' with the
-                 current target on that node.
-+ intern*     :: Similar to `intern' but use the context package."
+                 current target on that node."
   `(symbol-macrolet ((package     (context-package *context*))
 		     (stack       (context-stack *context*))
 		     (parent      (second (context-stack *context*)))
 		     (grandparent (third (context-stack *context*)))
 		     (ancestors   (rest (context-stack *context*))))
      (flet ((recur (node)
-	      (emit node (context-target *context*)))
-	    (intern* (name) ;; TODO rename
-	      (intern name package)))
-       (declare (ignorable #'recur #'intern*))
+	      (emit node (context-target *context*))))
+       (declare (ignorable #'recur))
        ,@body)))
 
 (defmacro with-descriptor-fields ((instance class) &body body)

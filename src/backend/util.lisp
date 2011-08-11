@@ -39,34 +39,16 @@
 ;;; Naming-related functions
 ;;
 
-(defun make-lisp-enum-name (name &optional parent) ;; TODO change to parents
-  "Return a suitable name for an enumeration based on NAME and
-PARENT. PARENT should be non-nil for nested enumerations."
-  (pb::->lisp-name (%maybe-nested-name name parent)))
-
 (defun make-lisp-enum-value (name)
   "Return a suitable name for the enumeration value originally named
 NAME."
   (make-keyword (pb::->lisp-name name)))
 
-(defun make-lisp-class-name (name &optional parent)
-  "Return a suitable name for a class based on NAME and PARENT. PARENT
-should be non-nil for nested messages."
-  (pb::->lisp-name (%maybe-nested-name name parent)))
-
-(defun make-lisp-slot-name (name)
-  "Return a suitable name for a slot based on the field name NAME."
-  (pb::->lisp-name name))
-
 (defun make-lisp-slot-type (node)
   "Return a symbol that designates a suitable slot type for the field
 NODE."
   (if (or (field-message? node) (field-enum? node))
-      (let ((type-desc (field-type-descriptor node)))
-	(intern
-	 (make-lisp-class-name (descriptor-name type-desc)
-			       (descriptor-parent type-desc))
-	 (context-package *context*)))
+      (emit (field-type-descriptor node) :lisp-name)
       (pb::field-desc-type node)))
 
 (defun make-lisp-accessor-name (class-name slot-name)
@@ -140,14 +122,3 @@ returned or an error is signaled, depending on ERROR?."
     (let ((package-name (pb::->lisp-name name :allow-dots? t)))
       (or (find-package package-name)
 	  (make-package package-name)))))
-
-
-;;;
-;;
-
-(defun %maybe-nested-name (name parent)
-  (if (and parent (typep parent 'pb::message-desc))
-      (concatenate
-       'string
-       (pb::message-desc-name parent) "/" name)
-      name))

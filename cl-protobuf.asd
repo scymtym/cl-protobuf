@@ -127,15 +127,20 @@ Neil T. Dantam."
 			       :depends-on ("protocol"))
 			      (:file       "generator-code"
 			       :depends-on ("conditions" "util"))
+
+			      (:file       "target-lisp-name"
+			       :depends-on ("protocol"))
 			      (:file       "target-class"
 			       :depends-on ("protocol"
-					    "code-generating-target-mixin"))
+					    "code-generating-target-mixin"
+					    "target-lisp-name"))
 			      (:file       "target-relations"
 			       :depends-on ("protocol"
 					    "code-generating-target-mixin"))
 			      (:file       "target-serializer"
 			       :depends-on ("protocol" "generator-code"
-					    "code-generating-target-mixin"))
+					    "code-generating-target-mixin"
+					    "target-lisp-name"))
 			      (:file       "target-offset"
 			       :depends-on ("protocol"
 					    "code-generating-target-mixin"))

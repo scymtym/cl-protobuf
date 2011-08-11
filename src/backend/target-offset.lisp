@@ -64,7 +64,7 @@ containing protocol buffer message.")
   "Generate code to find the offset of a single field."
   (with-emit-symbols
     (with-descriptor-fields (node field-desc)
-      (bind ((name1 (intern* (make-lisp-slot-name name)))
+      (bind ((name1 (emit node '(:lisp-name :nested? nil)))
 	     ((:flet generate-offset-method (specializer))
 	      `(defmethod offset ((buffer   simple-array)
 				  (message  message-desc)
@@ -105,7 +105,7 @@ message.")
   "Generate code to extract the value of a single field."
   (with-emit-symbols
     (with-descriptor-fields (node field-desc)
-      (bind ((name1     (intern* (make-lisp-slot-name name)))
+      (bind ((name1     (emit node '(:lisp-name :nested? nil)))
 	     (type1     (make-lisp-slot-type node))
 	     (repeated? (field-repeated? node))
 	     (packed?   (field-packed? node))

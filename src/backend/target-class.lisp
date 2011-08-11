@@ -65,17 +65,14 @@ name resolution."))
   "Define an empty Lisp class for name resolution."
   (call-next-method)
 
-  (with-emit-symbols
-    (with-descriptor-fields (node message-desc)
-      (bind ((name1 (intern* (make-lisp-class-name name parent))))
-	(eval `(cl:defclass ,name1 () ()))))))
+  (let ((name1 (emit node :lisp-name)))
+    (eval `(cl:defclass ,name1 () ()))))
 
 (defmethod emit ((node   enum-desc)
 		 (target target-class-forward)
 		 &key)
   "Intern a symbol naming the enum for NODE."
-  (with-emit-symbols
-    (intern* (make-lisp-enum-name (descriptor-name node) parent))))
+  (emit node :lisp-name))
 
 
 ;;; Emitter methods for `target-class'
@@ -94,7 +91,7 @@ name resolution."))
   (with-emit-symbols
     (with-descriptor-fields (node message-desc)
       (bind (((:accessors-r/o (export? target-export?)) target)
-	     (name1 (intern* (make-lisp-class-name name parent))))
+	     (name1 (emit node :lisp-name)))
 	;; Evaluate nested definitions immediately so types are
 	;; available.
 	(map nil #'recur enum-type)
@@ -122,12 +119,10 @@ name resolution."))
   "Emit a slot specification for NODE."
   (with-emit-symbols
     (with-descriptor-fields (node field-desc)
-      (bind ((name1      (intern* (make-lisp-slot-name name)))
+      (bind ((name1      (emit node '(:lisp-name :nested? nil)))
 	     (type1      (make-lisp-slot-type node))
 	     (packed?    (field-packed? node))
-	     (class-name (intern* (make-lisp-class-name
-				   (pb::message-desc-name parent)
-				   grandparent)))) ;; TODO make a function
+	     (class-name (emit parent :lisp-name)))
 	#'(lambda ()
 	    (apply #'generate-slot
 		   name1 type1 label packed?
@@ -141,7 +136,7 @@ name resolution."))
   "Emit an enum definition for NODE."
   (with-emit-symbols
     (with-descriptor-fields (node enum-desc)
-      (bind ((name1 (intern* (make-lisp-enum-name name parent))))
+      (bind ((name1 (emit node :lisp-name)))
 	(eval `(progn ,@(generate-enum name1 (map 'list #'recur value))))
 
 	;; Export the name of the enum, if requested.
