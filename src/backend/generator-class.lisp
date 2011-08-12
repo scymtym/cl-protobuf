@@ -91,7 +91,7 @@
 	  0s0))
      ((enum-type-p type)
       (if default-supplied?
-	  (make-lisp-enum-value default)
+	  (make-keyword (pb::->lisp-name default))
 	  nil))
      ((integer-type-p type)
       (if default-supplied?
