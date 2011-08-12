@@ -120,8 +120,11 @@ Neil T. Dantam."
 			      (:file       "macros")
 			      (:file       "protocol"
 			       :depends-on ("util" "conditions" "macros"))
+
 			      (:file       "code-generating-target-mixin"
-			        :depends-on ("util"))
+			       :depends-on ("util" "macros" "protocol"))
+			      (:file       "field-type-delegating-target-mixin"
+			       :depends-on ("macros" "protocol"))
 			      (:file       "file-target-mixin")
 			      (:file       "stream-target-mixin"
 			       :depends-on ("protocol"))
@@ -133,19 +136,20 @@ Neil T. Dantam."
 			      (:file       "target-class"
 			       :depends-on ("protocol"
 					    "code-generating-target-mixin"
+					    "field-type-delegating-target-mixin"
 					    "target-lisp-name"))
 			      (:file       "target-relations"
-			       :depends-on ("protocol"
-					    "code-generating-target-mixin"))
+			       :depends-on ("protocol" "target-lisp-name"))
 			      (:file       "target-serializer"
 			       :depends-on ("protocol" "generator-code"
 					    "code-generating-target-mixin"
+					    "field-type-delegating-target-mixin"
 					    "target-lisp-name"))
 			      (:file       "target-offset"
 			       :depends-on ("protocol"
 					    "code-generating-target-mixin"))
 			      (:file       "target-proto"
-			       :depends-on ("protocol""stream-target-mixin"))
+			       :depends-on ("protocol" "stream-target-mixin"))
 			      (:file       "target-protofile"
 			       :depends-on ("protocol" "target-proto"))
 			      (:file       "target-graphviz"

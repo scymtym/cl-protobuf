@@ -44,7 +44,8 @@ generated classes will not automatically have associated `pack' and
 ;;; Target class
 ;;
 
-(defclass target-class (code-generating-target-mixin)
+(defclass target-class (code-generating-target-mixin
+			field-type-delegating-target-mixin)
   ()
   (:documentation
    "Target class for class code generation."))
@@ -112,22 +113,6 @@ name resolution."))
 
 	;; Return name of generated class.
 	name1))))
-
-(defmethod emit :before ((node   field-desc)
-			 (target target-class)
-			 &key)
-  ;; If the field is of class or enum type, make sure the class or
-  ;; enum is defined.
-  (with-emit-symbols
-    (bind (((:accessors-r/o (message? field-message?)
-			    (enum?    field-enum?)) node)
-	   (type (when (or message? enum?)
-		   (field-type-descriptor node)))
-	   (name (when type
-		   (emit type :lisp-name))))
-      (when (or (and message? (not (find-class name nil)))
-		(and enum?    (not (enum-type-p name))))
-	(recur type)))))
 
 (defmethod emit ((node   field-desc)
 		 (target target-class)
