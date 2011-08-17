@@ -44,7 +44,8 @@
 buffer message field within the packed representation of the
 containing protocol buffer message.")
 
-(defclass target-offset (code-generating-target-mixin)
+(defclass target-offset (caching-target-mixin
+			 code-generating-target-mixin)
   ()
   (:documentation
    "Target class for offset target."))
@@ -85,7 +86,8 @@ containing protocol buffer message.")
 buffer messages without unpacking the entire protocol buffer
 message.")
 
-(defclass target-extractor (code-generating-target-mixin)
+(defclass target-extractor (caching-target-mixin
+			    code-generating-target-mixin)
   ()
   (:documentation
    "Target class for extractor target."))

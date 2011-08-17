@@ -44,13 +44,15 @@ generated classes will not automatically have associated `pack' and
 ;;; Target class
 ;;
 
-(defclass target-class (code-generating-target-mixin
+(defclass target-class (caching-target-mixin
+			code-generating-target-mixin
 			field-type-delegating-target-mixin)
   ()
   (:documentation
    "Target class for class code generation."))
 
-(defclass target-class-forward (code-generating-target-mixin)
+(defclass target-class-forward (caching-target-mixin
+				code-generating-target-mixin)
   ()
   (:documentation
    "Helper target for class target which generates empty classes for

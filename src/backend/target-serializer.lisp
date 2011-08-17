@@ -45,7 +45,8 @@
   "Emit methods on `packed-size' that compute the required storage
 space for packing protocol buffer messages.")
 
-(defclass target-packed-size (code-generating-target-mixin
+(defclass target-packed-size (caching-target-mixin
+			      code-generating-target-mixin
 			      field-type-delegating-target-mixin)
   ()
   (:documentation
@@ -85,7 +86,8 @@ space for packing protocol buffer messages.")
   "Emit methods on `pack' that serialize protocol buffer messages into
 octet-vector buffers.")
 
-(defclass target-serializer (code-generating-target-mixin
+(defclass target-serializer (caching-target-mixin
+			     code-generating-target-mixin
 			     field-type-delegating-target-mixin)
   ()
   (:documentation
@@ -126,7 +128,8 @@ octet-vector buffers.")
 messages into instances of generated protocol buffer message
 classes.")
 
-(defclass target-deserializer (code-generating-target-mixin
+(defclass target-deserializer (caching-target-mixin
+			       code-generating-target-mixin
 			       field-type-delegating-target-mixin)
   ()
   (:documentation
