@@ -93,6 +93,38 @@ SOURCE."
   (protocol-buffer.frontend:load/text (component-pathname source)))
 
 
+;;;
+;;
+
+(defclass protocol-buffer-descriptor-directory (module)
+  ()
+  (:default-initargs
+   :default-component-class 'protocol-buffer-descriptor)
+  (:documentation
+   "Instances of this module class represent directories which contain
+protocol buffer descriptor files (usually of type \"proto\") directly
+or in their subdirectories. The protocol buffer load-path is extended
+to contain the pathname of the respective module. Import statements
+with relative filenames are then interpreted as being relative to
+the pathname of the module."))
+
+(defmethod (setf module-default-component-class)
+    ((new-value (eql nil))
+     (module     protocol-buffer-descriptor-directory))
+  "Prevent our default component class from being overwritten with
+  nil."
+  nil)
+
+(defmethod perform :before ((operation compile-op)
+			    (component protocol-buffer-descriptor-directory))
+  "Adjust the protocol buffer load path to allow proto files to be
+loaded relative to the pathname of COMPONENT."
+  (pushnew (component-pathname component)
+	   protocol-buffer.frontend:*proto-load-path*
+	   :key  #'namestring
+	   :test #'string=))
+
+
 ;;; Add features
 ;;
 
