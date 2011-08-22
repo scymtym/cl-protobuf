@@ -103,7 +103,7 @@ resolve the import."))
    (lambda (condition stream)
      (format stream "~@<The resource designated by the import ~S could ~
 not be resolved. ~:[No locations have been tried~;~:*These locations ~
-have been tried: ~{~S~^, ~}.~]~@:>"
+have been tried: ~{~S~^, ~}~].~@:>"
 	     (import-error-import    condition)
 	     (import-error-locations condition))))
   (:documentation
