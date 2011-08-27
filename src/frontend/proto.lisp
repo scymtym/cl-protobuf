@@ -73,7 +73,8 @@ http://code.google.com/apis/protocolbuffers/docs/proto.html."))
 				  :fill-pointer    1))))
     ;; Load all dependencies specified via "import" statements in
     ;; SOURCE.
-    (map nil dependency-handler (pb::file-desc-dependency file))
+    (map nil (compose dependency-handler #'parse-namestring)
+	 (pb::file-desc-dependency file))
     ;; After dependencies have been resolved, try to register names
     ;; and relations.
     (pbb:emit set :relations)
@@ -100,7 +101,7 @@ http://code.google.com/apis/protocolbuffers/docs/proto.html."))
 	       :pathname           pathname
 	       :dependency-handler dependency-handler)))
 
-(defmethod load/text ((source list)
+(defmethod load/text ((source sequence)
 		      &rest args
 		      &key &allow-other-keys)
   "This method read descriptions from all files in the list SOURCE and
@@ -131,6 +132,8 @@ candidate files. The value :FIRST (the default) causes the candidate
 file that was produced by the leftmost item of `*proto-load-path*' to
 be selected. The value :ERROR causes an error of type
 `ambiguous-import' to be signaled."
+  (check-type path pathname "a pathname")
+
   ;; If PATH is absolute, itself is the only location. Otherwise,
   ;; elements of *proto-load-path* are used.
   (bind ((locations (if (eq (first (pathname-directory path)) :absolute)
