@@ -93,3 +93,14 @@ of type ~S, not ~S.~@:>"
 	   :report    "~@<When parsing the ASDF component ~A, the result ~
 ~S was of type ~S, not ~S.~@:>"
 	   :arguments (component result (type-of result) 'pb::file-set-desc)))))
+
+(addtest (proto-frontend-root
+          :documentation
+	  "Test import resolution and associated error handling.")
+  import
+
+  (let ((*proto-load-path* nil))
+    (ensure-condition 'cannot-resolve-import
+      (load/text "import \"/absolute-path/no-such-file.proto\";"))
+    (ensure-condition 'cannot-resolve-import
+      (load/text "import \"no-such-file.proto\";"))))
