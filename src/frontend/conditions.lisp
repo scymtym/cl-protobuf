@@ -102,8 +102,9 @@ resolve the import."))
   (:report
    (lambda (condition stream)
      (format stream "~@<The resource designated by the import ~S could ~
-not be resolved. ~:[No locations have been tried~;~:*These locations ~
-have been tried: ~{~S~^, ~}~].~@:>"
+not be resolved. ~:[No locations have been tried. Check ~
+PROTOCOL-BUFFER.FRONTEND:*PROTO-LOAD-PATH* or the installed dependency ~
+handler~;~:*These locations have been tried: ~{~S~^, ~}~].~@:>"
 	     (import-error-import    condition)
 	     (import-error-locations condition))))
   (:documentation
