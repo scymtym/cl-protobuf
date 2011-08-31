@@ -54,7 +54,7 @@ code is designated should be exported."))
    "This class can be used as a superclass for target classes that
 represent a code generation target."))
 
-(defmethod emit ((node   pb::file-desc)
+(defmethod emit ((node   file-desc)
 		 (target code-generating-target-mixin)
 		 &key)
   (with-emit-symbols
@@ -62,7 +62,7 @@ represent a code generation target."))
      (map 'list #'recur (pb::file-desc-enum-type    node))
      (map 'list #'recur (pb::file-desc-message-type node)))))
 
-(defmethod emit :around ((node   pb::file-desc)
+(defmethod emit :around ((node   file-desc)
 			 (target code-generating-target-mixin)
 			 &key)
   (let* ((package-name (pb::file-desc-package node))
