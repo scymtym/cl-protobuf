@@ -100,7 +100,7 @@ name resolution."))
 	(map nil #'recur enum-type)
 	(map nil #'recur nested-type)
 	;;
-	(eval `(progn ,@(generate-class name1 (map 'list #'recur field))))
+	(eval `(defclass ,name1 () ,(map 'list #'recur field)))
 
 	;; Generate descriptor retrieval method.
 	(eval `(progn
@@ -122,16 +122,31 @@ name resolution."))
   "Emit a slot specification for NODE."
   (with-emit-symbols
     (with-descriptor-fields (node field-desc)
-      (bind ((name1      (emit node '(:lisp-name :nested? nil)))
-	     (type1      (make-lisp-slot-type node))
-	     (packed?    (field-packed? node))
-	     (class-name (emit parent :lisp-name)))
-	#'(lambda ()
-	    (apply #'generate-slot
-		   name1 type1 label packed?
-		   :class-name class-name
-		   (unless (emptyp default-value)
-		     (list :default default-value))))))))
+      (bind (((:accessors-r/o (export? target-export?)) target)
+	     (name1         (emit node '(:lisp-name :nested? nil)))
+	     (type1         (make-lisp-slot-type node))
+	     (packed?       (field-packed? node))
+	     (class-name    (emit parent :lisp-name))
+	     (accessor-name (emit node '(:lisp-name :nested? t)))
+	     (bound-name    (let ((*package* (symbol-package accessor-name)))
+			      (symbolicate accessor-name "?"))))
+
+	;; Generate method that checks for the presence of the field.
+	(eval `(defgeneric ,bound-name (object)
+		 (:method ((object ,class-name))
+		   (slot-boundp object ',name1))))
+
+	;; Export the accessor name, if requested.
+	(when export?
+	  (export accessor-name (symbol-package accessor-name))
+	  (export bound-name    (symbol-package bound-name)))
+
+	;; Emit slot specification.
+	(apply #'generate-slot
+	       name1 type1 label packed?
+	       :class-name class-name
+	       (unless (emptyp default-value)
+		 (list :default default-value)))))))
 
 (defmethod emit ((node   enum-desc)
 		 (target target-class)

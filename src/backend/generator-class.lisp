@@ -138,14 +138,7 @@ packed~] type ~S"
 	      `(:accessor ,(%make-lisp-accessor-name class-name name)))
       :initform ,(apply #'generate-initform type repeated? packed?
 			(when default-supplied?
-			  (list :default default)))))) ;; TODO use default value
-
-(defun generate-class (name fields &optional doc)
-  "Generate a class definition for a class named NAME with slots
-specified by SPECS."
-  `((cl:defclass ,name ()
-      ,(map 'list #'funcall fields)
-      ,@(when doc `((:documentation ,doc))))))
+			  (list :default default))))))
 
 
 ;;; Utility functions

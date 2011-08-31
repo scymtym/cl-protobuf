@@ -53,7 +53,7 @@ the descriptor classes defined."
 	   (let ((*package* (symbol-package name)))
 	     (symbolicate name "/" (first spec)))
 	   (rest spec)))
-	 ((:flet make-field-thunk (spec))
+	 ((:flet make-field (spec))
 	  (bind (((name1 type _
 		   &rest args
 		   &key
@@ -61,16 +61,14 @@ the descriptor classes defined."
 		 (labels (intersection args '(:optional :required :repeated)))
 		 (label  (or (first labels) :required)))
 	    (declare (ignore optional required repeated))
-	    #'(lambda ()
-		(pbb::generate-slot
-		 name1 type label packed :class-name name)))))
+	    (pbb::generate-slot name1 type label packed :class-name name))))
     (handler-bind
 	(#+sbcl (sb-c::redefinition-warning #'muffle-warning))
       (eval
        `(progn
 	  ,@(mapcan #'generate-internal-enum (filter :enum))
-	  ,@(pbb::generate-class
-	     name (mapcar #'make-field-thunk (filter :field)))
+	  (defclass ,name ()
+	    ,(map 'list #'make-field (filter :field)))
 	  (export ',name (find-package :protocol-buffer)))))))
 
 (defvar *reflective-descriptors-pathname*

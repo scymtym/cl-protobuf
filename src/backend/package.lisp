@@ -38,8 +38,7 @@
 
   ;; Class generation
   (:export
-   :generate-enum
-   :generate-class)
+   :generate-enum)
 
   ;; Generic emitter
   (:export
