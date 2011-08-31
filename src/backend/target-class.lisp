@@ -81,10 +81,10 @@ name resolution."))
 ;;; Emitter methods for `target-class'
 ;;
 
-(defmethod emit :before ((node   file-set-desc)
+(defmethod emit :before ((node   message-desc)
 			 (target target-class)
 			 &key)
-  "Generate empty classes for name resolution. "
+  "Generate empty classes for name resolution."
   (emit node :class-forward))
 
 (defmethod emit ((node   message-desc)
