@@ -294,7 +294,10 @@ start and a range end position."
 ;;
 
 (declaim (ftype (function (wire-type octet-vector non-negative-fixnum)
-			  (values non-negative-fixnum (or null non-negative-fixnum)))
+			  #+seems-to-be-wrong
+			  (values non-negative-fixnum
+				  &optional non-negative-fixnum)
+			  *)
 		packed-field-size)
 	 (inline packed-field-size))
 
