@@ -61,7 +61,7 @@
 (defun make-octet-vector (count)
   (make-array count :element-type 'octet))
 
-(declaim (ftype (function (&rest list) octet-vector) octet-vector)
+(declaim (ftype (function (&rest octet) octet-vector) octet-vector)
 	 (inline octet-vector))
 
 (defun octet-vector (&rest args)
