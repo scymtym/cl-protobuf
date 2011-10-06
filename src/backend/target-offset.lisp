@@ -65,7 +65,10 @@ containing protocol buffer message.")
   "Generate code to find the offset of a single field."
   (with-emit-symbols
     (with-descriptor-fields (node field-desc)
-      (bind ((name1 (emit node '(:lisp-name :nested? nil)))
+      (bind ((name1     (emit node '(:lisp-name :nested? nil)))
+	     (repeated? (field-repeated? node))
+	     (packed?   (field-packed? node))
+	     (wire-type (proto-type->wire-type type repeated? packed?))
 	     ((:flet generate-offset-method (specializer))
 	      `(defmethod offset ((buffer   simple-array)
 				  (message  message-desc)
@@ -73,7 +76,17 @@ containing protocol buffer message.")
 				  &optional
 				  (start 0)
 				  (end   (length buffer)))
-		 (%offset ,number buffer start end))))
+		 (declare (type binio:octet-vector buffer)
+			  (type non-negative-fixnum start end))
+
+		 (when-let ((offset (%offset ,number buffer start end)))
+		   (bind (((:values length length-length)
+			   (pb::packed-field-size ,wire-type buffer offset)))
+		     (locally (declare (type non-negative-fixnum offset length)
+				       (type (or null non-negative-fixnum) length-length))
+		       (values offset
+			       (+ offset length)
+			       (+ offset (or length-length 0)))))))))
 	(list (eval (generate-offset-method `(eql ',name1)))
 	      (eval (generate-offset-method `(eql ,node))))))))
 
