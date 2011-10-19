@@ -63,6 +63,7 @@ returned or an error is signaled, depending on ERROR?."
 	  (if (typep descriptor 'file-desc)
 	      (pb::file-desc-package descriptor)
 	      (descriptor-name descriptor)))
+
 	 ((:labels resolve-in (components context))
 	  (bind (((first &rest rest) components)
 		 (match (find first (descriptor-children context)
@@ -72,27 +73,46 @@ returned or an error is signaled, depending on ERROR?."
 	      ((not match) nil)
 	      ((not rest)  match)
 	      (t           (resolve-in rest match)))))
+
 	 ((:labels possible-splits (package name))
 	  (bind (((first &rest rest) name))
-	    (cons (cons (format nil "~{~A.~}~A" package first) rest)
-		  (when rest
-		    (possible-splits (append package (list first)) rest)))))
-	 ((:labels resolve (context &optional up?))
+	    (cond
+	      (package
+	       (cons (cons (format nil "~{~A~^.~}" package) name)
+		     (when rest
+		       (possible-splits (append package (list first)) rest))))
+	      (rest
+	       (possible-splits (append package (list first)) rest))
+	      (t
+	       (list name)))))
+
+	 ((:labels resolve (components context &optional up?))
 	  (if (typep context 'file-set-desc)
 	      ;; If CONTEXT is a file set, try to resolve NAME in all
 	      ;; its files, but without "upwards recursion". This
 	      ;; necessary to resolve a name in a package consisting
 	      ;; of multiple files.
-	      (some #'resolve (descriptor-children context))
+	      (some (curry #'resolve components) (descriptor-children context))
 	      ;; For other containers, search in the container itself
 	      ;; and then, if UP? is non-nil, in its parents.
 	      (or (some (rcurry #'resolve-in context)
 			(possible-splits nil components))
 		  (when (and up? (descriptor-parent context))
-		    (resolve (descriptor-parent context) up?))))))
-    (or (if qualified?
-	    (find-descriptor name)
-	    (resolve context t))
+		    (resolve components (descriptor-parent context) up?))))))
+
+    (or (and qualified? (find-descriptor name))
+	(resolve components context t)
+	(bind ((context-components
+		(parse-name (descriptor-qualified-name context))))
+	  (iter outer
+		(for package-names on (rest (reverse context-components)))
+		(iter (for (package-name . name) in (possible-splits
+						     (reverse package-names)
+						     components))
+		      (when-let* ((package1 (find-package1 package-name
+							   :error? nil))
+				  (result   (resolve name package1)))
+			(return-from outer result)))))
 	(when error?
 	  (error 'name-resolution-failed
 		 :name name)))))

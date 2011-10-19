@@ -140,11 +140,13 @@ relations have been emitted for all descriptors."))
 creating an empty `file-set-desc' instance, if necessary."
   (or (find-package1 name :error? nil)
       (let ((package (make-instance 'file-set-desc)))
-	(eval `(defmethod find-package1 ((name (eql ,(make-keyword name)))
-					 &key
-					 error?)
-		 (declare (ignore error?))
-		 ,package))
+	(eval `(progn (defmethod descriptor-qualified-name ((descriptor (eql ,package)))
+			,name)
+		      (defmethod find-package1 ((name (eql ,(make-keyword name)))
+						&key
+						  error?)
+			(declare (ignore error?))
+			,package)))
 	package)))
 
 (defun make-qualified-name (parent-name name)
