@@ -115,6 +115,19 @@ the pathname of the module."))
   nil."
   nil)
 
+(defmethod do-traverse :around ((operation t)
+				(component protocol-buffer-descriptor-directory)
+				collect)
+  "Try to force pre-order processing for COMPONENT."
+  (do-collect collect (cons operation component))
+  (call-next-method))
+
+(defmethod operation-done-p ((operation compile-op)
+			     (component protocol-buffer-descriptor-directory))
+  "Try to make sure our :before method on perform compile-op is
+called."
+  nil)
+
 (defmethod perform :before ((operation compile-op)
 			    (component protocol-buffer-descriptor-directory))
   "Adjust the protocol buffer load path to allow proto files to be
