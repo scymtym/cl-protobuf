@@ -35,6 +35,17 @@
 
 (in-package :asdf)
 
+(defgeneric component-proto-load-path (component)
+  (:method-combination append)
+  (:documentation
+   "Return a list of protocol buffer load path entries that should be
+added to the current protocol buffer load path when loading
+COMPONENT."))
+
+(defmethod component-proto-load-path append ((component component))
+  (when (component-parent component)
+    (component-proto-load-path (component-parent component))))
+
 (defclass protocol-buffer-descriptor (source-file)
   ((type :initform "proto"))
   (:documentation
@@ -66,8 +77,11 @@ directly."
 
 (defmethod perform :around ((operation load-op)
 			    (file      protocol-buffer-descriptor))
-  (let ((pbb:*emit-print*   *asdf-verbose*)
-	(pbb:*emit-verbose* nil))
+  (let ((pbb:*emit-print*      *asdf-verbose*)
+	(pbb:*emit-verbose*    nil)
+	(pbf:*proto-load-path* (remove-duplicates
+				(append (component-proto-load-path file)
+					pbf:*proto-load-path*))))
     (call-next-method)))
 
 (defmethod perform ((operation load-op)
@@ -108,34 +122,15 @@ to contain the pathname of the respective module. Import statements
 with relative filenames are then interpreted as being relative to
 the pathname of the module."))
 
+(defmethod component-proto-load-path append ((component protocol-buffer-descriptor-directory))
+  (list (component-pathname component)))
+
 (defmethod (setf module-default-component-class)
     ((new-value (eql nil))
      (module     protocol-buffer-descriptor-directory))
   "Prevent our default component class from being overwritten with
   nil."
   nil)
-
-(defmethod do-traverse :around ((operation t)
-				(component protocol-buffer-descriptor-directory)
-				collect)
-  "Try to force pre-order processing for COMPONENT."
-  (do-collect collect (cons operation component))
-  (call-next-method))
-
-(defmethod operation-done-p ((operation compile-op)
-			     (component protocol-buffer-descriptor-directory))
-  "Try to make sure our :before method on perform compile-op is
-called."
-  nil)
-
-(defmethod perform :before ((operation compile-op)
-			    (component protocol-buffer-descriptor-directory))
-  "Adjust the protocol buffer load path to allow proto files to be
-loaded relative to the pathname of COMPONENT."
-  (pushnew (component-pathname component)
-	   protocol-buffer.frontend:*proto-load-path*
-	   :key  #'namestring
-	   :test #'string=))
 
 
 ;;; Add features
