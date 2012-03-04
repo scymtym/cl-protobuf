@@ -1,15 +1,12 @@
-// File Descriptor Set
-// BEGIN File Descriptor Proto
-// Name: addressbook.proto
+// addressbook.proto
 package tutorial;
 option java_package = "com.example.tutorial";
 option java_outer_classname = "AddressBookProtos";
-// Messages:
 message Person {
   enum PhoneType {
-    MOBILE           =  0;
-    HOME             =  1;
-    WORK             =  2;
+    MOBILE =  0;
+    HOME =  1;
+    WORK =  2;
     }
   message PhoneNumber {
     required string number = 1;
@@ -23,4 +20,3 @@ message Person {
 message AddressBook {
   repeated .tutorial.Person person = 1;
   }
-// END File Descriptor Proto

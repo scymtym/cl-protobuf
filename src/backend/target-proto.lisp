@@ -1,6 +1,6 @@
 ;;; target-proto.lisp ---
 ;;
-;; Copyright (C) 2010, 2011 Jan Moringen
+;; Copyright (C) 2010, 2011, 2012 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -79,31 +79,19 @@ printed around the output."
 ;;; Emitter methods
 ;;
 
-(defmethod emit :before ((node   file-set-desc)
-			 (target target-proto)
-			 &key)
-  (with-stream-emit-symbols stream
-    (format stream "// File Descriptor Set~%")))
-
 (defmethod emit ((node   file-desc)
 		 (target target-proto)
 		 &key)
   (with-stream-emit-symbols stream
     (with-descriptor-fields (node file-desc)
-      (format stream "// BEGIN File Descriptor Proto~%")
-      (format stream "// Name: ~A~%" name)
-
+      (format stream "// ~A~%" name)
       (format stream "package ~A;~%" package)
-      (unless (emptyp options)
-	(map nil #'recur options))
-      (unless (emptyp enum-type)
-	(format stream "// Enums:~%")
-	(map nil #'recur enum-type))
-      (unless (emptyp message-type)
-	(format stream "// Messages:~%")
-	(map nil #'recur message-type))
-      ;; TODO services
-      (format stream "// END File Descriptor Proto~%"))))
+      (format stream "~{import ~S;~%~}" (coerce dependency 'list))
+      (map nil #'recur options)
+      (map nil #'recur enum-type)
+      (map nil #'recur message-type)
+      ;; TODO services?
+      )))
 
 (defmethod emit ((node   file-options)
 		 (target target-proto)
@@ -157,4 +145,4 @@ printed around the output."
 		 &key)
   (with-stream-emit-symbols stream
     (with-descriptor-fields (node enum-value-desc)
-      (format stream "~16A = ~2D;~%" name number))))
+      (format stream "~A = ~2D;~%" name number))))

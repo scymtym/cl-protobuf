@@ -1,6 +1,6 @@
 ;;; target-proto.lisp --- Unit tests for the (textual) proto backend.
 ;;
-;; Copyright (C) 2011 Jan Moringen
+;; Copyright (C) 2011, 2012 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -59,8 +59,8 @@
 	(let ((result   (with-output-to-string (stream)
 			  (emit descriptor `(:proto :stream ,stream))))
 	      (expected (expected-output-for-descriptor descriptor)))
-	(ensure-same
-	 result expected
-	 :test      #'string=
-	 :report    "~@<First mismatch at ~D.~@:>"
-	 :arguments ((mismatch result expected))))))
+	  (ensure-same
+	   result expected
+	   :test      #'string=
+	   :report    "~@<First mismatch at ~D.~@:>"
+	   :arguments ((mismatch result expected))))))

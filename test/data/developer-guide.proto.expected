@@ -1,8 +1,5 @@
-// File Descriptor Set
-// BEGIN File Descriptor Proto
-// Name: developer-guide.proto
+// developer-guide.proto
 package developer_guide;
-// Messages:
 message Test1 {
   required int32 a = 1;
   }
@@ -15,4 +12,3 @@ message Test3 {
 message Test4 {
   repeated int32 d = 4 [packed = true];
   }
-// END File Descriptor Proto
