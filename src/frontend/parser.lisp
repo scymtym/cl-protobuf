@@ -1,6 +1,6 @@
 ;;; parser.lisp --- Parser the textual protocol buffer descriptor syntax.
 ;;
-;; Copyright (C) 2011 Jan Moringen
+;; Copyright (C) 2011, 2012 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -64,14 +64,32 @@
     (let ((package  (second (find-if (curry #'starts-with :package) parser-output)))
 	  (includes (mapcar #'second
 			    (remove-if-not (curry #'starts-with :import)
-					   parser-output))))
+					   parser-output)))
+	  (options  (%children-of-type '(cons (eql option) t) parser-output)))
       (apply #'make-instance 'file-desc
 	     :name         name
 	     :dependency   (coerce includes 'vector)
 	     :message-type (%children-of-type 'message-desc parser-output)
              :enum-type    (%children-of-type 'enum-desc    parser-output)
-	     (when package
-	       (list :package package)))))
+	     (append
+	      (unless (emptyp options)
+		(list :options
+		      (make-array 1
+				  :initial-element (make-file-options options)
+				  :adjustable      t
+				  :fill-pointer    1)))
+	      (when package
+		(list :package package))))))
+
+  (defun make-file-options (options)
+    (let ((java-package         (%find-option "java_package" options))
+	  (java-outer-classname (%find-option "java_outer_classname" options)))
+     (apply #'make-instance 'file-options
+	    (append
+	     (when java-package
+	       (list :java-package (third java-package)))
+	     (when java-outer-classname
+	       (list :java-outer-classname (third java-outer-classname)))))))
 
   (defun make-message (name children)
     (make-instance 'message-desc
