@@ -1,6 +1,6 @@
 ;;; descriptor-functions.lisp --- Extra methods on descriptor classes.
 ;;
-;; Copyright (C) 2011 Jan Moringen
+;; Copyright (C) 2011, 2012 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -92,6 +92,17 @@ nested enum descriptors and the nested message descriptors."))
      file-desc-enum-type file-desc-message-type)
   (generate-descriptor-children message-desc
      message-desc-enum-type message-desc-nested-type))
+
+(defgeneric descriptor-file (descriptor)
+  (:documentation
+   "Return the file descriptor (`file-desc' object) in which the
+message, enum or field descriptor DESCRIPTOR is defined."))
+
+(defmethod descriptor-file ((descriptor file-desc))
+  descriptor)
+
+(defmethod descriptor-file ((descriptor t))
+  (descriptor-file (descriptor-parent descriptor)))
 
 (defgeneric descriptor-class (descriptor)
   (:documentation
@@ -244,3 +255,24 @@ package. Signal an error or return nil."
 			  (error? t))
   "Converter NAME into keyword."
   (find-package1 (make-keyword name) :error? error?))
+
+
+;;; High-level utilities
+;;
+
+(defun dependency-closure (descriptor)
+  "Return a `file-set-desc' object which contains files (`file-desc'
+objects) on which DESCRIPTOR depends. The set of files is determined
+as the transitive closure with respect to field-type dependencies."
+  (bind ((result (make-instance 'file-set-desc))
+	 ((:accessors-r/o (files file-set-desc-file)) result)
+	 ((:flet do-file (file))
+	  (unless (find file files :test #'eq)
+	    (vector-push-extend file files)))
+	 ((:labels do-descriptor (descriptor))
+	  (do-file (descriptor-file descriptor))
+	  (map 'nil (compose #'do-descriptor #'field-type-descriptor)
+	       (remove-if (complement #'field-message?)
+			  (message-desc-field descriptor)))))
+    (do-descriptor descriptor)
+    result))

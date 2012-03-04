@@ -1,6 +1,6 @@
 ;;; package.lisp --- Definition of protocol buffer main package.
 ;;
-;; Copyright (C) 2010, 2011 Jan Moringen
+;; Copyright (C) 2010, 2011, 2012 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -127,6 +127,7 @@
    :descriptor-qualified-name
    :descriptor-parent
    :descriptor-children
+   :descriptor-file
    :descriptor-class)
 
   ;; Field descriptor functions
@@ -144,6 +145,10 @@
   (:export
    :find-descriptor
    :find-package1)
+
+  ;; High-level utilities
+  (:export
+   :dependency-closure)
 
   (:documentation
    "This package contains generic protocol buffer infrastructure."))
