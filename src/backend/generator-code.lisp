@@ -1,7 +1,7 @@
 ;;; generator-code.lisp ---
 ;;
 ;; Copyright (C) 2009, 2010 Georgia Tech Research Corporation
-;; Copyright (C) 2010, 2011 Jan Moringen
+;; Copyright (C) 2010, 2011, 2012 Jan Moringen
 ;;
 ;; Author: Neil T. Dantam
 ;;         Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
@@ -63,7 +63,7 @@ VALUE-FORM of type PROTO-TYPE when stored in field number NUMBER."
         ((eq proto-type :bool)
 	 1)
         ((uvarint-p proto-type)
-         `(binio:uvarint-size ,value-form))
+         `(,(%proto-type->coder :size-of proto-type) ,value-form))
         ((svarint-p proto-type)
          `(binio:svarint-size ,value-form))
         ((eq proto-type :string)
@@ -351,39 +351,40 @@ DESTINATION-FORM."
 ;;; Utility functions
 ;;
 
-(defun %proto-type->coder (direction proto-type)
-  "Return the name of a en- or decoder (depending on DIRECTION) for
-PROTO-TYPE. DIRECTION has to either :ENCODE or :DECODE. PROTO-TYPE can
-be any protocol buffer type but a nested protocol buffer."
-  (check-type direction  (member :encode :decode)
-	      "either :encode or :decode")
-  (check-type proto-type pb::proto-type "a protocol buffer type designator")
+(defun %proto-type->coder (operation proto-type)
+  "Return the name of a size-of, encoder or decoder (depending on
+OPERATION) for PROTO-TYPE. OPERATION has to either :SIZE-OF, :ENCODE
+or :DECODE. PROTO-TYPE can be any protocol buffer type but a nested
+protocol buffer."
+  (check-type operation (member :size-of :encode :decode))
+  (check-type proto-type pb::proto-type
+	      "a protocol buffer type designator")
 
-  (if (keywordp proto-type)
-      (bind (((package name)
-	      (case proto-type
-		((:int32 :uint32 :int64 :uint64 :enum)
-		 '(:binio "UVARINT"))
-		((:sint32 :sint64)
-		 '(:binio "SVARINT"))
-		(:bool
-		 '(:binio "BOOL"))
-		(:fixed32
-		 '(:binio "UINT32-LE"))
-		(:sfixed32
-		 '(:binio "SINT32-LE"))
-		(:fixed64
-		 '(:binio "UINT64-LE"))
-		(:sfixed64
-		 '(:binio "SINT64-LE"))
-		((:double :float)
-		 `(:binio ,(format nil "~A-LE" proto-type)))
-		(:string
-		 `(:pb "STRING"))
-		(:bytes
-		 `(:pb "BYTES"))
-		(t
-		 (error 'no-coder
-			:type proto-type)))))
-	(intern (format nil "~A-~A" direction name) package))
-      (pb::symcat proto-type direction)))
+  (flet ((make-name (package &rest args)
+	   (format-symbol package "~{~A~^-~}" args)))
+    (etypecase proto-type
+      ((eql :enum)
+       (make-name :binio operation "UVARINT"))
+      ((member :int32 :uint32 :int64 :uint64)
+       (make-name :binio operation (format nil "VAR~A" proto-type)))
+      ((member :sint32 :sint64)
+       (make-name :binio operation "SVARINT"))
+      ((eql :bool)
+       (make-name :binio operation "BOOL"))
+      ((eql :fixed32)
+       (make-name :binio operation "UINT32-LE"))
+      ((eql :sfixed32)
+       (make-name :binio operation "SINT32-LE"))
+      ((eql :fixed64)
+       (make-name :binio operation "UINT64-LE"))
+      ((eql :sfixed64)
+       (make-name :binio operation "SINT64-LE"))
+      ((member :double :float)
+       (make-name :binio operation proto-type "LE"))
+      ((member :string :bytes)
+       (make-name :pb operation proto-type))
+      (symbol
+       (make-name (symbol-package proto-type) proto-type operation))
+      (t
+       (error 'no-coder
+	      :type proto-type)))))

@@ -1,7 +1,7 @@
 ;;; binio.lisp --- Binary encoding and decoding of Lisp types.
 ;;
 ;; Copyright (C) 2009 Georgia Tech Research Corporation
-;; Copyright (C) 2011 Jan Moringen
+;; Copyright (C) 2011, 2012 Jan Moringen
 ;;
 ;; Author: Neil T. Dantam
 ;;         Jan Moringen <jmoringe@techfak.uni-bielefe.de>
@@ -324,6 +324,69 @@
      for accum = piece then (dpb piece (byte 7 k) accum)
      when (not (logbitp 7 octet))
      return (values accum i)))
+
+
+;;; Width- and sign-specified types
+;;
+
+(macrolet
+    ((define-coders (size signed?)
+       (let ((size-of-name (format-symbol *package* "SIZE-OF-VAR~:[U~;~]INT~D"
+					  signed? size))
+	     (decoder-name (format-symbol *package* "DECODE-VAR~:[U~;~]INT~D"
+					  signed? size))
+	     (encoder-name (format-symbol *package* "ENCODE-VAR~:[U~;~]INT~D"
+					  signed? size))
+	     (byte-type    (list (if signed? 'signed-byte 'unsigned-byte) size))
+	     (mask/size    (1- (ash 1 (1- size))))
+	     (mask/64      (1- (ash 1 64))))
+	 `(progn
+	    (declaim (ftype (function (,byte-type)
+				      non-negative-fixnum)
+			    ,size-of-name))
+
+	    (defun ,size-of-name (value)
+	      (declare (inline uvarint-size))
+	      (let ((raw ,(if signed? `(logand value ,mask/64) 'value)))
+		(uvarint-size raw)))
+
+	    (declaim (ftype (function (octet-vector
+				       &optional
+				       non-negative-fixnum)
+				      (values ,byte-type non-negative-fixnum))
+			    ,decoder-name))
+
+	    (defun ,decoder-name (buffer &optional (start 0))
+	      (declare (inline decode-uvarint))
+	      (multiple-value-bind (raw length)
+		  (decode-uvarint buffer start)
+		(values
+		 ,(if signed?
+		      `(if (plusp (ldb (byte 1 ,(1- size)) raw))
+			   (- (- ,(1+ mask/size) (logand raw ,mask/size)))
+			   raw)
+		      'raw)
+		 length)))
+
+	    (declaim (ftype (function (,byte-type
+				       &optional
+				       octet-vector
+				       non-negative-fixnum)
+				      (values non-negative-fixnum octet-vector))
+			    ,encoder-name))
+
+	    (defun ,encoder-name (value
+				  &optional
+				  (buffer (make-octet-vector (,size-of-name value)))
+				  (start  0))
+	      (declare (inline encode-uvarint))
+	      (let ((raw ,(if signed? `(logand value ,mask/64) 'value)))
+		(encode-uvarint raw buffer start)))))))
+
+  (define-coders 32 t)
+  (define-coders 32 nil)
+  (define-coders 64 t)
+  (define-coders 64 nil))
 
 
 ;;; Signed varint type

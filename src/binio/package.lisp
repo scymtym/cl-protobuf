@@ -1,7 +1,7 @@
 ;;; package.lisp --- Package definition for binio.
 ;;
 ;; Copyright (C) 2009 Georgia Tech Research Corporation
-;; Copyright (C) 2010, 2011 Jan Moringen
+;; Copyright (C) 2010, 2011, 2012 Jan Moringen
 ;;
 ;; Author: Neil T. Dantam
 ;;         Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
@@ -72,10 +72,16 @@
 
   ;; Variable-width en- and decoders
   (:export
-   :encode-svarint   :decode-svarint :svarint-size
-   :encode-uvarint   :decode-uvarint :uvarint-size
+   :encode-svarint   :decode-svarint   :svarint-size
+   :encode-uvarint   :decode-uvarint   :uvarint-size
 
-   :encode-utf8      :decode-utf8    :utf8-size)
+   :encode-varint32  :decode-varint32  :size-of-varint32
+   :encode-varuint32 :decode-varint32  :size-of-varint32
+
+   :encode-varint64  :decode-varint64  :size-of-varint64
+   :encode-varuint64 :decode-varuint64 :size-of-varuint64
+
+   :encode-utf8      :decode-utf8      :utf8-size)
   (:documentation
    "This package contains functions for binary conversion between
 fundamental Lisp types and the corresponding protocol buffer types."))

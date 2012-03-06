@@ -1,6 +1,6 @@
 ;;; binio.lisp --- Unit tests for the binio module.
 ;;
-;; Copyright (C) 2011 Jan Moringen
+;; Copyright (C) 2011, 2012 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -157,6 +157,16 @@
 (define-coder-suite uvarint nil
   :random-generator a-non-negative-integer)
 (define-coder-suite svarint nil
+  :random-generator an-integer)
+
+(define-coder-suite varuint32 nil
+  :random-generator a-non-negative-integer)
+(define-coder-suite varint32 nil
+  :random-generator an-integer)
+
+(define-coder-suite varuint64 nil
+  :random-generator a-non-negative-integer)
+(define-coder-suite varint64 nil
   :random-generator an-integer)
 
 
