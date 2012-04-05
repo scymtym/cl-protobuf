@@ -1,6 +1,6 @@
 ;;; macros.lisp --- Macros for backends.
 ;;
-;; Copyright (C) 2011 Jan Moringen
+;; Copyright (C) 2011, 2012 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -88,7 +88,8 @@ emit method for node ~S and target ~S.~@:>"
   "During the execution of BODY, set the current target type to
 TARGET-VAR and push NODE-VAR onto the context stack."
   (with-unique-names (old-target-var)
-    `(let ((,old-target-var (context-target *context*)))
+    `(let* ((*context* (or *context* (make-instance 'context)))
+	    (,old-target-var (context-target *context*)))
        (setf (context-target *context*) ,target-var)
        (push ,node-var (context-stack *context*))
        (unwind-protect

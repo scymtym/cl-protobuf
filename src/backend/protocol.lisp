@@ -1,6 +1,6 @@
 ;;; protocol.lisp --- Protocol of the protocol buffer compiler backend.
 ;;
-;; Copyright (C) 2010, 2011 Jan Moringen
+;; Copyright (C) 2010, 2011, 2012 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -89,7 +89,7 @@ state of a particular emission process. This state consists of:
 
 (declaim (special *context*))
 
-(defvar *context* (make-instance 'context)
+(defvar *context* nil
   "This variable holds the emission context of the current thread.")
 
 
