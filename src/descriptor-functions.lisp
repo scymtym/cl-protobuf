@@ -1,6 +1,6 @@
 ;;; descriptor-functions.lisp --- Extra methods on descriptor classes.
 ;;
-;; Copyright (C) 2011, 2012 Jan Moringen
+;; Copyright (C) 2011, 2012, 2014 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -64,6 +64,12 @@ message descriptor for which the qualified name is of the form
 (defmethod descriptor-qualified-name ((descriptor file-desc))
   (file-desc-package descriptor))
 
+(defvar *descriptor-qualified-name* (make-hash-table :test #'eq))
+
+(defmethod descriptor-qualified-name ((descriptor t))
+  (or (gethash descriptor *descriptor-qualified-name*)
+      (error "~@<~A does not have a qualified name.~@:>" descriptor)))
+
 (defgeneric descriptor-parent (descriptor)
   (:documentation
    "Return the parent descriptor of DESCRIPTOR. For example, the
@@ -72,6 +78,12 @@ descriptor."))
 
 (defmethod descriptor-parent ((descriptor file-set-desc))
   nil)
+
+(defvar *descriptor-parent* (make-hash-table :test #'eq))
+
+(defmethod descriptor-parent ((descriptor t))
+  (or (gethash descriptor *descriptor-parent*)
+      (error "~@<~A does not have a parent.~@:>" descriptor)))
 
 (defgeneric descriptor-children (descriptor)
   (:documentation
@@ -109,12 +121,11 @@ message, enum or field descriptor DESCRIPTOR is defined."))
    "Return the class that has been generated based on DESCRIPTOR or
 nil if there is no such class."))
 
-(defmethod no-applicable-method
-    ((generic-function (eql (fdefinition 'descriptor-class)))
-     &rest args)
-  "Return nil, if there is no class for the descriptor."
-  (declare (ignore args))
-  nil)
+(defvar *descriptor-class* (make-hash-table :test #'eq))
+
+(defmethod descriptor-class ((descriptor t))
+  (or (gethash descriptor *descriptor-class*)
+      (error "~@<No class for descriptor ~A.~@:>" descriptor)))
 
 
 ;;; `print-object' methods
@@ -206,6 +217,11 @@ nil if there is no such class."))
    "Return the descriptor instance that describes the type of
 DESCRIPTOR. DESCRIPTOR has to be a field descriptor."))
 
+(defvar *field-type-descriptor* (make-hash-table :test #'eq))
+
+(defmethod field-type-descriptor ((descriptor t))
+  (gethash descriptor *field-type-descriptor*))
+
 
 ;;; Finding descriptors
 ;;
@@ -218,20 +234,18 @@ DESCRIPTOR. DESCRIPTOR has to be a field descriptor."))
 name is QUALIFIED-NAME. When ERROR? is non-nil, signal an error if no
 such descriptor can be found, otherwise return nil."))
 
-(defmethod no-applicable-method
-    ((generic-function (eql (fdefinition 'find-descriptor)))
-     &rest args)
-  "The specified name did not designate a protocol buffer
-descriptor. Signal an error or return nil."
-  (bind (((qualified-name &key error?) args))
-    (when error?
-      (error "No such descriptor: ~A" qualified-name))))
-
 (defmethod find-descriptor ((qualified-name string)
 			    &key
 			    (error? t))
   "Convert QUALIFIED-NAME into keyword."
   (find-descriptor (make-keyword qualified-name) :error? error?))
+
+(defvar *find-descriptor* (make-hash-table :test #'eq))
+
+(defmethod find-descriptor ((name symbol) &key error?)
+  (or (gethash name *find-descriptor*)
+      (when error?
+        (error "No such descriptor: ~A" name))))
 
 (defgeneric find-package1 (name
 			   &key
@@ -241,20 +255,18 @@ descriptor. Signal an error or return nil."
 whose package name is NAME. When ERROR? is non-nil, signal an error if
 no such descriptor can be found, otherwise return nil."))
 
-(defmethod no-applicable-method
-    ((generic-function (eql (fdefinition 'find-package1)))
-     &rest args)
-  "The specified name did not designate a protocol buffer
-package. Signal an error or return nil."
-  (bind (((name &key error?) args))
-    (when error?
-      (error "No such package: ~A" name))))
-
 (defmethod find-package1 ((name string)
 			  &key
 			  (error? t))
   "Converter NAME into keyword."
   (find-package1 (make-keyword name) :error? error?))
+
+(defvar *find-package1* (make-hash-table :test #'eq))
+
+(defmethod find-package1 ((name symbol) &key error?)
+  (or (gethash name *find-package1*)
+      (when error?
+        (error "No such package: ~A" name))))
 
 
 ;;; High-level utilities

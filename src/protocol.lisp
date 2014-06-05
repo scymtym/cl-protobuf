@@ -2,7 +2,7 @@
 ;;
 ;; Copyright (C) 2008 Google Inc.
 ;; Copyright (C) 2009 Georgia Tech Research Corporation
-;; Copyright (C) 2010, 2011 Jan Moringen
+;; Copyright (C) 2010, 2011, 2014 Jan Moringen
 ;;
 ;; Author: Neil T. Dantam
 ;;         Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
@@ -46,6 +46,15 @@
   (:documentation
    "Return the protocol buffer descriptor according to which OBJECT
 was generated."))
+
+(defvar *message-descriptor* (make-hash-table :test #'eq))
+
+(defmethod message-descriptor ((object class))
+  (or (gethash object *message-descriptor*)
+      (error "~@<No descriptor for message ~A~@:>" object)))
+
+(defmethod message-descriptor ((object t))
+  (class-of object))
 
 
 ;;; Protocol buffer protocol ;)

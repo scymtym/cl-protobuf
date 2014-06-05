@@ -1,6 +1,6 @@
 ;;; target-class.lisp --- Generate Lisp classes from descriptors.
 ;;
-;; Copyright (C) 2010, 2011 Jan Moringen
+;; Copyright (C) 2010, 2011, 2014 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -103,11 +103,8 @@ name resolution."))
 	(eval `(defclass ,name1 () ,(map 'list #'recur field)))
 
 	;; Generate descriptor retrieval method.
-	(eval `(progn
-		 (defmethod message-descriptor ((object ,name1))
-		   ,node)
-		 (defmethod descriptor-class ((descriptor (eql ,node)))
-		   ,(find-class name1))))
+        (setf (gethash name1 pb::*message-descriptor*) node
+              (gethash node pb::*descriptor-class*) (find-class name1))
 
 	;; Export the class name, if requested.
 	(when export?

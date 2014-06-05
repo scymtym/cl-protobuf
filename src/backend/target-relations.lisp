@@ -1,6 +1,6 @@
 ;;; target-relations.lisp --- Generation of methods that implement relations.
 ;;
-;; Copyright (C) 2011 Jan Moringen
+;; Copyright (C) 2011, 2014 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -64,17 +64,10 @@ relations have been emitted for all descriptors."))
 	    (setf (aref (pb::file-set-desc-file container) index) node)
 	    (vector-push-extend node (pb::file-set-desc-file container)))
 
-	;; Generate relation methods for NODE.
-	(eval
-	 `(progn
-	    (defmethod descriptor-qualified-name ((descriptor (eql ,node)))
-	      ,package)
-	    (defmethod descriptor-parent ((descriptor (eql ,node)))
-	      ,container)
-	    (defmethod find-descriptor ((name (eql ,(make-keyword name)))
-					&key error?)
-	      (declare (ignore error?))
-	      ,node))))
+	;; Register relations for NODE.
+	(setf (gethash node pb::*descriptor-qualified-name*)	  package
+	      (gethash node pb::*descriptor-parent*)		  container
+	      (gethash (make-keyword name) pb::*find-descriptor*) node))
 
       ;; Recurse into child nodes.
       (call-next-method))))
@@ -89,17 +82,10 @@ relations have been emitted for all descriptors."))
 	      (bind ((qualified-name (make-qualified-name
 				      (descriptor-qualified-name parent) name)))
 
-		;; Generate relation methods for NODE.
-		(eval
-		 `(progn
-		    (defmethod descriptor-qualified-name ((descriptor (eql ,node)))
-		      ,qualified-name)
-		    (defmethod descriptor-parent ((descriptor (eql ,node)))
-		      ,parent)
-		    (defmethod find-descriptor ((name (eql ,(make-keyword qualified-name)))
-						&key error?)
-		      (declare (ignore error?))
-		      ,node)))
+		;; Register relations for NODE.
+		(setf (gethash node pb::*descriptor-qualified-name*)		    qualified-name
+		      (gethash node pb::*descriptor-parent*)			    parent
+		      (gethash (make-keyword qualified-name) pb::*find-descriptor*) node)
 
 		;; Recurse into children.
 		(call-next-method)))))))
@@ -128,8 +114,7 @@ relations have been emitted for all descriptors."))
 
 	  ;; When the type of NODE, TYPE, is a message, associate TYPE
 	  ;; by means of a method on `field-type-descriptor'.
-	  (eval `(defmethod field-type-descriptor ((descriptor (eql ,node)))
-		   ,type)))))))
+	  (setf (gethash node pb::*field-type-descriptor*) type))))))
 
 
 ;;; Utility functions
@@ -140,13 +125,8 @@ relations have been emitted for all descriptors."))
 creating an empty `file-set-desc' instance, if necessary."
   (or (find-package1 name :error? nil)
       (let ((package (make-instance 'file-set-desc)))
-	(eval `(progn (defmethod descriptor-qualified-name ((descriptor (eql ,package)))
-			,name)
-		      (defmethod find-package1 ((name (eql ,(make-keyword name)))
-						&key
-						  error?)
-			(declare (ignore error?))
-			,package)))
+	(setf (gethash package pb::*descriptor-qualified-name*) name
+	      (gethash (make-keyword name) pb::*find-package1*) package)
 	package)))
 
 (defun make-qualified-name (parent-name name)
