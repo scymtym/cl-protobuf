@@ -50,11 +50,11 @@ was generated."))
 (defvar *message-descriptor* (make-hash-table :test #'eq))
 
 (defmethod message-descriptor ((object class))
-  (or (gethash object *message-descriptor*)
+  (or (gethash (class-name object) *message-descriptor*)
       (error "~@<No descriptor for message ~A~@:>" object)))
 
 (defmethod message-descriptor ((object t))
-  (class-of object))
+  (message-descriptor (class-of object)))
 
 
 ;;; Protocol buffer protocol ;)
