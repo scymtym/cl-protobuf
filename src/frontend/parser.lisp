@@ -1,6 +1,6 @@
 ;;; parser.lisp --- Parser the textual protocol buffer descriptor syntax.
 ;;
-;; Copyright (C) 2011, 2012 Jan Moringen
+;; Copyright (C) 2011, 2012, 2013, 2016 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -166,8 +166,9 @@
       `(yacc:define-parser *proto-parser*
 	 (:start-symbol proto*)
 	 (:terminals    (,@(map 'list #'%intern-char +punctuation+)
-			   :type :ident :%string :%number :%bool
-			   ,@+keywords+))
+			 :type :ident :%string :%number :%bool
+			 ,@+keywords+))
+	 (:muffle-conflicts t)
 	 ,@rules)))
 
   (define-parser
@@ -195,7 +196,7 @@
        (%index-filter #'make-option 0 2) ))
 
     (message->
-     ( :message :ident message-body->
+     ( :message ident-even-if-keyword-> message-body->
        (%index-filter #'make-message 1 2) ))
 
     (message-body->
@@ -269,8 +270,8 @@
      :ident :keyword-as-string) ;; interpreted by the macro
 
     (dotted-ident->
-     :ident
-     ( :ident :FULL_STOP dotted-ident->
+     ident-even-if-keyword->
+     ( ident-even-if-keyword-> :FULL_STOP dotted-ident->
        (%index-filter (curry #'format nil "~A.~A") 0 2 )))))
 
 (defun parse (source)
