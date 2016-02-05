@@ -1,6 +1,6 @@
 ;;; generator-class.lisp ---
 ;;
-;; Copyright (C) 2010, 2011 Jan Moringen
+;; Copyright (C) 2010, 2011, 2015, 2016 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -92,7 +92,7 @@
      ((enum-type-p type)
       (if default-supplied?
 	  (make-keyword (pb::->lisp-name default))
-	  nil))
+	  (values nil t)))
      ((integer-type-p type)
       (if default-supplied?
 	  (read-from-string default)
@@ -131,14 +131,17 @@ packed~] type ~S"
 		      (default nil default-supplied?))
   (let ((repeated? (eq label :repeated))
 	(optional? (eq label :optional)))
-    `(,name
-      :initarg  ,(make-keyword name)
-      :type     ,(proto-type->lisp-type type repeated? optional?)
-      ,@(when class-name
-	      `(:accessor ,(%make-lisp-accessor-name class-name name)))
-      :initform ,(apply #'generate-initform type repeated? packed?
-			(when default-supplied?
-			  (list :default default))))))
+    (multiple-value-bind (initform no-initform?)
+        (apply #'generate-initform type repeated? packed?
+               (when default-supplied?
+                 (list :default default)))
+     `(,name
+       :initarg  ,(make-keyword name)
+       :type     ,(proto-type->lisp-type type repeated? optional?)
+       ,@(when class-name
+           `(:accessor ,(%make-lisp-accessor-name class-name name)))
+       ,@(unless no-initform?
+           `(:initform ,initform))))))
 
 
 ;;; Utility functions
