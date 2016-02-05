@@ -140,13 +140,13 @@
     (:double                     'cl:double-float)
     (:float                      'cl:single-float)
     (:string                     'cl:string)
-    (:bytes                      '(cl:simple-array (cl:unsigned-byte 8) *))
+    (:bytes                      '(cl:simple-array (cl:unsigned-byte 8) (*)))
     ((enum-type-p type)          type)   ;; enum
     (t                           type))) ;; message
 
 (defun proto-type->lisp-type (type &optional repeated? optional?)
   (flet ((maybe-repeated (base-type)
-	   (if repeated? `(array ,base-type *) base-type))
+	   (if repeated? `(array ,base-type (*)) base-type))
 	 (maybe-optional (base-type)
 	   (if optional? `(or null ,base-type) base-type)))
     (maybe-optional
