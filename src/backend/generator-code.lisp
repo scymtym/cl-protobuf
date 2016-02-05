@@ -1,7 +1,7 @@
 ;;; generator-code.lisp ---
 ;;
 ;; Copyright (C) 2009, 2010 Georgia Tech Research Corporation
-;; Copyright (C) 2010, 2011, 2012 Jan Moringen
+;; Copyright (C) 2010, 2011, 2012, 2014 Jan Moringen
 ;;
 ;; Author: Neil T. Dantam
 ;;         Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
@@ -316,6 +316,12 @@ DESTINATION-FORM."
    :repeated? repeated?
    :packed?   packed?))
 
+(defun skip-field (buffer offset number wire-type class-name)
+  (signal 'unhandled-field-number
+          :number number
+          :class  class-name)
+  (pb::packed-field-size wire-type buffer offset))
+
 (defun generate-unpack-method (name fields)
   "Generate code for the UNPACK method"
   (with-unique-names (buffer-var object-var start-var end-var
@@ -343,9 +349,9 @@ DESTINATION-FORM."
 		      `((= ,number-var ,number) ,@body)))
 		  fields)
 	   (t
-	    (signal 'unhandled-field-number
-		    :number ,number-var
-		    :class  ',name)))))))
+	    (incf ,offset-var (skip-field ,buffer-var ,offset-var
+                                          ,number-var ,wire-type-var
+                                          ',name))))))))
 
 
 ;;; Utility functions
