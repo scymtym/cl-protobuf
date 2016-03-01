@@ -1,6 +1,6 @@
 ;;; proto.lisp --- Interface for the proto parser.
 ;;
-;; Copyright (C) 2011 Jan Moringen
+;; Copyright (C) 2011, 2016 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -38,7 +38,8 @@
 (defgeneric load/text (source
 		       &key
 		       pathname
-		       dependency-handler)
+		       dependency-handler
+		       cache)
   (:documentation
    "Parse content of SOURCE as textual protocol buffer description.
 Return a `file-set-desc' instance that contains the complete
@@ -61,10 +62,19 @@ http://code.google.com/apis/protocolbuffers/docs/proto.html."))
 ;;; Default implementation
 ;;
 
+(defmethod load/text :around ((source pathname)
+                              &key
+                              (cache *cache*)
+                              &allow-other-keys)
+  (if cache
+      (ensure-gethash (truename source) cache (call-next-method))
+      (call-next-method)))
+
 (defmethod load/text ((source stream)
 		      &key
 		      (pathname           "<stream>")
-		      (dependency-handler #'load-from-path))
+		      (dependency-handler #'load-from-path)
+		      &allow-other-keys)
   (let* ((file (make-file-desc pathname (parse source)))
 	 (set  (make-instance
 		'file-set-desc
@@ -84,7 +94,8 @@ http://code.google.com/apis/protocolbuffers/docs/proto.html."))
 (defmethod load/text ((source string)
 		      &key
 		      (pathname           "<string>")
-		      (dependency-handler #'load-from-path))
+		      (dependency-handler #'load-from-path)
+		      &allow-other-keys)
   (with-input-from-string (stream source)
     (load/text stream
 	       :pathname           pathname
@@ -95,7 +106,8 @@ http://code.google.com/apis/protocolbuffers/docs/proto.html."))
 		      (pathname           (format nil "~A.~A"
 						  (pathname-name source)
 						  (pathname-type source)))
-		      (dependency-handler #'load-from-path))
+		      (dependency-handler #'load-from-path)
+		      &allow-other-keys)
   (with-input-from-file (stream source)
     (load/text stream
 	       :pathname           pathname

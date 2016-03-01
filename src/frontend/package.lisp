@@ -1,6 +1,6 @@
 ;;; package.lisp --- Definition of the frontend package.
 ;;
-;; Copyright (C) 2010, 2011 Jan Moringen
+;; Copyright (C) 2010, 2011, 2016 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -63,6 +63,7 @@
 
   ;; Variables
   (:export
+   :*cache*
    :*proto-load-path*)
 
   ;; S-expr frontend

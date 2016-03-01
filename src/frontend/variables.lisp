@@ -1,6 +1,6 @@
 ;;; variables.lisp --- Variables used in the protocol buffer compiler frontend.
 ;;
-;; Copyright (C) 2011 Jan Moringen
+;; Copyright (C) 2011, 2016 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -18,6 +18,8 @@
 ;; along with this program. If not, see <http://www.gnu.org/licenses>.
 
 (in-package :protocol-buffer.frontend)
+
+(defvar *cache* nil)
 
 (declaim (special *proto-load-path*))
 
