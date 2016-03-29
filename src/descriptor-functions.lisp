@@ -1,6 +1,6 @@
 ;;; descriptor-functions.lisp --- Extra methods on descriptor classes.
 ;;
-;; Copyright (C) 2011, 2012, 2014 Jan Moringen
+;; Copyright (C) 2011, 2012, 2014, 2016 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -116,16 +116,17 @@ message, enum or field descriptor DESCRIPTOR is defined."))
 (defmethod descriptor-file ((descriptor t))
   (descriptor-file (descriptor-parent descriptor)))
 
-(defgeneric descriptor-class (descriptor)
+(defgeneric descriptor-class (descriptor &key error?)
   (:documentation
    "Return the class that has been generated based on DESCRIPTOR or
 nil if there is no such class."))
 
 (defvar *descriptor-class* (make-hash-table :test #'eq))
 
-(defmethod descriptor-class ((descriptor t))
+(defmethod descriptor-class ((descriptor t) &key (error? t))
   (or (gethash descriptor *descriptor-class*)
-      (error "~@<No class for descriptor ~A.~@:>" descriptor)))
+      (when error?
+        (error "~@<No class for descriptor ~A.~@:>" descriptor))))
 
 
 ;;; `print-object' methods
