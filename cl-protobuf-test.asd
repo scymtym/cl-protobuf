@@ -65,7 +65,8 @@
 		 :default-component-class asdf::protocol-buffer-descriptor
 		 :components ((:file "addressbook")
 			      (:file "developer-guide")
-			      (:file "empty")))
+			      (:file "empty")
+			      (:file "crlf")))
 
 		(:module     "syntax-errors"
 		 :pathname   "test/data/syntax-errors"

@@ -1,6 +1,6 @@
 ;;; lexer.lisp --- Lexer for textual protocol buffer descriptor syntax.
 ;;
-;; Copyright (C) 2011 Jan Moringen
+;; Copyright (C) 2011-2016 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -35,7 +35,7 @@
 
 (in-package :protocol-buffer.frontend)
 
-(defvar +ignored-chars+    (coerce '(#\Newline #\Space #\Tab #\/) 'string))
+(defvar +ignored-chars+    (coerce '(#\Newline #\Return #\Space #\Tab #\/) 'string))
 
 (defvar +number-chars+     "e01234567890+-.")
 
