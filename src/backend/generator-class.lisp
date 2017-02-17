@@ -1,6 +1,6 @@
 ;;; generator-class.lisp ---
 ;;
-;; Copyright (C) 2010, 2011, 2015, 2016 Jan Moringen
+;; Copyright (C) 2010-2017 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -91,7 +91,7 @@
 	  0s0))
      ((enum-type-p type)
       (if default-supplied?
-	  (make-keyword (pb::->lisp-name default))
+	  (values (make-keyword (pb::->lisp-name default)))
 	  (values nil t)))
      ((integer-type-p type)
       (if default-supplied?
