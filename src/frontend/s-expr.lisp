@@ -1,6 +1,6 @@
 ;;; s-expr.lisp ---
 ;;
-;; Copyright (C) 2010, 2011 Jan Moringen
+;; Copyright (C) 2010-2017 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -53,7 +53,9 @@
 	   &rest args
 	   &key
 	   optional required repeated
-	   packed) form))
+	   packed
+           (default #1='#:no-default)) ; work around metabang-bind bug: https://github.com/gwkkwg/metabang-bind/issues/9
+          form))
     (declare (ignore optional required repeated))
     (let ((labels (intersection args '(:optional :required :repeated))))
       `(make-instance 'pb::field-desc
@@ -68,6 +70,8 @@
 		      ,@(unless (keywordp type)
 				`(:type-name ,(substitute
 					       #\. #\/ (string type))))
+                      ,@(unless (eq default #1#)
+                          `(:default-value ,default))
 		      :number  ,position
 		      :label   ',(or (first labels) :required)
 		      :options (make-instance 'pb::field-options
