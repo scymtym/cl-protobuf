@@ -1,6 +1,6 @@
 ;;; macros.lisp --- Macros for backends.
 ;;
-;; Copyright (C) 2011, 2012 Jan Moringen
+;; Copyright (C) 2011-2017 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -130,6 +130,6 @@ which has to be an instance of CLASS."
 		       (closer-mop:class-slots (find-class class))))
 	 (readers (let ((*package* (find-package :pb)))
 		    (map 'list (curry #'symbolicate class "-") names))))
-    `(bind (((:accessors-r/o ,@(map 'list #'list names readers)) ,instance))
+    `(bind (((:accessors ,@(map 'list #'list names readers)) ,instance))
        (declare (ignorable ,@names))
        ,@body)))
