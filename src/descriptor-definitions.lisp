@@ -2,7 +2,7 @@
 ;;
 ;; Copyright (C) 2008 Google Inc.
 ;; Copyright (C) 2009 Georgia Tech Research Corporation
-;; Copyright (C) 2010, 2011 Jan Moringen
+;; Copyright (C) 2010, 2011, 2017 Jan Moringen
 ;; All rights reserved.
 ;;
 ;; Author: Neil T. Dantam
@@ -82,9 +82,10 @@
 
 (:message field-options
   (:enum  ctype
+          (:string       0)
 	  (:cord         1)
 	  (:string-piece 2))
-  (:field ctype         field-options/ctype     1 :optional t)
+  (:field ctype         field-options/ctype     1 :optional t :default "STRING")
   (:field packed        :bool                   2 :optional t)
   (:field experimental-map-key :string          9 :optional t)
   (:field uninterpreted-option uninterpreted-option 999 :repeated t)

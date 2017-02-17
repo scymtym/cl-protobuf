@@ -2,7 +2,7 @@
 ;;
 ;; Copyright (C) 2008 Google Inc.
 ;; Copyright (C) 2009 Georgia Tech Research Corporation
-;; Copyright (C) 2010, 2011 Jan Moringen
+;; Copyright (C) 2010-2017 Jan Moringen
 ;;
 ;; Author: Neil T. Dantam
 ;;         Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
@@ -57,11 +57,15 @@ the descriptor classes defined."
 	  (bind (((name1 type _
 		   &rest args
 		   &key
-		   optional required repeated packed) spec)
+		   optional required repeated packed
+                   (default nil default?))
+                  spec)
 		 (labels (intersection args '(:optional :required :repeated)))
 		 (label  (or (first labels) :required)))
 	    (declare (ignore optional required repeated))
-	    (pbb::generate-slot name1 type label packed :class-name name))))
+	    (apply #'pbb::generate-slot name1 type label packed
+                   :class-name name
+                   (when default? (list :default default))))))
     (handler-bind
 	(#+sbcl (sb-c::redefinition-warning #'muffle-warning))
       (eval
