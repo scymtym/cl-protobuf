@@ -1,6 +1,6 @@
 ;;; cl-protobuf-test.asd ---
 ;;
-;; Copyright (C) 2010-2016 Jan Moringen
+;; Copyright (C) 2010-2017 Jan Moringen
 ;;
 ;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 ;;
@@ -46,7 +46,7 @@
   :author      "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :maintainer  "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
   :version     "0.2.0"
-  :license     "Modified BSD License; see COPYING file for details."
+  :license     "Modified BSD License" ; see COPYING file for details.
   :description "Unit tests for the cl-protobuf system"
   :defsystem-depends-on (:cl-protobuf)
   :depends-on  (:cl-protobuf
